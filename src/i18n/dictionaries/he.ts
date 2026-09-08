@@ -88,6 +88,11 @@ export const he = {
     coverageVerifiedTemplate: 'מתוכם {count} יעדים שאנחנו מאמתים',
     noFullCoverage:
       'אף חבילה בודדת לא מכסה את כל היעדים שבחרתם. הצירוף למטה מכסה אותם יחד.',
+    emptyTitle: 'לאן טסים?',
+    emptyBody:
+      'בחרו יעד אחד או יותר כדי להשוות חבילות. אפשר להוסיף כמה יעדים לאותו טיול — נמצא גם חבילה אחת שמכסה את כולם וגם צירוף זול יותר.',
+    daysHint: 'כמה ימים בכל יעד? בלי זה נניח שבוע לכל אחד.',
+    assumedDaysTemplate: 'הנחנו {days} ימים לכל יעד. עדכנו את הימים כדי לדייק.',
     chooseFirst: 'בחרו יעד כדי להשוות חבילות',
   },
   personalization: {
@@ -180,6 +185,7 @@ export const he = {
   results: {
     summaryTemplate: 'מצאנו {plans} חבילות מ‑{providers} ספקים',
     tailoredTemplate: 'מותאם ל‑{days} ימים · שימוש {usage} · כ‑{gb}GB',
+    legEstimateTemplate: '{country} · {days} {unit} ≈ {gb}GB',
     defaultEstimate: 'הערכה כללית — התאימו לטיול שלכם כדי לדייק את ההמלצה',
     change: 'שנה',
     empty: 'אין עדיין חבילות ליעד הזה.',

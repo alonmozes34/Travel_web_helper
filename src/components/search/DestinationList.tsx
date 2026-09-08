@@ -30,7 +30,10 @@ export function DestinationList({
 }) {
   if (destinations.length === 0) return null;
 
+  const anyMissingDays = destinations.some((destination) => destination.days === undefined);
+
   return (
+    <>
     <ul className="mt-3 flex max-w-[640px] flex-wrap gap-2">
       {destinations.map((destination, index) => {
         const country = byCode.get(destination.countryCode);
@@ -39,7 +42,7 @@ export function DestinationList({
         return (
           <li
             key={destination.countryCode}
-            className="flex items-center gap-2 rounded-full border border-line bg-surface ps-3 pe-1.5 py-1"
+            className="flex min-h-12 items-center gap-2 rounded-full border border-line bg-surface ps-3 pe-1.5"
           >
             <span aria-hidden="true">{country?.flag}</span>
             <span className="text-[0.9375rem] font-semibold">{name}</span>
@@ -64,7 +67,7 @@ export function DestinationList({
                   };
                   onChange(next);
                 }}
-                className="tnum w-11 rounded-sm border border-line bg-surface px-1.5 py-0.5 text-center text-[0.8125rem] text-ink"
+                className="tnum h-11 w-14 rounded-sm border border-line bg-surface px-1.5 text-center text-[0.9375rem] text-ink"
               />
               <Ltr>{dict.search.daysUnit}</Ltr>
             </label>
@@ -72,7 +75,7 @@ export function DestinationList({
             <button
               type="button"
               onClick={() => onChange(destinations.filter((_, i) => i !== index))}
-              className="inline-flex size-8 items-center justify-center rounded-full text-ink-3 hover:bg-surface-2"
+              className="inline-flex size-11 items-center justify-center rounded-full text-ink-3 hover:bg-surface-2"
             >
               <span aria-hidden="true">✕</span>
               <span className="sr-only">{interpolate(dict.search.removeTemplate, { country: name })}</span>
@@ -81,6 +84,10 @@ export function DestinationList({
         );
       })}
     </ul>
+    {anyMissingDays ? (
+      <p className="mt-2 max-w-[640px] text-[0.8125rem] text-ink-3">{dict.search.daysHint}</p>
+    ) : null}
+    </>
   );
 }
 

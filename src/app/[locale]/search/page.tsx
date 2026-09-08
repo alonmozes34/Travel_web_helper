@@ -81,6 +81,15 @@ export default async function SearchPage({
       </section>
 
       <Container className="py-10">
+        {profile.destinations.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-line bg-surface p-8 text-center">
+            <p className="font-head text-lg font-semibold">{dict.search.emptyTitle}</p>
+            <p className="mx-auto mt-2 max-w-[52ch] text-[0.9375rem] text-ink-2">
+              {dict.search.emptyBody}
+            </p>
+          </div>
+        ) : (
+          <>
         <MockDataNotice dict={dict} className="max-w-[80ch]" />
 
         <p className="mt-6 text-[0.9375rem] text-ink-2">
@@ -91,7 +100,7 @@ export default async function SearchPage({
             })}
           </strong>
         </p>
-        <p className="mt-1 mb-6 text-[0.8125rem] text-ink-2">
+        <p className="mt-1 text-[0.8125rem] text-ink-2">
           {estimate.isDefault ? (
             dict.results.defaultEstimate
           ) : (
@@ -104,6 +113,27 @@ export default async function SearchPage({
             </span>
           )}
         </p>
+
+        {/* On a multi-stop trip the total is not what a traveller can act on;
+            what each stop needs is. */}
+        {estimate.legs.length > 1 ? (
+          <ul className="mt-1 mb-6 flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem] text-ink-3">
+            {estimate.legs.map((leg) => (
+              <li key={leg.countryCode}>
+                {interpolate(dict.results.legEstimateTemplate, {
+                  country: byCode.get(leg.countryCode)?.names[locale] ?? leg.countryCode,
+                  days: leg.days,
+                  // "1 ימים" is wrong in Hebrew; the unit follows the number.
+                  unit: leg.days === 1 ? dict.units.day : dict.units.days,
+                  gb: Math.max(1, Math.round(leg.requiredGb)),
+                })}
+                {leg.isAssumedLength ? ' *' : ''}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="mb-6" />
+        )}
 
         {comparison.rows.length === 0 && combination ? (
           <p className="mb-4 rounded-sm border-s-[3px] border-s-warn-ink bg-warn-50 px-3 py-2 text-[0.8125rem] text-warn-ink">
@@ -138,6 +168,8 @@ export default async function SearchPage({
         ) : null}
 
         <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
+          </>
+        )}
       </Container>
     </>
   );

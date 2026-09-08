@@ -1,11 +1,16 @@
+'use client';
+
+import { useState } from 'react';
 import { Ltr } from '@/components/ui/Bdi';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { countries } from '@/data/countries';
 import { getProvider } from '@/data/mockProviders';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { Combination } from '@/lib/comparison/buildCombination';
+import { track } from '@/lib/analytics/events';
 import { formatData } from '@/lib/formatters/data';
 import { formatPrice } from '@/lib/formatters/price';
 
@@ -32,6 +37,7 @@ export function CombinationCard({
   locale: Locale;
   dict: Dictionary;
 }) {
+  const [noted, setNoted] = useState(false);
   const difference = cheapestSingleMinor === null ? null : cheapestSingleMinor - combination.totalMinor;
 
   return (
@@ -68,6 +74,21 @@ export function CombinationCard({
               <Ltr className="tnum ms-auto font-head font-semibold">
                 {formatPrice(leg.sourcePriceMinor, leg.sourceCurrency, locale)}
               </Ltr>
+              {/* Each leg is a separate purchase, so each one needs its own way out. */}
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  track({
+                    name: 'provider_clicked',
+                    planId: leg.plan.id,
+                    providerId: leg.plan.providerId,
+                  });
+                  setNoted(true);
+                }}
+              >
+                {dict.plan.view}
+              </Button>
             </li>
           );
         })}
@@ -88,7 +109,9 @@ export function CombinationCard({
         </span>
       </div>
 
-      <p className="mt-2 text-[0.8125rem] text-ink-3">{dict.combination.note}</p>
+      <p className="mt-2 text-[0.8125rem] text-ink-3" aria-live="polite">
+        {noted ? dict.plan.prototypeLink : dict.combination.note}
+      </p>
     </article>
   );
 }

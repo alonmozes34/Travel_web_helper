@@ -90,6 +90,11 @@ export const en: Dictionary = {
     coverageVerifiedTemplate: 'of which {count} we can verify',
     noFullCoverage:
       'No single plan covers all of your destinations. The combination below covers them together.',
+    emptyTitle: 'Where are you going?',
+    emptyBody:
+      'Pick one destination or more to compare plans. Several stops can share one trip — we look for a single plan covering them all and for a cheaper combination.',
+    daysHint: 'How many days at each stop? Without it we assume a week each.',
+    assumedDaysTemplate: 'We assumed {days} days per stop. Set the days to sharpen it.',
     chooseFirst: 'Pick a destination to compare plans',
   },
   personalization: {
@@ -172,6 +177,7 @@ export const en: Dictionary = {
   results: {
     summaryTemplate: 'We found {plans} plans from {providers} providers',
     tailoredTemplate: 'Tailored to {days} days · {usage} usage · about {gb}GB',
+    legEstimateTemplate: '{country} · {days} {unit} ≈ {gb}GB',
     defaultEstimate: 'General estimate — tailor it to your trip to sharpen the recommendation',
     change: 'Change',
     empty: 'No plans for this destination yet.',
