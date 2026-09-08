@@ -9,6 +9,7 @@ import { mainNavLinks } from './navLinks';
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const links = mainNavLinks(locale, dict);
   const legalLinks = [
+    { href: localePath(locale, '/accessibility'), label: dict.accessibility.navLabel },
     { href: localePath(locale, '/disclosure'), label: dict.footer.disclosureLink },
     { href: localePath(locale, '/privacy'), label: dict.footer.privacy },
     { href: localePath(locale, '/terms'), label: dict.footer.terms },

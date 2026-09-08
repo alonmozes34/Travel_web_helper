@@ -332,6 +332,53 @@ export const en: Dictionary = {
     },
     backToSearch: 'Search another destination',
   },
+  accessibility: {
+    navLabel: 'Accessibility statement',
+    title: 'Accessibility statement',
+    intro:
+      'We treat accessibility as part of the product rather than an addition to it. This page sets out what has been done, against which standard, what is not accessible yet, and how to report a problem.',
+    pendingBadge: 'Draft — not yet complete',
+    pendingNotice:
+      'This statement is a skeleton. Every field marked "not set" must be filled in before the site goes live, and the statement should not be relied upon until then.',
+    notSet: 'Not set',
+    standardTitle: 'The standard this site is built against',
+    standardTemplate:
+      'The site is built to {standard}, which adopts the {basis} guidelines at conformance level {level}.',
+    standardNote:
+      'Conformance with a standard is not the same as certification. Certification is issued by a licensed service-accessibility consultant.',
+    entityTitle: 'Site operator',
+    reviewedTitle: 'Last reviewed',
+    auditorTitle: 'Who carried out the accessibility review',
+    auditorTemplate: '{name}, licensed service-accessibility consultant, licence {licence}',
+    doneTitle: 'What has been done',
+    done: [
+      'The whole search and comparison journey can be completed with the keyboard alone, with a visible focus indicator on every control.',
+      'An automated contrast test that fails if any text colour drops below a 4.5:1 ratio.',
+      'axe-core run across seven states of the site against WCAG 2.0/2.1/2.2 at levels A and AA.',
+      'Usable at 320 pixels wide and at 200% text size, with no horizontal scrolling.',
+      'Touch targets of at least 44 pixels on the main interactive controls.',
+      'Modals built on the native <dialog> element, so focus trapping, Escape and background inertness come from the browser.',
+      'The system preference for reduced motion is honoured.',
+      'Semantic heading structure, an accessible name on every control, and text alternatives for non-text content.',
+    ],
+    limitationsTitle: 'What is not accessible yet',
+    limitations: [
+      'The site has not been tested with screen readers (NVDA, VoiceOver, JAWS), and in particular the reading of Hebrew text interleaved with numbers and English terms has not been checked.',
+      'The exchange-rate explanation is currently a title tooltip, which is not keyboard accessible and is not reliably announced. The same information also appears as a standing note above the results.',
+      'The site has not been reviewed by a licensed accessibility consultant and has not been tested with disabled users.',
+      'The site is under development and the data shown is demo data.',
+    ],
+    contactTitle: 'Reporting an accessibility problem',
+    contactIntro:
+      'Found something that is not accessible? We want to know. Accessibility reports are answered promptly, and in any case within the window below.',
+    coordinatorLabel: 'Accessibility coordinator',
+    phoneLabel: 'Phone',
+    emailLabel: 'Email',
+    addressLabel: 'Postal address',
+    responseLabel: 'Response time',
+    responseTemplate: 'Within {days} business days',
+    updatedTemplate: 'Last updated: {date}',
+  },
   units: {
     perGb: '/GB',
     perDay: '/day',

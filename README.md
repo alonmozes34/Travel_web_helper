@@ -133,6 +133,29 @@ reflow at 320px, text at 200%, completing the search with the keyboard alone,
 a visible focus indicator on every tabbable element, WCAG 2.2 target sizes and
 `prefers-reduced-motion`.
 
+### Accessibility statement
+
+`/accessibility` is live and linked from every page's footer. Every detail on
+it comes from `src/data/accessibility.ts`, where **all fields are currently
+`null`**:
+
+| Field | What goes in it |
+| --- | --- |
+| `legalEntityName` | The legal entity operating the site |
+| `lastReviewedAt` | ISO date of the accessibility review |
+| `auditedBy` | Name and licence number of the מורשה נגישות שירות |
+| `contact.coordinatorName` | The רכז נגישות |
+| `contact.phone` / `.email` / `.postalAddress` | How to reach them |
+| `contact.responseWindowDays` | Business days to answer a report |
+
+While anything is missing the page carries a "draft — not yet complete" notice
+and marks each empty field, rather than reading like a finished legal document
+with invented details. Two tests hold that line: one fails if any field looks
+like a placeholder (`example`, `123456`, `ישראל ישראלי`), and one fails the
+build's test run if `NEXT_PUBLIC_ALLOW_INDEXING=true` while the statement is
+still incomplete — the site cannot be opened to search engines with a skeleton
+statement.
+
 **Automated rules find a minority of real barriers.** Nothing here has been
 tested with an actual screen reader, and the site has not been reviewed by a
 licensed accessibility consultant. In Israel, IS 5568 (which adopts WCAG 2.0

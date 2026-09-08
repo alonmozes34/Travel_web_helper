@@ -20,6 +20,7 @@ const PAGES = [
   ['country page', '/esim/thailand?days=14&usage=regular'],
   ['multi-stop search', '/search?to=DE:1,US:14&usage=regular'],
   ['empty search', '/search'],
+  ['accessibility statement', '/accessibility'],
   ['english homepage', '/en'],
 ];
 

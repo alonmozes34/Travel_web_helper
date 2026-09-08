@@ -9,13 +9,17 @@ import { siteUrl } from '@/lib/site';
  * rather than as competitors.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = ['/', ...countries.map((country) => `/esim/${country.slug}`)];
+  const paths = [
+    '/',
+    '/accessibility',
+    ...countries.map((country) => `/esim/${country.slug}`),
+  ];
 
   return paths.flatMap((path) =>
     locales.map((locale) => ({
       url: `${siteUrl}${localePath(locale, path)}`,
       changeFrequency: 'weekly' as const,
-      priority: path === '/' ? 1 : 0.8,
+      priority: path === '/' ? 1 : path === '/accessibility' ? 0.3 : 0.8,
       alternates: {
         languages: Object.fromEntries(
           locales.map((code) => [localeConfig[code].htmlLang, `${siteUrl}${localePath(code, path)}`]),
