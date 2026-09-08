@@ -13,9 +13,11 @@
   --color-surface-2: #f1f6f9;
   --color-line: #e2eaf0;
   --color-line-soft: #edf2f6;
+  /* Three greys, all of which have to carry body text at 13px, so the range
+     is bounded below by AA contrast on both white and the canvas tint. */
   --color-ink: #14232f;
-  --color-ink-2: #5a6d7e;
-  --color-ink-3: #8598a8;
+  --color-ink-2: #47596b;
+  --color-ink-3: #5f7386;
 
   /* Primary — actions only */
   --color-brand: #0b6bd3;
@@ -27,7 +29,7 @@
      The bright tone is graphic-fill only; the deep tone is the text tone
      because the bright one does not reach AA on white. */
   --color-teal: #16bfb6;
-  --color-teal-ink: #0a7e78;
+  --color-teal-ink: #0a736e;
   --color-teal-50: #e5f8f6;
 
   /* Caution — fair-usage notes and demo-data markers */

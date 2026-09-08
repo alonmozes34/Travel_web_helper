@@ -88,6 +88,42 @@ phase, but V1's fourth category is "best for browsing", which uses only facts
 providers publish — 5G, number of local networks, hotspot, allowance and
 limitations — and makes no claim about real-world coverage.
 
+## Accessibility
+
+- Contrast is enforced by a test, not by eye: `tests/contrast.test.ts` reads
+  the tokens out of `globals.css` and fails if any text pair drops below
+  WCAG AA on either white or the canvas tint. The greys were darkened once
+  this test was written, because two of them did not pass.
+- The smoke test walks the accessibility tree and fails if any button, link,
+  checkbox or combobox is missing an accessible name, and checks that the
+  first plan's action can be reached by tabbing alone.
+- Modals are native `<dialog>` elements, so focus trapping, Escape and
+  background inertness come from the platform. The FAQ and plan details are
+  `<details>`, so they work without JavaScript and are found by in-page
+  search.
+- Tap targets are at least 44px, the result count is announced to screen
+  readers as filters change, and every layout is checked for horizontal
+  overflow at phone, tablet and desktop widths.
+
+## SEO
+
+Country pages carry per-locale titles, descriptions, canonical URLs and
+hreflang alternates, and `sitemap.ts` emits every page in every locale with
+its alternates.
+
+The practical information on a country page is generated from the plans on
+that page — how many providers, which local operators, how many plans offer
+5G, how much data the trip is likely to need. It cannot go stale relative to
+the listings, and when no plan offers 5G the page says so rather than staying
+quiet. That is the difference between useful content and keyword filler.
+
+**Indexing is off by default.** `robots.ts` disallows everything and pages are
+marked `noindex` unless `NEXT_PUBLIC_ALLOW_INDEXING=true`, because indexing a
+site whose every price is invented would put fabricated offers into search
+results. There is deliberately no Product or Offer structured data for the same
+reason, and the FAQ structured data is published on the homepage only rather
+than repeated across every destination.
+
 ## Showing prices
 
 The large number on every result is **the amount the provider charges, in the
@@ -132,4 +168,6 @@ you can verify in the code rather than a claim on a page.
    pricing and the value scorer. ✅
 4. **Results, filters and comparison** — recommendation categories,
    responsive result rows, URL-synced filters and side-by-side comparison. ✅
-5. Thailand country page, accessibility and polish.
+5. **Country page content, SEO, accessibility and QA** — practical
+   information derived from the data, sitemap and robots, contrast audit,
+   keyboard checks and tablet layout. ✅

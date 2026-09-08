@@ -33,7 +33,7 @@ export function RecommendationTabs({
   return (
     <div
       role="group"
-      aria-label={dict.recommendations.bestValue}
+      aria-label={dict.filters.categoriesLabel}
       className="flex gap-2 overflow-x-auto pb-1"
     >
       {tabs.map((key) => (

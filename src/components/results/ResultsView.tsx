@@ -206,7 +206,10 @@ export function ResultsView({
           />
         </aside>
 
-        <div>
+        <section aria-label={dict.filters.resultsLabel}>
+          <p aria-live="polite" className="sr-only">
+            {interpolate(dict.filters.showResultsTemplate, { count: visible.length })}
+          </p>
           <div className="mb-3 lg:hidden">
             <Button variant="secondary" size="sm" onClick={() => setFiltersOpen(true)}>
               {dict.filters.open}
@@ -228,7 +231,7 @@ export function ResultsView({
               <p className="mt-2 text-[0.8125rem] text-ink-3">{dict.plan.buyAtProvider}</p>
             </>
           )}
-        </div>
+        </section>
       </div>
 
       <Sheet

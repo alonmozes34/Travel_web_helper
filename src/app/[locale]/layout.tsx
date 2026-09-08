@@ -5,8 +5,9 @@ import '../globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CurrencyProvider } from '@/components/providers/CurrencyProvider';
-import { isLocale, localeConfig, locales } from '@/i18n/config';
+import { isLocale, localeConfig, localePath, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/getDictionary';
+import { allowIndexing, siteUrl } from '@/lib/site';
 
 // Rubik carries headings, numbers and buttons; Assistant carries body text.
 // Both ship a real Hebrew design rather than a Latin face with Hebrew bolted on.
@@ -36,12 +37,27 @@ export async function generateMetadata({
   const dict = getDictionary(locale);
 
   return {
+    metadataBase: new URL(siteUrl),
     title: {
       default: `${dict.meta.siteName} — ${dict.meta.tagline}`,
       template: `%s | ${dict.meta.siteName}`,
     },
     description: dict.meta.defaultDescription,
-    robots: { index: false, follow: false },
+    alternates: {
+      canonical: localePath(locale, '/'),
+      languages: Object.fromEntries(
+        locales.map((code) => [localeConfig[code].htmlLang, localePath(code, '/')]),
+      ),
+    },
+    openGraph: {
+      type: 'website',
+      siteName: dict.meta.siteName,
+      locale: localeConfig[locale].intlLocale.replace('-', '_'),
+      title: `${dict.meta.siteName} — ${dict.meta.tagline}`,
+      description: dict.meta.defaultDescription,
+    },
+    // Mock prices must never reach a search result.
+    robots: allowIndexing ? undefined : { index: false, follow: false },
   };
 }
 

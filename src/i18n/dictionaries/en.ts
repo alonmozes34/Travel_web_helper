@@ -200,6 +200,24 @@ export const en: Dictionary = {
     comparingLabel: 'Selected to compare',
     demoCoupon: 'Demo code',
   },
+  details: {
+    title: 'Plan details',
+    sms: 'SMS',
+    topUp: 'Top-up',
+    activation: 'Installation',
+    activationValues: { qr: 'QR code', app: 'App', both: 'QR code or app' },
+    fairUsageTitle: 'Fair usage policy',
+    whyTitle: 'Why this plan ranks where it does',
+    scoreTemplate: 'Match score {score} out of 100',
+    factors: {
+      needFit: 'Covers the estimated need',
+      price: 'Price relative to the other plans',
+      headroom: 'Data beyond the estimate',
+      features: 'Features (5G, hotspot, top-up)',
+    },
+    noCommission: 'The ranking is calculated from the facts above and nothing else. Commission is not one of them.',
+    close: 'Close details',
+  },
   recommendations: {
     bestValue: 'Best value',
     cheapest: 'Cheapest',
@@ -209,6 +227,9 @@ export const en: Dictionary = {
       'Based on 5G, number of local networks, hotspot and allowance — not on measured real-world coverage.',
   },
   filters: {
+    categoriesLabel: 'Recommended categories',
+    resultsLabel: 'Comparison results',
+    trayLabel: 'Plans selected for comparison',
     open: 'Filter and sort',
     title: 'Filter and sort',
     sort: 'Sort',
@@ -262,6 +283,25 @@ export const en: Dictionary = {
     seoTitleTemplate: 'eSIM for {country} — compare prices and plans',
     metaDescriptionTemplate:
       'Compare eSIM plans for {country}: price, data, validity, local network and 5G — from every provider in one place.',
+    factsTitle: 'Practical information',
+    factsNote: 'Every answer here is calculated from the plans on this page — none of it is pre-written.',
+    facts: {
+      worksQuestion: 'Does eSIM work in {country}?',
+      worksAnswerTemplate:
+        'Yes. We found {plans} eSIM plans for {country} from {providers} providers. Every plan listed is for this destination and runs on local networks.',
+      networksQuestion: 'Which networks are available?',
+      networksAnswerTemplate: 'The plans we compared run on {operators}. Each plan shows its own network on its row.',
+      dataQuestion: 'How much data do you need?',
+      dataAnswerTemplate:
+        'For a {days}-day trip: about {light}GB for light use, {regular}GB for regular use and {heavy}GB for heavy use. This is an estimate based on average daily consumption, not a promise.',
+      fiveGQuestion: 'Is 5G available?',
+      fiveGAnswerTemplate: '{count} of {total} plans include 5G, on {operators}.',
+      fiveGNoneAnswer: 'None of the plans we compared for this destination include 5G.',
+      hotspotQuestion: 'Can you use hotspot?',
+      hotspotAnswerTemplate:
+        '{count} of {total} plans allow tethering. Every row states explicitly whether a plan supports it.',
+      hotspotNoneAnswer: 'None of the plans we compared for this destination allow tethering.',
+    },
     backToSearch: 'Search another destination',
   },
   units: {

@@ -19,12 +19,16 @@ export function PlanCta({
   dict,
   size = 'sm',
   showNote = true,
+  detailsOpen,
+  onToggleDetails,
 }: {
   row: ComparisonRow;
   dict: Dictionary;
   size?: 'sm' | 'md';
   /** The desktop list states this once beneath the rows instead. */
   showNote?: boolean;
+  detailsOpen: boolean;
+  onToggleDetails: () => void;
 }) {
   const [noted, setNoted] = useState(false);
 
@@ -47,9 +51,15 @@ export function PlanCta({
         <Button
           variant="quiet"
           size={size}
-          onClick={() => track({ name: 'plan_viewed', planId: row.plan.id, providerId: row.plan.providerId })}
+          aria-expanded={detailsOpen}
+          onClick={() => {
+            if (!detailsOpen) {
+              track({ name: 'plan_viewed', planId: row.plan.id, providerId: row.plan.providerId });
+            }
+            onToggleDetails();
+          }}
         >
-          {dict.plan.details}
+          {detailsOpen ? dict.details.close : dict.plan.details}
         </Button>
       </div>
       {showNote || noted ? (

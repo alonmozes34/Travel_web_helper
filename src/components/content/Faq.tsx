@@ -6,7 +6,18 @@ import type { Dictionary } from '@/i18n/getDictionary';
  * FAQ, plus FAQPage structured data. The markup and the structured data come
  * from the same dictionary entries, so they can never drift apart.
  */
-export function Faq({ dict }: { dict: Dictionary }) {
+export function Faq({
+  dict,
+  structuredData = true,
+}: {
+  dict: Dictionary;
+  /**
+   * Only one page should publish the FAQ structured data. The same block
+   * repeated across every destination page would be duplicate markup rather
+   * than twenty answers worth indexing.
+   */
+  structuredData?: boolean;
+}) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -29,10 +40,12 @@ export function Faq({ dict }: { dict: Dictionary }) {
           ))}
         </div>
       </Container>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {structuredData ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      ) : null}
     </section>
   );
 }

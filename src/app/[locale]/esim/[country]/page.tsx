@@ -13,6 +13,9 @@ import { tripProfileFromParams } from '@/lib/types/trip';
 import { buildComparison } from '@/lib/comparison/buildComparison';
 import { getDisplayCurrency } from '@/lib/currencyServer';
 import { ResultsView } from '@/components/results/ResultsView';
+import { CountryFacts } from '@/components/content/CountryFacts';
+import { Faq } from '@/components/content/Faq';
+import { buildCountryFacts } from '@/lib/comparison/countryFacts';
 import type { RecommendationKey } from '@/lib/comparison/recommend';
 import { filtersFromParams } from '@/lib/comparison/filter';
 import { isSortKey } from '@/lib/comparison/sort';
@@ -82,6 +85,12 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
     currency: await getDisplayCurrency(locale),
   });
   const { estimate } = comparison;
+  const facts = buildCountryFacts({
+    comparison,
+    countryName: name,
+    facts: dict.country.facts,
+    interpolate,
+  });
 
   return (
     <>
@@ -143,6 +152,9 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
 
         <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
       </Container>
+
+      <CountryFacts facts={facts} dict={dict} />
+      <Faq dict={dict} structuredData={false} />
     </>
   );
 }

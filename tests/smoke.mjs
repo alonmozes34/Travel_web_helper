@@ -157,6 +157,49 @@ ok(
 await shot(page, 'phase4-compare');
 await page.keyboard.press('Escape');
 
+// Plan details: the secondary action opens something real.
+await page.goto(results, { waitUntil: 'networkidle' });
+await page.locator('article').first().getByRole('button', { name: 'פרטים' }).click();
+await page.waitForTimeout(200);
+const detailText = await page.locator('article').first().innerText();
+ok('the details button opens a panel', detailText.includes('למה החבילה מדורגת כך'));
+ok(
+  'the panel explains the ranking factors',
+  detailText.includes('מחיר יחסית לחבילות האחרות') && detailText.includes('גובה העמלה אינו'),
+);
+
+// Country facts are derived from the plans, not pre-written.
+const pageText = await page.locator('main').innerText();
+ok('practical information is present', pageText.includes('מידע פרקטי'));
+ok(
+  'the practical answers cite the data on the page',
+  /מצאנו 9 חבילות/.test(pageText) && /AIS/.test(pageText),
+);
+
+// Every interactive control needs an accessible name.
+const snapshot = await page.accessibility.snapshot();
+const unnamed = [];
+const walk = (node) => {
+  if (!node) return;
+  const interactive = ['button', 'link', 'checkbox', 'combobox', 'textbox', 'radio'];
+  if (interactive.includes(node.role) && !(node.name ?? '').trim()) {
+    unnamed.push(node.role);
+  }
+  (node.children ?? []).forEach(walk);
+};
+walk(snapshot);
+ok('every control has an accessible name', unnamed.length === 0, unnamed.join(', '));
+
+// Keyboard reachability: tabbing from the top reaches the first plan's action.
+await page.goto(results, { waitUntil: 'networkidle' });
+let reachedCta = false;
+for (let i = 0; i < 60 && !reachedCta; i += 1) {
+  await page.keyboard.press('Tab');
+  const focused = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
+  if (focused === 'צפייה בחבילה') reachedCta = true;
+}
+ok('the first plan action is reachable by keyboard alone', reachedCta);
+
 // English locale still works.
 await page.goto(BASE + '/en', { waitUntil: 'networkidle' });
 ok('english is ltr', await page.getAttribute('html', 'dir') === 'ltr');

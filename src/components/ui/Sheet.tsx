@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { cn } from './cn';
 
 type Side = 'bottom' | 'center';
@@ -31,6 +31,7 @@ export function Sheet({
   footer?: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -47,7 +48,7 @@ export function Sheet({
         // A click that lands on the dialog itself is a backdrop click.
         if (event.target === ref.current) onClose();
       }}
-      aria-label={title}
+      aria-labelledby={titleId}
       className={cn(
         'w-full bg-surface text-ink backdrop:bg-ink/40',
         side === 'bottom'
@@ -58,7 +59,9 @@ export function Sheet({
     >
       <div className="flex max-h-[80vh] flex-col">
         <div className="flex items-center gap-3 border-b border-line-soft px-5 py-4">
-          <h2 className="font-head text-lg font-semibold">{title}</h2>
+          <h2 id={titleId} className="font-head text-lg font-semibold">
+            {title}
+          </h2>
           <button
             type="button"
             onClick={onClose}

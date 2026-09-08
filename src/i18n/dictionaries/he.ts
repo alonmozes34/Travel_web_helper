@@ -208,6 +208,24 @@ export const he = {
     comparingLabel: 'נבחר להשוואה',
     demoCoupon: 'קוד הדגמה',
   },
+  details: {
+    title: 'פרטי החבילה',
+    sms: 'SMS',
+    topUp: 'טעינה חוזרת',
+    activation: 'אופן התקנה',
+    activationValues: { qr: 'קוד QR', app: 'אפליקציה', both: 'קוד QR או אפליקציה' },
+    fairUsageTitle: 'מדיניות שימוש הוגן',
+    whyTitle: 'למה החבילה מדורגת כך',
+    scoreTemplate: 'ציון התאמה {score} מתוך 100',
+    factors: {
+      needFit: 'מכסה את הצריכה הצפויה',
+      price: 'מחיר יחסית לחבילות האחרות',
+      headroom: 'נפח מעבר לצפוי',
+      features: 'מאפיינים (5G, Hotspot, טעינה חוזרת)',
+    },
+    noCommission: 'הדירוג מחושב מהנתונים שלמעלה בלבד. גובה העמלה אינו אחד מהם.',
+    close: 'סגירת הפרטים',
+  },
   recommendations: {
     bestValue: 'הכי משתלם',
     cheapest: 'הכי זול',
@@ -217,6 +235,9 @@ export const he = {
       'נקבע לפי 5G, מספר הרשתות המקומיות, Hotspot ונפח — לא לפי מדידת כיסוי בשטח.',
   },
   filters: {
+    categoriesLabel: 'קטגוריות מומלצות',
+    resultsLabel: 'תוצאות ההשוואה',
+    trayLabel: 'חבילות שנבחרו להשוואה',
     open: 'סינון ומיון',
     title: 'סינון ומיון',
     sort: 'מיון',
@@ -270,6 +291,25 @@ export const he = {
     seoTitleTemplate: 'eSIM ל{country} — השוואת מחירים וחבילות',
     metaDescriptionTemplate:
       'השוואת חבילות eSIM ל{country}: מחיר, נפח גלישה, תוקף, רשת מקומית ו‑5G — מכל הספקים במקום אחד.',
+    factsTitle: 'מידע פרקטי',
+    factsNote: 'כל התשובות כאן מחושבות מהחבילות שבעמוד — לא נכתבו מראש.',
+    facts: {
+      worksQuestion: 'האם eSIM עובד ב{country}?',
+      worksAnswerTemplate:
+        'כן. מצאנו {plans} חבילות eSIM ל{country} מ־{providers} ספקים. כל החבילות ברשימה מיועדות ליעד הזה, ופועלות על רשתות מקומיות.',
+      networksQuestion: 'אילו רשתות זמינות?',
+      networksAnswerTemplate: 'החבילות שהשווינו פועלות על {operators}. הרשת של כל חבילה מצוינת בשורה שלה.',
+      dataQuestion: 'כמה GB כדאי לטיול?',
+      dataAnswerTemplate:
+        'לטיול של {days} ימים: כ־{light}GB לשימוש קל, כ־{regular}GB לשימוש רגיל וכ־{heavy}GB לשימוש כבד. זו הערכה המבוססת על צריכה יומית ממוצעת, לא הבטחה.',
+      fiveGQuestion: 'האם יש 5G?',
+      fiveGAnswerTemplate: '{count} מתוך {total} חבילות כוללות 5G, על {operators}.',
+      fiveGNoneAnswer: 'אף אחת מהחבילות שהשווינו ליעד הזה לא כוללת 5G.',
+      hotspotQuestion: 'האם אפשר להשתמש ב‑Hotspot?',
+      hotspotAnswerTemplate:
+        '{count} מתוך {total} חבילות מאפשרות שיתוף אינטרנט. בכל שורה מצוין במפורש אם החבילה תומכת ואם לא.',
+      hotspotNoneAnswer: 'אף אחת מהחבילות שהשווינו ליעד הזה לא מאפשרת שיתוף אינטרנט.',
+    },
     backToSearch: 'חיפוש יעד אחר',
   },
   units: {

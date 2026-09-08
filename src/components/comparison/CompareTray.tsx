@@ -31,7 +31,10 @@ export function CompareTray({
   const slots = Array.from({ length: MAX_COMPARE }, (_, index) => selected[index] ?? null);
 
   return (
-    <div className="sticky bottom-0 z-30 border-t border-deep/20 bg-deep text-white">
+    <section
+      aria-label={dict.filters.trayLabel}
+      className="sticky bottom-0 z-30 border-t border-deep/20 bg-deep text-white"
+    >
       <Container className="flex flex-wrap items-center gap-3 py-3">
         {slots.map((row, index) =>
           row ? (
@@ -71,6 +74,6 @@ export function CompareTray({
           {dict.compare.compare}
         </Button>
       </Container>
-    </div>
+    </section>
   );
 }
