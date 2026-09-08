@@ -88,6 +88,28 @@ phase, but V1's fourth category is "best for browsing", which uses only facts
 providers publish — 5G, number of local networks, hotspot, allowance and
 limitations — and makes no claim about real-world coverage.
 
+## Showing prices
+
+The large number on every result is **the amount the provider charges, in the
+currency it charges in**. That figure can be checked against the provider's own
+page and cannot be wrong.
+
+The converted amount sits underneath it, smaller, always prefixed with `≈` and
+labelled as an estimate — because it will differ from what the traveller is
+billed. Rates move between the moment we render and the moment they buy, and
+card issuers convert at their own rate and add a foreign-transaction fee of
+around 2–3%. A shekel figure presented as *the* price would be systematically
+low, always in the same direction, and travellers notice.
+
+Comparison, sorting, filtering and per-unit figures all still run on the
+converted amount — that is what makes plans priced in dollars and euros
+comparable at all — so per-unit values carry the same `≈`.
+
+The chosen currency lives in a cookie (`CURRENCY_COOKIE`) rather than
+localStorage, so the server renders prices in it on the first paint instead of
+the page changing under the reader after hydration. Changing it calls
+`router.refresh()` so the server re-renders with the new cookie.
+
 ## Mock data
 
 Plan data will carry `source: 'mock' | 'api'`. Anywhere mock data is rendered,

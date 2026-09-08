@@ -69,7 +69,13 @@ export function DataFact({
       : undefined
     : row.pricePerGbMinor !== null
       ? interpolate(dict.plan.perGbTemplate, {
-          price: formatPrice(row.pricePerGbMinor, row.price.currency, locale),
+          // Per-unit figures are in the comparison currency, so they carry the
+          // same "≈" as any other converted amount.
+          price: row.price.isConverted
+            ? interpolate(dict.plan.approxTemplate, {
+                price: formatPrice(row.pricePerGbMinor, row.price.currency, locale),
+              })
+            : formatPrice(row.pricePerGbMinor, row.price.currency, locale),
         })
       : undefined;
 

@@ -104,9 +104,22 @@ ok(
   (await page.locator('main').innerText()).includes('/ GB'),
 );
 ok(
-  'the source-currency price is shown alongside the shekel price',
-  (await page.locator('main').innerText()).includes('≈'),
+  'the charged price leads and the conversion is marked as an estimate',
+  (await page.locator('article').first().innerText()).includes('≈') &&
+    /(\$|€)\d/.test(await page.locator('article').first().innerText()),
 );
+ok(
+  'the page says the conversion is only an estimate',
+  (await page.locator('main').innerText()).includes('הערכה בלבד'),
+);
+
+// Switching currency must change the prices, not just the pill.
+await page.getByLabel('מטבע').selectOption('USD');
+await page.waitForTimeout(800);
+const usdText = await page.locator('article').first().innerText();
+ok('changing currency re-renders the prices', !usdText.includes('₪'), usdText.split('\n')[0]);
+await page.getByLabel('מטבע').selectOption('ILS');
+await page.waitForTimeout(800);
 
 // Filtering narrows the list and survives a reload through the URL.
 await page.locator('aside label:has-text("5G בלבד")').click();

@@ -49,24 +49,29 @@ export function CompareTable({
     },
     {
       key: 'price',
-      compare: (row) => String(row.price.amountMinor),
+      compare: (row) => `${row.price.sourceCurrency}${row.price.sourceAmountMinor}`,
       render: (row) => (
         <Ltr className="tnum font-head text-lg font-bold">
-          {formatPrice(row.price.amountMinor, row.price.currency, locale)}
+          {formatPrice(row.price.sourceAmountMinor, row.price.sourceCurrency, locale)}
+          <span className="ms-1 font-body text-[0.8125rem] font-normal text-ink-3">
+            {currencyConfig[row.price.sourceCurrency].label}
+          </span>
         </Ltr>
       ),
     },
     {
       key: 'sourcePrice',
-      compare: (row) => `${row.price.sourceCurrency}${row.price.sourceAmountMinor}`,
-      render: (row) => (
-        <Ltr className="tnum text-ink-2">
-          {formatPrice(row.price.sourceAmountMinor, row.price.sourceCurrency, locale)}
-          <span className="ms-1 text-ink-3">
-            {currencyConfig[row.price.sourceCurrency].label}
-          </span>
-        </Ltr>
-      ),
+      compare: (row) => String(row.price.amountMinor),
+      render: (row) =>
+        row.price.isConverted ? (
+          <Ltr className="tnum text-ink-2" title={dict.plan.conversionNote}>
+            {interpolate(dict.plan.approxTemplate, {
+              price: formatPrice(row.price.amountMinor, row.price.currency, locale),
+            })}
+          </Ltr>
+        ) : (
+          '—'
+        ),
     },
     {
       key: 'data',

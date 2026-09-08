@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { currencies, currencyConfig, type CurrencyCode } from '@/i18n/config';
 import { useCurrency } from '@/components/providers/CurrencyProvider';
 
@@ -9,13 +10,19 @@ import { useCurrency } from '@/components/providers/CurrencyProvider';
  */
 export function CurrencySwitcher({ label }: { label: string }) {
   const { currency, setCurrency } = useCurrency();
+  const router = useRouter();
 
   return (
     <label className="relative inline-flex items-center">
       <span className="sr-only">{label}</span>
       <select
         value={currency}
-        onChange={(event) => setCurrency(event.target.value as CurrencyCode)}
+        onChange={(event) => {
+          setCurrency(event.target.value as CurrencyCode);
+          // Prices are rendered on the server from the cookie, so the route has
+          // to be re-rendered for the change to reach them.
+          router.refresh();
+        }}
         className="min-h-9 cursor-pointer appearance-none rounded-full border border-line bg-surface ps-3 pe-7 text-[0.8125rem] font-semibold text-ink-2 hover:text-brand"
       >
         {currencies.map((code) => (

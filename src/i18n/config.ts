@@ -45,6 +45,17 @@ export function isLocale(value: string): value is Locale {
   return (locales as readonly string[]).includes(value);
 }
 
+export function isCurrency(value: string): value is CurrencyCode {
+  return (currencies as readonly string[]).includes(value);
+}
+
+/**
+ * The chosen display currency is kept in a cookie rather than localStorage so
+ * the server knows it too and can render prices in the right currency on the
+ * first paint, instead of the page changing under the reader.
+ */
+export const CURRENCY_COOKIE = 'esimcompare_currency';
+
 export const currencies = ['ILS', 'USD', 'EUR', 'GBP'] as const;
 export type CurrencyCode = (typeof currencies)[number];
 

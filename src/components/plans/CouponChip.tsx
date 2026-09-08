@@ -26,7 +26,7 @@ export function CouponChip({
   const { discount } = row.plan;
   if (!isPresentableDiscount(discount, demoDataEnabled) || !row.originalPrice) return null;
 
-  const savings = row.originalPrice.amountMinor - row.price.amountMinor;
+  const savings = row.originalPrice.sourceAmountMinor - row.price.sourceAmountMinor;
   if (savings <= 0) return null;
 
   return (
@@ -38,7 +38,7 @@ export function CouponChip({
       <Ltr className="tnum">
         {interpolate(dict.plan.couponTemplate, {
           code: discount!.code,
-          amount: formatPrice(savings, row.price.currency, locale),
+          amount: formatPrice(savings, row.price.sourceCurrency, locale),
         })}
       </Ltr>
       {discount!.source === 'mock' ? (

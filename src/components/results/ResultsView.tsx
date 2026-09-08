@@ -168,6 +168,12 @@ export function ResultsView({
         </label>
       </div>
 
+      {rows.some((row) => row.price.isConverted) ? (
+        <p className="mb-4 rounded-sm border-s-[3px] border-s-line bg-surface-2 px-3 py-2 text-[0.8125rem] text-ink-2">
+          {dict.plan.conversionNote}
+        </p>
+      ) : null}
+
       {tab === 'bestForBrowsing' ? (
         <p className="mb-4 rounded-sm bg-brand-50 px-3 py-2 text-[0.8125rem] text-ink-2">
           {dict.recommendations.browsingNote}

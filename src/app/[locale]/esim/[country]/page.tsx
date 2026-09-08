@@ -11,7 +11,7 @@ import { interpolate } from '@/i18n/interpolate';
 import { siteUrl } from '@/lib/site';
 import { tripProfileFromParams } from '@/lib/types/trip';
 import { buildComparison } from '@/lib/comparison/buildComparison';
-import { localeConfig as localeSettings } from '@/i18n/config';
+import { getDisplayCurrency } from '@/lib/currencyServer';
 import { ResultsView } from '@/components/results/ResultsView';
 import type { RecommendationKey } from '@/lib/comparison/recommend';
 import { filtersFromParams } from '@/lib/comparison/filter';
@@ -74,12 +74,12 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
   const initialSort = sortParam && isSortKey(sortParam) ? sortParam : 'recommended';
   const name = country.names[locale];
 
-  // Currency here is the locale default; the switcher's client-side preference
-  // is applied to the rendered rows in Phase 4.
+  // The traveller's chosen currency comes from the cookie, so prices render in
+  // it on the first paint rather than changing under them after hydration.
   const comparison = buildComparison({
     countryCode: country.code,
     profile,
-    currency: localeSettings[locale].defaultCurrency,
+    currency: await getDisplayCurrency(locale),
   });
   const { estimate } = comparison;
 

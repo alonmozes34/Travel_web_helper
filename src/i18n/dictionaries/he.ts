@@ -194,6 +194,10 @@ export const he = {
     approxTemplate: '≈ {price}',
     chargedInTemplate: 'החיוב אצל הספק מתבצע ב־{currency}',
     fxNoteTemplate: 'שער {rate} · נתוני הדגמה מ־{date}',
+    estimateOnly: 'הערכה בלבד',
+    conversionNote:
+      'המחיר בשקלים הוא המרה משוערת. הספק גובה במטבע שלו, וחברת האשראי עשויה להמיר בשער אחר ולהוסיף עמלת מטבע חוץ.',
+    chargedHereTemplate: 'מחויב ב־{currency}',
     belowNeed: 'מתחת לצריכה הצפויה',
     coversTripTemplate: 'מכסה {days} ימי טיול',
     shortValidity: 'קצר מהטיול שהוגדר',
@@ -247,7 +251,7 @@ export const he = {
     rows: {
       provider: 'ספק',
       price: 'מחיר',
-      sourcePrice: 'מחיר במטבע המקור',
+      sourcePrice: 'המרה משוערת',
       data: 'נפח',
       validity: 'תוקף',
       perUnit: 'מחיר ליחידה',

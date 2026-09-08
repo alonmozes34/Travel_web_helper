@@ -186,6 +186,10 @@ export const en: Dictionary = {
     approxTemplate: '≈ {price}',
     chargedInTemplate: 'The provider charges in {currency}',
     fxNoteTemplate: 'Rate {rate} · demo data from {date}',
+    estimateOnly: 'estimate only',
+    conversionNote:
+      'The shekel price is an estimate. The provider charges in its own currency, and your card issuer may use a different rate and add a foreign-transaction fee.',
+    chargedHereTemplate: 'charged in {currency}',
     belowNeed: 'Below your estimated need',
     coversTripTemplate: 'Covers {days} trip days',
     shortValidity: 'Shorter than your trip',
@@ -239,7 +243,7 @@ export const en: Dictionary = {
     rows: {
       provider: 'Provider',
       price: 'Price',
-      sourcePrice: 'Price in source currency',
+      sourcePrice: 'Estimated conversion',
       data: 'Data',
       validity: 'Validity',
       perUnit: 'Unit price',
