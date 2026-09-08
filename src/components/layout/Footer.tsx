@@ -30,7 +30,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           <ul className="mt-3 flex flex-col gap-2.5">
             {links.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-[0.9375rem] text-ink-2 hover:text-brand">
+                <Link href={link.href} className="inline-flex min-h-6 items-center text-[0.9375rem] text-ink-2 hover:text-brand">
                   {link.label}
                 </Link>
               </li>
@@ -45,7 +45,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           <ul className="mt-3 flex flex-col gap-2.5">
             {legalLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-[0.9375rem] text-ink-2 hover:text-brand">
+                <Link href={link.href} className="inline-flex min-h-6 items-center text-[0.9375rem] text-ink-2 hover:text-brand">
                   {link.label}
                 </Link>
               </li>

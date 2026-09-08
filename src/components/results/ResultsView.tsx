@@ -184,7 +184,7 @@ export function ResultsView({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
-        <aside className="hidden lg:block" aria-label={dict.filters.title}>
+        <aside className="hidden min-w-0 lg:block" aria-label={dict.filters.title}>
           <div className="flex items-center justify-between pb-2">
             <h2 className="text-[0.7rem] font-semibold tracking-[0.09em] text-ink-3 uppercase">
               {dict.filters.title}
@@ -209,7 +209,7 @@ export function ResultsView({
           />
         </aside>
 
-        <section aria-label={dict.filters.resultsLabel}>
+        <section aria-label={dict.filters.resultsLabel} className="min-w-0">
           <p aria-live="polite" className="sr-only">
             {interpolate(dict.filters.showResultsTemplate, { count: visible.length })}
           </p>

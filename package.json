@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test:e2e": "node tests/smoke.mjs",
     "test:unit": "node --import tsx --test tests/*.test.ts",
-    "test": "npm run test:unit"
+    "test": "npm run test:unit",
+    "test:a11y": "node tests/a11y.mjs && node tests/a11y-manual.mjs"
   },
   "dependencies": {
     "next": "16.3.4",
@@ -21,6 +22,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "^4.11.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "playwright": "^1.56.1",

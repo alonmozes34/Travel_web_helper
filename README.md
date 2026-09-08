@@ -18,6 +18,7 @@ npm run start     # serve the production build
 npm run lint      # eslint
 npm run test:unit # unit tests for pricing, estimation and scoring
 npm run test:e2e  # smoke test the core path against a running server
+npm run test:a11y # axe-core audit plus reflow, zoom, keyboard and target-size checks
 ```
 
 `test:e2e` drives a real browser through destination → results. Point it at a
@@ -123,6 +124,22 @@ providers publish — 5G, number of local networks, hotspot, allowance and
 limitations — and makes no claim about real-world coverage.
 
 ## Accessibility
+
+`npm run test:a11y` runs axe-core over the homepage, a country page, a
+multi-stop search, the empty search, the English homepage, the open mobile
+menu and the open comparison dialog, against the WCAG 2.0/2.1/2.2 A and AA
+rule sets — currently **zero violations**. It then checks what axe cannot see:
+reflow at 320px, text at 200%, completing the search with the keyboard alone,
+a visible focus indicator on every tabbable element, WCAG 2.2 target sizes and
+`prefers-reduced-motion`.
+
+**Automated rules find a minority of real barriers.** Nothing here has been
+tested with an actual screen reader, and the site has not been reviewed by a
+licensed accessibility consultant. In Israel, IS 5568 (which adopts WCAG 2.0
+AA) is the binding standard for public-facing websites, and compliance also
+requires a published accessibility statement and a contact route for
+accessibility issues — neither of which exists yet, because both need real
+business details.
 
 - Contrast is enforced by a test, not by eye: `tests/contrast.test.ts` reads
   the tokens out of `globals.css` and fails if any text pair drops below

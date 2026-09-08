@@ -73,7 +73,11 @@ export function Sheet({
             <span className="sr-only">{closeLabel}</span>
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        {/* A scrollable region needs to be reachable by keyboard, or someone
+            who cannot use a pointer cannot scroll it. */}
+        <div tabIndex={0} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          {children}
+        </div>
         {footer ? <div className="border-t border-line-soft px-5 py-4">{footer}</div> : null}
       </div>
     </dialog>

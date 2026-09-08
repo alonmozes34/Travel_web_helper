@@ -22,7 +22,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-[0.9rem] font-medium text-ink-2 transition-colors hover:text-ink"
+                  className="inline-flex min-h-11 items-center text-[0.9rem] font-medium text-ink-2 transition-colors hover:text-ink"
                 >
                   {link.label}
                 </Link>

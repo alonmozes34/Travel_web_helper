@@ -138,7 +138,7 @@ export function FilterControls({
             onChange={(event) =>
               onChange({ ...filters, maxPriceMinor: Number.parseInt(event.target.value, 10) })
             }
-            className="w-full accent-brand"
+            className="h-11 w-full accent-brand"
           />
         </label>
         <p className="tnum mt-1 text-[0.8125rem] text-ink-2">
