@@ -108,5 +108,6 @@ you can verify in the code rather than a claim on a page.
 3. **Plan model, mock data, pricing and scoring** — the common `Plan` shape,
    42 mock plans across six destinations, currency conversion, per-unit
    pricing and the value scorer. ✅
-4. Results, filters and comparison.
+4. **Results, filters and comparison** — recommendation categories,
+   responsive result rows, URL-synced filters and side-by-side comparison. ✅
 5. Thailand country page, accessibility and polish.

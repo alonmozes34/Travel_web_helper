@@ -16,6 +16,7 @@ export function Sheet({
   title,
   closeLabel,
   side = 'bottom',
+  panelClassName,
   children,
   footer,
 }: {
@@ -24,6 +25,8 @@ export function Sheet({
   title: string;
   closeLabel: string;
   side?: Side;
+  /** Widens the panel for content that needs it, such as the compare table. */
+  panelClassName?: string;
   children: ReactNode;
   footer?: ReactNode;
 }) {
@@ -50,6 +53,7 @@ export function Sheet({
         side === 'bottom'
           ? 'mx-auto mt-auto mb-0 max-w-[640px] rounded-t-[20px] shadow-sheet'
           : 'm-auto max-w-[560px] rounded-lg',
+        panelClassName,
       )}
     >
       <div className="flex max-h-[80vh] flex-col">

@@ -9,7 +9,7 @@ import type { Provider } from '@/lib/types/provider';
 import type { TripProfile } from '@/lib/types/trip';
 import { estimateDataNeed, type DataNeedEstimate } from './estimateDataNeed';
 import { recommend, type Recommendation, type RecommendationKey } from './recommend';
-import { scorePlans, type ScoreBreakdown } from './scorePlan';
+import { browsingScore, scorePlans, type ScoreBreakdown } from './scorePlan';
 
 export type ComparisonRow = {
   plan: Plan;
@@ -21,6 +21,8 @@ export type ComparisonRow = {
   pricePerGbMinor: number | null;
   pricePerDayMinor: number | null;
   score: number;
+  /** Published-facts score behind the "best for browsing" category. */
+  browsingScore: number;
   breakdown: ScoreBreakdown;
   isBelowEstimatedNeed: boolean;
   coversTrip: boolean;
@@ -97,6 +99,7 @@ export function buildComparison({
       pricePerGbMinor: pricePerGbMinor(entry.plan, price.amountMinor),
       pricePerDayMinor: pricePerDayMinor(price.amountMinor, entry.plan.validityDays),
       score: entry.score,
+      browsingScore: browsingScore(entry.plan, estimate),
       breakdown: entry.breakdown,
       isBelowEstimatedNeed: entry.isBelowEstimatedNeed,
       coversTrip: entry.coversTrip,

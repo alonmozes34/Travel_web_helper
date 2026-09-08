@@ -89,6 +89,61 @@ await mobile.waitForTimeout(250);
 ok('escape closes the menu', await mobile.locator('dialog[open]').count() === 0);
 await shot(mobile, 'phase2-home-mobile');
 
+// Results page: rows, filters, comparison.
+const results = `${BASE}/esim/thailand?days=14&usage=regular`;
+await page.goto(results, { waitUntil: 'networkidle' });
+
+const rowCount = await page.locator('article').count();
+ok('results render plan rows', rowCount > 0, `${rowCount} rows`);
+ok(
+  'the summary counts come from the data',
+  /\d+/.test(await page.locator('main').innerText()),
+);
+ok(
+  'price per GB is present but secondary to the price',
+  (await page.locator('main').innerText()).includes('/ GB'),
+);
+ok(
+  'the source-currency price is shown alongside the shekel price',
+  (await page.locator('main').innerText()).includes('≈'),
+);
+
+// Filtering narrows the list and survives a reload through the URL.
+await page.locator('aside label:has-text("5G בלבד")').click();
+await page.waitForTimeout(250);
+const afterFilter = await page.locator('article').count();
+ok('filtering narrows the results', afterFilter > 0 && afterFilter < rowCount, `${afterFilter} of ${rowCount}`);
+ok('filters are written into the URL', page.url().includes('5g=1'), page.url());
+
+await page.reload({ waitUntil: 'networkidle' });
+ok(
+  'a shared filtered link renders the same result set',
+  (await page.locator('article').count()) === afterFilter,
+);
+
+// Comparison, capped at three plans.
+await page.goto(results, { waitUntil: 'networkidle' });
+for (let i = 0; i < 3; i += 1) {
+  await page.locator('article label:has-text("להשוואה")').first().click();
+  await page.waitForTimeout(120);
+}
+const selectedCount = await page.locator('article label:has-text("הסרה")').count();
+ok('three plans can be selected', selectedCount === 3, `${selectedCount} selected`);
+ok(
+  'a fourth selection is blocked',
+  !(await page.locator('article label:has-text("להשוואה")').first().isEnabled()),
+);
+
+await page.getByRole('button', { name: 'השווה', exact: true }).click();
+await page.waitForTimeout(300);
+ok('the comparison table opens', (await page.locator('dialog[open] table').count()) === 1);
+ok(
+  'differences between plans are marked',
+  (await page.locator('dialog[open]').innerText()).includes('שונה בין החבילות'),
+);
+await shot(page, 'phase4-compare');
+await page.keyboard.press('Escape');
+
 // English locale still works.
 await page.goto(BASE + '/en', { waitUntil: 'networkidle' });
 ok('english is ltr', await page.getAttribute('html', 'dir') === 'ltr');

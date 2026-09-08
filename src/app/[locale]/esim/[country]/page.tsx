@@ -8,12 +8,14 @@ import { countries, getCountryBySlug } from '@/data/countries';
 import { isLocale, localeConfig, localePath, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
-import { formatPrice } from '@/lib/formatters/price';
 import { siteUrl } from '@/lib/site';
 import { tripProfileFromParams } from '@/lib/types/trip';
 import { buildComparison } from '@/lib/comparison/buildComparison';
 import { localeConfig as localeSettings } from '@/i18n/config';
-import { Ltr } from '@/components/ui/Bdi';
+import { ResultsView } from '@/components/results/ResultsView';
+import type { RecommendationKey } from '@/lib/comparison/recommend';
+import { filtersFromParams } from '@/lib/comparison/filter';
+import { isSortKey } from '@/lib/comparison/sort';
 
 export function generateStaticParams() {
   return locales.flatMap((locale) =>
@@ -57,7 +59,19 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
   if (!country) notFound();
 
   const dict = getDictionary(locale);
-  const profile = tripProfileFromParams(await searchParams);
+  const query = await searchParams;
+  const profile = tripProfileFromParams(query);
+
+  // Filters and sort are parsed on the server so a shared filtered link
+  // renders correctly before any JavaScript runs.
+  const queryParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value === 'string') queryParams.set(key, value);
+    else if (Array.isArray(value) && value[0]) queryParams.set(key, value[0]);
+  }
+  const initialFilters = filtersFromParams(queryParams);
+  const sortParam = queryParams.get('sort');
+  const initialSort = sortParam && isSortKey(sortParam) ? sortParam : 'recommended';
   const name = country.names[locale];
 
   // Currency here is the locale default; the switcher's client-side preference
@@ -93,7 +107,6 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
       <Container className="py-10">
         <MockDataNotice dict={dict} className="max-w-[80ch]" />
 
-        {/* Plan rows land here in Phase 4; the numbers below are already real. */}
         <p className="mt-6 text-[0.9375rem] text-ink-2">
           <strong className="font-semibold text-ink">
             {interpolate(dict.results.summaryTemplate, {
@@ -102,7 +115,7 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
             })}
           </strong>
         </p>
-        <p className="mt-1 text-[0.8125rem] text-ink-2">
+        <p className="mt-1 mb-6 text-[0.8125rem] text-ink-2">
           {estimate.isDefault ? (
             dict.results.defaultEstimate
           ) : (
@@ -116,21 +129,17 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
           )}
         </p>
 
-        <ul className="mt-6 grid gap-2">
-          {comparison.rows.slice(0, 4).map((row) => (
-            <li
-              key={row.plan.id}
-              className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-sm border border-line bg-surface px-4 py-3 text-[0.9375rem]"
-            >
-              <span className="font-head font-semibold">{row.provider.name}</span>
-              <span className="text-ink-2">{row.plan.planName}</span>
-              <Ltr className="tnum ms-auto font-head font-semibold">
-                {formatPrice(row.price.amountMinor, row.price.currency, locale)}
-              </Ltr>
-              <span className="tnum text-[0.8125rem] text-ink-3">{row.score}</span>
-            </li>
-          ))}
-        </ul>
+        <ResultsView
+          rows={comparison.rows}
+          locale={locale}
+          dict={dict}
+          currency={comparison.currency}
+          tripDays={estimate.days}
+          demoDataEnabled={comparison.isMockData}
+          availableRecommendations={Object.keys(comparison.recommendations) as RecommendationKey[]}
+          initialFilters={initialFilters}
+          initialSort={initialSort}
+        />
 
         <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
       </Container>
