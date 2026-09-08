@@ -207,6 +207,8 @@ export const en: Dictionary = {
     estimateOnly: 'estimate only',
     conversionNote:
       'The shekel price is an estimate. The provider charges in its own currency, and your card issuer may use a different rate and add a foreign-transaction fee.',
+    conversionRateTemplate: 'Rates used: {rates}. Demo data from {date}.',
+    maxCompareShort: 'Up to 3 plans',
     chargedHereTemplate: 'charged in {currency}',
     belowNeed: 'Below your estimated need',
     coversTripTemplate: 'Covers {days} trip days',
@@ -364,7 +366,6 @@ export const en: Dictionary = {
     limitationsTitle: 'What is not accessible yet',
     limitations: [
       'The site has not been tested with screen readers (NVDA, VoiceOver, JAWS), and in particular the reading of Hebrew text interleaved with numbers and English terms has not been checked.',
-      'The exchange-rate explanation is currently a title tooltip, which is not keyboard accessible and is not reliably announced. The same information also appears as a standing note above the results.',
       'The site has not been reviewed by a licensed accessibility consultant and has not been tested with disabled users.',
       'The site is under development and the data shown is demo data.',
     ],

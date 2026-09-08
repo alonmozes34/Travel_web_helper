@@ -131,6 +131,20 @@ export function ResultsView({
 
   const activeCount = countActiveFilters(filters);
 
+  /**
+   * The rates actually used on this page, stated once. Nothing that a
+   * traveller needs is left to a tooltip.
+   */
+  const conversion = useMemo(() => {
+    const converted = rows.filter((row) => row.price.isConverted && row.price.fxRate);
+    if (converted.length === 0) return null;
+    const pairs = [
+      ...new Set(converted.map((row) => `${row.price.sourceCurrency}→${row.price.currency} ${row.price.fxRate}`)),
+    ].sort();
+    const dates = [...new Set(converted.map((row) => row.price.fxAsOf).filter(Boolean))];
+    return { rates: pairs.join(' · '), asOf: dates.length === 1 ? dates[0] : null };
+  }, [rows]);
+
   const planRowProps = (row: ComparisonRow) => ({
     row,
     locale,
@@ -171,9 +185,17 @@ export function ResultsView({
         </label>
       </div>
 
-      {rows.some((row) => row.price.isConverted) ? (
+      {conversion ? (
         <p className="mb-4 rounded-sm border-s-[3px] border-s-line bg-surface-2 px-3 py-2 text-[0.8125rem] text-ink-2">
-          {dict.plan.conversionNote}
+          {dict.plan.conversionNote}{' '}
+          {conversion.asOf ? (
+            <span>
+              {interpolate(dict.plan.conversionRateTemplate, {
+                rates: conversion.rates,
+                date: conversion.asOf,
+              })}
+            </span>
+          ) : null}
         </p>
       ) : null}
 

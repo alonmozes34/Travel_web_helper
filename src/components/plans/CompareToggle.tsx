@@ -3,7 +3,12 @@
 import { cn } from '@/components/ui/cn';
 import type { Dictionary } from '@/i18n/getDictionary';
 
-/** Selects a plan for side-by-side comparison. Disabled once three are chosen. */
+/**
+ * Selects a plan for side-by-side comparison.
+ *
+ * Once three are chosen the remaining checkboxes say so in visible text rather
+ * than only in a tooltip, which a touch user never sees.
+ */
 export function CompareToggle({
   checked,
   disabled,
@@ -25,6 +30,7 @@ export function CompareToggle({
         className,
       )}
       title={disabled ? dict.compare.maxReached : undefined}
+      aria-label={disabled ? dict.compare.maxReached : undefined}
     >
       <input
         type="checkbox"
@@ -45,7 +51,9 @@ export function CompareToggle({
           'peer-checked:after:block'
         }
       />
-      <span>{checked ? dict.compare.remove : dict.plan.compareLabel}</span>
+      <span>
+        {checked ? dict.compare.remove : disabled ? dict.plan.maxCompareShort : dict.plan.compareLabel}
+      </span>
     </label>
   );
 }

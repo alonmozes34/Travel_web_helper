@@ -45,10 +45,15 @@ await page.locator('form li input[type="number"]').nth(1).fill('14');
 await page.waitForTimeout(150);
 
 await page.getByRole('button', { name: /התאם לי חבילה לטיול/ }).click();
-await page.getByRole('button', { name: 'רגיל', exact: true }).click();
+await page.locator('label:has-text("רגיל")').first().click();
+await page.waitForTimeout(150);
 ok(
-  'usage chip reflects the selection',
-  (await page.getByRole('button', { name: 'רגיל', exact: true }).getAttribute('aria-pressed')) === 'true',
+  'usage is a single choice and reflects the selection',
+  await page.getByRole('radio', { name: /רגיל/ }).isChecked(),
+);
+ok(
+  'each usage level explains itself on screen',
+  (await page.locator('form').innerText()).includes('רשתות חברתיות, מפות, גלישה'),
 );
 await shot(page, 'phase2-home-desktop');
 
@@ -138,6 +143,10 @@ ok(
   'the page says the conversion is only an estimate',
   (await page.locator('main').innerText()).includes('הערכה בלבד'),
 );
+ok(
+  'the exchange rate and its date are visible, not hidden in a tooltip',
+  /שערי ההמרה:.*\d\.\d+/.test(await page.locator('main').innerText()),
+);
 
 // Switching currency must change the prices, not just the pill.
 await page.getByLabel('מטבע').selectOption('USD');
@@ -168,10 +177,9 @@ for (let i = 0; i < 3; i += 1) {
 }
 const selectedCount = await page.locator('article label:has-text("הסרה")').count();
 ok('three plans can be selected', selectedCount === 3, `${selectedCount} selected`);
-ok(
-  'a fourth selection is blocked',
-  !(await page.locator('article label:has-text("להשוואה")').first().isEnabled()),
-);
+// The limit is stated on screen rather than only in a tooltip.
+const blocked = page.locator('article label:has-text("עד 3 חבילות")').first();
+ok('a fourth selection is blocked', (await blocked.count()) > 0 && !(await blocked.isEnabled()));
 
 await page.getByRole('button', { name: 'השווה', exact: true }).click();
 await page.waitForTimeout(300);

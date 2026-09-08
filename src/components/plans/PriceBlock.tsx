@@ -55,17 +55,7 @@ export function PriceBlock({
       </div>
 
       {price.isConverted ? (
-        <p
-          className="text-[0.8125rem] text-ink-3"
-          title={[
-            dict.plan.conversionNote,
-            price.fxRate && price.fxAsOf
-              ? interpolate(dict.plan.fxNoteTemplate, { rate: price.fxRate, date: price.fxAsOf })
-              : '',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-        >
+        <p className="text-[0.8125rem] text-ink-3">
           <Ltr className="tnum">
             {interpolate(dict.plan.approxTemplate, {
               price: formatPrice(price.amountMinor, price.currency, locale),

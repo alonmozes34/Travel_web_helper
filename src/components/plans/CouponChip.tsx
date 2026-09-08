@@ -32,7 +32,6 @@ export function CouponChip({
   return (
     <span
       className="inline-flex max-w-full items-center gap-1.5 rounded-xs bg-teal-50 px-2 py-1 text-[0.8125rem] font-semibold whitespace-nowrap text-teal-ink"
-      title={discount!.source === 'mock' ? dict.plan.demoCoupon : undefined}
     >
       <span aria-hidden="true">🏷️</span>
       <Ltr className="tnum">

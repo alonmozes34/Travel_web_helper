@@ -64,7 +64,7 @@ export function CompareTable({
       compare: (row) => String(row.price.amountMinor),
       render: (row) =>
         row.price.isConverted ? (
-          <Ltr className="tnum text-ink-2" title={dict.plan.conversionNote}>
+          <Ltr className="tnum text-ink-2">
             {interpolate(dict.plan.approxTemplate, {
               price: formatPrice(row.price.amountMinor, row.price.currency, locale),
             })}
@@ -185,6 +185,9 @@ export function CompareTable({
           </tbody>
         </table>
       </div>
+      {rows.some((row) => row.price.isConverted) ? (
+        <p className="mt-4 text-[0.8125rem] text-ink-3">{dict.plan.conversionNote}</p>
+      ) : null}
     </Sheet>
   );
 }
