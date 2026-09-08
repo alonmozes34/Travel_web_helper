@@ -165,6 +165,13 @@ export const he = {
       },
     ],
   },
+  results: {
+    summaryTemplate: 'מצאנו {plans} חבילות מ‑{providers} ספקים',
+    tailoredTemplate: 'מותאם ל‑{days} ימים · שימוש {usage} · כ‑{gb}GB',
+    defaultEstimate: 'הערכה כללית — התאימו לטיול שלכם כדי לדייק את ההמלצה',
+    change: 'שנה',
+    empty: 'אין עדיין חבילות ליעד הזה.',
+  },
   country: {
     titleTemplate: 'eSIM ל{country}',
     seoTitleTemplate: 'eSIM ל{country} — השוואת מחירים וחבילות',

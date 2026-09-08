@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:e2e": "node tests/smoke.mjs"
+    "test:e2e": "node tests/smoke.mjs",
+    "test:unit": "node --import tsx --test tests/*.test.ts",
+    "test": "npm run test:unit"
   },
   "dependencies": {
     "next": "16.3.4",
@@ -23,6 +25,7 @@
     "eslint-config-next": "16.3.4",
     "playwright": "^1.56.1",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

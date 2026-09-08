@@ -157,6 +157,13 @@ export const en: Dictionary = {
       },
     ],
   },
+  results: {
+    summaryTemplate: 'We found {plans} plans from {providers} providers',
+    tailoredTemplate: 'Tailored to {days} days · {usage} usage · about {gb}GB',
+    defaultEstimate: 'General estimate — tailor it to your trip to sharpen the recommendation',
+    change: 'Change',
+    empty: 'No plans for this destination yet.',
+  },
   country: {
     titleTemplate: 'eSIM for {country}',
     seoTitleTemplate: 'eSIM for {country} — compare prices and plans',
