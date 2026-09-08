@@ -59,6 +59,40 @@ hand-write a locale prefix.
   (`--color-brand`) is for actions; turquoise is for value and recommendation.
   The two never swap roles.
 
+## Coverage: country, regional and global plans
+
+A plan is not tied to one country. `Plan.coverage` holds the kind
+(`country` / `region` / `global`), the **verified** list of countries, and —
+separately — the provider's own destination count.
+
+Matching only ever reads the verified list. A provider's "works in 130
+destinations" is shown as their claim, beside how many of those we can
+actually confirm, because telling a traveller their country is covered has to
+be something we can stand behind.
+
+### Trips with more than one stop
+
+Destinations are a list, and each stop carries its own length
+(`?to=DE:1,US:14`). A night in Germany and a fortnight in the States are
+different purchases; sizing both from one total would over-buy for the short
+stop.
+
+Results only ever contain plans covering **every** stop. When that set is thin
+or expensive — which it usually is for a trip spanning two regions — a
+**combination** is offered alongside it: the cheapest adequate set of plans,
+found by greedy set cover minimising cost per stop covered, with a total.
+
+Cost, not the general value score, is the objective there on purpose: the
+combination earns its place by being cheaper, and a scorer weighing headroom
+and features would happily pick a dearer plan and lose the argument. Candidate
+plans still have to be adequate — enough data for those days, validity that
+outlasts them — so it never recommends a combination that runs out. If one plan
+covers everything better, no combination is shown, because then there is
+nothing to combine.
+
+No provider will ever suggest buying from a competitor to save money. That is
+exactly why a comparison site should.
+
 ## How "best value" is decided
 
 `src/lib/comparison/` holds the recommendation logic, and it exists to enforce

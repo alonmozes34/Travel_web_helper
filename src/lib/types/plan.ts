@@ -1,4 +1,5 @@
 import type { CurrencyCode } from '@/i18n/config';
+import type { PlanCoverage } from './coverage';
 import type { Discount } from './discount';
 import type { Network } from './network';
 
@@ -29,10 +30,12 @@ export type Plan = {
   providerId: string;
   /** The provider's own plan name, so a traveller can verify it on their site. */
   planName: string;
-  /** ISO 3166-1 alpha-2. */
-  countryCode: string;
-  /** Set for regional/global plans, e.g. 'europe'. */
-  region: string | null;
+  /**
+   * Where the plan works. A plan is not tied to one country: providers sell
+   * single-country, regional and global plans, and a traveller with two stops
+   * needs all three compared side by side.
+   */
+  coverage: PlanCoverage;
 
   /** Allowance in MB. `0` when `isUnlimited`. */
   dataAmountMb: number;

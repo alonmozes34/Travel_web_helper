@@ -4,7 +4,7 @@ import { test, describe } from 'node:test';
 import { mockPlans, getPlansForCountry } from '@/data/mockPlans';
 import { mockFxRates } from '@/data/fxRates';
 import { buildComparison } from '@/lib/comparison/buildComparison';
-import { estimateDataNeed, neutralTripProfile } from '@/lib/comparison/estimateDataNeed';
+import { DEFAULT_LEG_DAYS, DEFAULT_USAGE, estimateDataNeed } from '@/lib/comparison/estimateDataNeed';
 import { headroomScore, needFitScore, scorePlans } from '@/lib/comparison/scorePlan';
 import { convertPrice } from '@/lib/pricing/convert';
 import { pricePerGbMinor, pricePerDayMinor } from '@/lib/pricing/perUnit';
@@ -15,8 +15,7 @@ function plan(overrides: Partial<Plan> & { id: string }): Plan {
   return {
     providerId: 'test',
     planName: 'Test plan',
-    countryCode: 'TH',
-    region: null,
+    coverage: { kind: 'country', countries: ['TH'], regionId: null, publishedDestinationCount: null },
     dataAmountMb: 10 * MB_PER_GB,
     isUnlimited: false,
     fairUsage: null,
@@ -39,15 +38,15 @@ function plan(overrides: Partial<Plan> & { id: string }): Plan {
 
 describe('estimateDataNeed', () => {
   test('falls back to a neutral profile and says so', () => {
-    const estimate = estimateDataNeed({});
-    assert.equal(estimate.days, neutralTripProfile.days);
-    assert.equal(estimate.usage, neutralTripProfile.usage);
+    const estimate = estimateDataNeed({ destinations: [] });
+    assert.equal(estimate.days, DEFAULT_LEG_DAYS);
+    assert.equal(estimate.usage, DEFAULT_USAGE);
     assert.equal(estimate.isDefault, true);
   });
 
   test('scales with days and usage', () => {
-    const light = estimateDataNeed({ days: 10, usage: 'light' });
-    const heavy = estimateDataNeed({ days: 10, usage: 'heavy' });
+    const light = estimateDataNeed({ destinations: [{ countryCode: 'TH', days: 10 }], usage: 'light' });
+    const heavy = estimateDataNeed({ destinations: [{ countryCode: 'TH', days: 10 }], usage: 'heavy' });
     assert.equal(light.requiredMb, 2500);
     assert.ok(heavy.requiredMb > light.requiredMb);
     assert.equal(heavy.isDefault, false);
@@ -55,7 +54,7 @@ describe('estimateDataNeed', () => {
 });
 
 describe('scoring components', () => {
-  const estimate = estimateDataNeed({ days: 10, usage: 'regular' }); // 6000MB
+  const estimate = estimateDataNeed({ destinations: [{ countryCode: 'TH', days: 10 }], usage: 'regular' }); // 6000MB
 
   test('falling short of the need is penalised more than proportionally', () => {
     const half = needFitScore(plan({ id: 'a', dataAmountMb: 3000 }), estimate);
@@ -80,7 +79,7 @@ describe('scoring components', () => {
 
 describe('best value', () => {
   // The worked example from the approved brief. Need is 10GB.
-  const estimate = estimateDataNeed({ days: 10, usage: 'light' }); // 2500MB
+  const estimate = estimateDataNeed({ destinations: [{ countryCode: 'TH', days: 10 }], usage: 'light' }); // 2500MB
   const need10Gb = { ...estimate, requiredMb: 10 * MB_PER_GB, requiredGb: 10, dailyMb: 1024 };
 
   const a = plan({ id: 'a', dataAmountMb: 10 * MB_PER_GB, finalPriceMinor: 6000 });
@@ -196,7 +195,10 @@ describe('per-unit pricing', () => {
 });
 
 describe('recommendations', () => {
-  const comparison = buildComparison({ countryCode: 'TH', currency: 'ILS', profile: { days: 14, usage: 'regular' } });
+  const comparison = buildComparison({
+    currency: 'ILS',
+    profile: { destinations: [{ countryCode: 'TH', days: 14 }], usage: 'regular' },
+  });
 
   test('every category points at a plan that exists', () => {
     for (const recommendation of Object.values(comparison.recommendations)) {
@@ -216,8 +218,8 @@ describe('recommendations', () => {
 
   test('a category with no qualifying plan is omitted, not substituted', () => {
     const noUnlimited = buildComparison({
-      countryCode: 'TH',
       currency: 'ILS',
+      profile: { destinations: [{ countryCode: 'TH' }] },
       plans: getPlansForCountry('TH').filter((entry) => !entry.isUnlimited),
     });
     assert.equal(noUnlimited.recommendations.bestUnlimited, undefined);

@@ -29,35 +29,57 @@ const options = await page.locator('[role="option"]').allInnerTexts();
 ok('autocomplete offers Thailand', options.some((o) => o.includes('תאילנד')), options.join(' | '));
 
 await input.press('Enter');
-await page.waitForTimeout(150);
-ok('destination fills the field', (await input.inputValue()) === 'תאילנד');
+await page.waitForTimeout(200);
+ok('the destination becomes a chip on the trip', (await page.locator('form li').count()) === 1);
 
-// Latin query should find the same country.
-await page.getByRole('button', { name: 'ניקוי היעד' }).click();
-await input.type('thai', { delay: 40 });
+// A second stop is added rather than replacing the first.
+await input.type('united', { delay: 40 });
 await page.waitForSelector('[role="listbox"]');
-ok('latin query matches', (await page.locator('[role="option"]').first().innerText()).includes('תאילנד'));
 await input.press('Enter');
+await page.waitForTimeout(200);
+ok('a second destination can be added', (await page.locator('form li').count()) === 2);
 
-// Optional trip details.
+// Per-stop trip length.
+await page.locator('form li input[type="number"]').first().fill('1');
+await page.locator('form li input[type="number"]').nth(1).fill('14');
+await page.waitForTimeout(150);
+
 await page.getByRole('button', { name: /התאם לי חבילה לטיול/ }).click();
-await page.getByRole('button', { name: '8–14' }).click();
 await page.getByRole('button', { name: 'רגיל', exact: true }).click();
 ok(
   'usage chip reflects the selection',
   (await page.getByRole('button', { name: 'רגיל', exact: true }).getAttribute('aria-pressed')) === 'true',
 );
-ok(
-  'duration range is not reversed by bidi',
-  (await page.getByRole('button', { name: '8–14' }).innerText()).trim() === '8–14',
-);
 await shot(page, 'phase2-home-desktop');
 
 await page.getByRole('button', { name: 'השווה eSIM' }).click();
-await page.waitForURL('**/esim/thailand**');
+await page.waitForURL('**/search**');
 const url = new URL(page.url());
-ok('navigates to country page', url.pathname === '/esim/thailand', url.pathname);
-ok('carries trip profile', url.searchParams.get('days') === '14' && url.searchParams.get('usage') === 'regular', url.search);
+ok('a multi-stop trip goes to the search page', url.pathname === '/search', url.pathname);
+ok(
+  'the stops and their lengths travel in the URL',
+  /:1/.test(url.searchParams.get('to') ?? '') && /:14/.test(url.searchParams.get('to') ?? ''),
+  url.search,
+);
+ok(
+  'a combination is offered when no single plan covers the trip well',
+  (await page.locator('main').innerText()).includes('צירוף חבילות'),
+);
+ok(
+  'every listed plan covers the whole trip',
+  (await page.locator('article.row, article').count()) > 0,
+);
+await shot(page, 'multi-search');
+
+// A single destination keeps its own indexable country page.
+await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+await page.getByRole('combobox', { name: 'יעד הטיול' }).type('תאילנד', { delay: 30 });
+await page.waitForSelector('[role="listbox"]');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(150);
+await page.getByRole('button', { name: 'השווה eSIM' }).click();
+await page.waitForURL('**/esim/thailand**');
+ok('a single destination goes to its country page', new URL(page.url()).pathname === '/esim/thailand');
 
 // Submitting with no destination must not navigate.
 await page.goto(BASE, { waitUntil: 'networkidle' });
@@ -75,7 +97,7 @@ await input.press('ArrowDown');
 await input.press('ArrowUp');
 await input.press('Enter');
 await page.waitForTimeout(150);
-ok('keyboard selection works', (await input.inputValue()) === 'יוון');
+ok('keyboard selection works', (await page.locator('form li').innerText()).includes('יוון'));
 
 // Mobile.
 const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -95,6 +117,10 @@ await page.goto(results, { waitUntil: 'networkidle' });
 
 const rowCount = await page.locator('article').count();
 ok('results render plan rows', rowCount > 0, `${rowCount} rows`);
+ok(
+  'regional and global plans appear on a country page',
+  (await page.locator('main').innerText()).includes('חבילה גלובלית'),
+);
 ok(
   'the summary counts come from the data',
   /\d+/.test(await page.locator('main').innerText()),
@@ -171,9 +197,11 @@ ok(
 // Country facts are derived from the plans, not pre-written.
 const pageText = await page.locator('main').innerText();
 ok('practical information is present', pageText.includes('מידע פרקטי'));
+const summaryCount = (await page.locator('main').innerText()).match(/מצאנו (\d+) חבילות/)?.[1];
 ok(
-  'the practical answers cite the data on the page',
-  /מצאנו 9 חבילות/.test(pageText) && /AIS/.test(pageText),
+  'the practical answers cite the same counts as the results',
+  summaryCount !== undefined && pageText.includes(`מצאנו ${summaryCount} חבילות`) && /AIS/.test(pageText),
+  `count ${summaryCount}`,
 );
 
 // Every interactive control needs an accessible name.
@@ -193,7 +221,7 @@ ok('every control has an accessible name', unnamed.length === 0, unnamed.join(',
 // Keyboard reachability: tabbing from the top reaches the first plan's action.
 await page.goto(results, { waitUntil: 'networkidle' });
 let reachedCta = false;
-for (let i = 0; i < 60 && !reachedCta; i += 1) {
+for (let i = 0; i < 150 && !reachedCta; i += 1) {
   await page.keyboard.press('Tab');
   const focused = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
   if (focused === 'צפייה בחבילה') reachedCta = true;

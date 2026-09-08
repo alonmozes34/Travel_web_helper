@@ -7,7 +7,7 @@ import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import { MB_PER_GB } from '@/lib/formatters/data';
 import { formatData } from '@/lib/formatters/data';
 import { formatPrice } from '@/lib/formatters/price';
-import { hasTechnology } from '@/lib/types/network';
+import { hasTechnology, networksForDestinations } from '@/lib/types/network';
 
 /** One labelled fact: a small caption, a prominent value, a quiet sub-line. */
 export function Fact({
@@ -126,10 +126,20 @@ export function ValidityFact({
  * traveller more than "4G" does. Technology and features sit beneath it as
  * small tags, and what a plan lacks is shown greyed rather than omitted.
  */
-export function NetworkFact({ row, dict }: { row: ComparisonRow; dict: Dictionary }) {
+export function NetworkFact({
+  row,
+  dict,
+  countryCodes = [],
+}: {
+  row: ComparisonRow;
+  dict: Dictionary;
+  /** Narrows a regional plan's networks to the destinations being searched. */
+  countryCodes?: string[];
+}) {
   const { plan } = row;
-  const operators = plan.networks.map((network) => network.operator).join(' + ');
-  const fiveG = hasTechnology(plan.networks, '5G');
+  const networks = networksForDestinations(plan.networks, countryCodes);
+  const operators = networks.map((network) => network.operator).join(' + ');
+  const fiveG = hasTechnology(networks, '5G');
 
   const tags: Array<{ label: string; on: boolean }> = [
     { label: fiveG ? '5G' : dict.plan.no5g, on: fiveG },

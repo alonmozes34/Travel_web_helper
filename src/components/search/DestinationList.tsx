@@ -1,0 +1,87 @@
+'use client';
+
+import { Ltr } from '@/components/ui/Bdi';
+import { getCountryBySlug, countries } from '@/data/countries';
+import type { Locale } from '@/i18n/config';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { interpolate } from '@/i18n/interpolate';
+import type { TripDestination } from '@/lib/types/trip';
+
+const byCode = new Map(countries.map((country) => [country.code, country]));
+
+/**
+ * The stops on the trip, each with its own length.
+ *
+ * Days sit on the destination rather than on the trip because a night in
+ * Germany and a fortnight in the States are different purchases; sizing both
+ * from one total would over-buy for the short stop and make any combination
+ * look more expensive than it is.
+ */
+export function DestinationList({
+  destinations,
+  locale,
+  dict,
+  onChange,
+}: {
+  destinations: TripDestination[];
+  locale: Locale;
+  dict: Dictionary;
+  onChange: (destinations: TripDestination[]) => void;
+}) {
+  if (destinations.length === 0) return null;
+
+  return (
+    <ul className="mt-3 flex max-w-[640px] flex-wrap gap-2">
+      {destinations.map((destination, index) => {
+        const country = byCode.get(destination.countryCode);
+        const name = country?.names[locale] ?? destination.countryCode;
+
+        return (
+          <li
+            key={destination.countryCode}
+            className="flex items-center gap-2 rounded-full border border-line bg-surface ps-3 pe-1.5 py-1"
+          >
+            <span aria-hidden="true">{country?.flag}</span>
+            <span className="text-[0.9375rem] font-semibold">{name}</span>
+
+            <label className="flex items-center gap-1.5 text-[0.8125rem] text-ink-2">
+              <span className="sr-only">
+                {interpolate(dict.search.daysLabelTemplate, { country: name })}
+              </span>
+              <input
+                type="number"
+                min={1}
+                max={365}
+                inputMode="numeric"
+                value={destination.days ?? ''}
+                placeholder="—"
+                onChange={(event) => {
+                  const value = Number.parseInt(event.target.value, 10);
+                  const next = [...destinations];
+                  next[index] = {
+                    ...destination,
+                    days: Number.isFinite(value) && value > 0 ? Math.min(365, value) : undefined,
+                  };
+                  onChange(next);
+                }}
+                className="tnum w-11 rounded-sm border border-line bg-surface px-1.5 py-0.5 text-center text-[0.8125rem] text-ink"
+              />
+              <Ltr>{dict.search.daysUnit}</Ltr>
+            </label>
+
+            <button
+              type="button"
+              onClick={() => onChange(destinations.filter((_, i) => i !== index))}
+              className="inline-flex size-8 items-center justify-center rounded-full text-ink-3 hover:bg-surface-2"
+            >
+              <span aria-hidden="true">✕</span>
+              <span className="sr-only">{interpolate(dict.search.removeTemplate, { country: name })}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export { getCountryBySlug };

@@ -79,9 +79,15 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
 
   // The traveller's chosen currency comes from the cookie, so prices render in
   // it on the first paint rather than changing under them after hydration.
+  // A country page is a single-destination search; the multi-stop flow lives
+  // on /search, which the hero submits to when more than one stop is chosen.
   const comparison = buildComparison({
-    countryCode: country.code,
-    profile,
+    profile: {
+      ...profile,
+      destinations: profile.destinations.length
+        ? profile.destinations
+        : [{ countryCode: country.code }],
+    },
     currency: await getDisplayCurrency(locale),
   });
   const { estimate } = comparison;
@@ -105,8 +111,12 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
             <HeroSearch
               locale={locale}
               dict={dict}
-              initialCountry={country}
-              initialProfile={profile}
+              initialProfile={{
+                ...profile,
+                destinations: profile.destinations.length
+                  ? profile.destinations
+                  : [{ countryCode: country.code }],
+              }}
               showPopular={false}
             />
           </div>
@@ -144,6 +154,7 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
           dict={dict}
           currency={comparison.currency}
           tripDays={estimate.days}
+          countryCodes={comparison.countryCodes}
           demoDataEnabled={comparison.isMockData}
           availableRecommendations={Object.keys(comparison.recommendations) as RecommendationKey[]}
           initialFilters={initialFilters}

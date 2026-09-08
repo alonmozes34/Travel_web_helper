@@ -18,6 +18,8 @@ export type Coverage = {
 };
 
 export type Network = {
+  /** ISO 3166-1 alpha-2 of the country this operator serves. */
+  countryCode: string;
   /** Local operator name, e.g. "AIS". */
   operator: string;
   /** Mobile country/network code, e.g. "520-03". */
@@ -32,4 +34,17 @@ export function hasTechnology(networks: Network[], technology: NetworkTechnology
 
 export function operatorNames(networks: Network[]): string[] {
   return networks.map((network) => network.operator);
+}
+
+/**
+ * The operators that matter for the destinations being searched.
+ *
+ * A regional plan may list operators in a dozen countries; showing all of them
+ * tells a traveller going to Germany nothing. When no destination is given,
+ * every operator is returned.
+ */
+export function networksForDestinations(networks: Network[], countryCodes: string[]): Network[] {
+  if (countryCodes.length === 0) return networks;
+  const relevant = networks.filter((network) => countryCodes.includes(network.countryCode));
+  return relevant.length ? relevant : networks;
 }

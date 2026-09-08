@@ -1,12 +1,13 @@
 import type { CurrencyCode } from '@/i18n/config';
-import { getPlansForCountry } from '@/data/mockPlans';
+import { getPlansCoveringAll } from '@/data/mockPlans';
 import { getProvider, mockProviders } from '@/data/mockProviders';
 import { mockFxRates } from '@/data/fxRates';
 import { convertPrice, type DisplayPrice, type FxRate } from '@/lib/pricing/convert';
 import { pricePerDayMinor, pricePerGbMinor } from '@/lib/pricing/perUnit';
 import { hasDiscount, type Plan } from '@/lib/types/plan';
 import type { Provider } from '@/lib/types/provider';
-import type { TripProfile } from '@/lib/types/trip';
+import { destinationCodes, type TripProfile } from '@/lib/types/trip';
+import { buildCombination, type Combination } from './buildCombination';
 import { estimateDataNeed, type DataNeedEstimate } from './estimateDataNeed';
 import { recommend, type Recommendation, type RecommendationKey } from './recommend';
 import { browsingScore, scorePlans, type ScoreBreakdown } from './scorePlan';
@@ -31,7 +32,8 @@ export type ComparisonRow = {
 };
 
 export type Comparison = {
-  countryCode: string;
+  /** Every destination on the trip, in the order the traveller entered them. */
+  countryCodes: string[];
   currency: CurrencyCode;
   estimate: DataNeedEstimate;
   rows: ComparisonRow[];
@@ -41,6 +43,11 @@ export type Comparison = {
   providerCount: number;
   /** True while any row still comes from mock data. */
   isMockData: boolean;
+  /**
+   * The best set of plans covering a multi-stop trip, when one exists and no
+   * single plan does the job better. Null for single-destination searches.
+   */
+  combination: Combination | null;
 };
 
 /**
@@ -52,30 +59,33 @@ export type Comparison = {
  * are compared on the same scale.
  */
 export function buildComparison({
-  countryCode,
-  profile = {},
+  profile,
   currency,
-  plans = getPlansForCountry(countryCode),
+  plans,
   rates = mockFxRates,
 }: {
-  countryCode: string;
-  profile?: TripProfile;
+  profile: TripProfile;
   currency: CurrencyCode;
+  /** Defaults to every plan covering all of the trip's destinations. */
   plans?: Plan[];
   rates?: FxRate[];
 }): Comparison {
+  const countryCodes = destinationCodes(profile);
+  // Results are plans that cover the whole trip. Anything less is offered as a
+  // combination instead, never mixed into the list as if it were a full answer.
+  const candidates = plans ?? getPlansCoveringAll(countryCodes);
   const estimate = estimateDataNeed(profile);
 
   const priceByPlanId = new Map<string, number>();
   const displayByPlanId = new Map<string, DisplayPrice>();
 
-  for (const plan of plans) {
+  for (const plan of candidates) {
     const price = convertPrice(plan.finalPriceMinor, plan.sourceCurrency, currency, rates);
     displayByPlanId.set(plan.id, price);
     priceByPlanId.set(plan.id, price.amountMinor);
   }
 
-  const scored = scorePlans(plans, { estimate, priceByPlanId });
+  const scored = scorePlans(candidates, { estimate, priceByPlanId });
   const recommendations = recommend(scored, { estimate, priceByPlanId });
 
   const badgesByPlanId = new Map<string, RecommendationKey[]>();
@@ -108,7 +118,7 @@ export function buildComparison({
   });
 
   return {
-    countryCode,
+    countryCodes,
     currency,
     estimate,
     rows,
@@ -116,6 +126,12 @@ export function buildComparison({
     planCount: rows.length,
     providerCount: new Set(rows.map((row) => row.plan.providerId)).size,
     isMockData: rows.some((row) => row.plan.source === 'mock'),
+    combination: buildCombination({
+      profile,
+      plans: getPlansCoveringAll([]),
+      currency,
+      rates,
+    }),
   };
 }
 

@@ -1,5 +1,5 @@
 import { MB_PER_GB } from '@/lib/formatters/data';
-import { hasTechnology } from '@/lib/types/network';
+import { hasTechnology, networksForDestinations } from '@/lib/types/network';
 import type { Comparison } from './buildComparison';
 import { dailyDataMbByUsage } from './estimateDataNeed';
 
@@ -43,15 +43,18 @@ export function buildCountryFacts({
   const { rows, estimate } = comparison;
   const total = rows.length;
 
-  const operators = [
-    ...new Set(rows.flatMap((row) => row.plan.networks.map((network) => network.operator))),
-  ].sort();
+  // A regional plan lists operators in a dozen countries; only the ones in
+  // this destination belong in this destination's answer.
+  const relevant = (row: (typeof rows)[number]) =>
+    networksForDestinations(row.plan.networks, comparison.countryCodes);
 
-  const fiveGRows = rows.filter((row) => hasTechnology(row.plan.networks, '5G'));
+  const operators = [...new Set(rows.flatMap((row) => relevant(row).map((n) => n.operator)))].sort();
+
+  const fiveGRows = rows.filter((row) => hasTechnology(relevant(row), '5G'));
   const fiveGOperators = [
     ...new Set(
       fiveGRows.flatMap((row) =>
-        row.plan.networks
+        relevant(row)
           .filter((network) => network.technologies.includes('5G'))
           .map((network) => network.operator),
       ),

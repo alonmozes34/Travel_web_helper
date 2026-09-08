@@ -1,0 +1,144 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { Container } from '@/components/ui/Container';
+import { HeroSearch } from '@/components/search/HeroSearch';
+import { ResultsView } from '@/components/results/ResultsView';
+import { CombinationCard } from '@/components/comparison/CombinationCard';
+import { AffiliateDisclosure } from '@/components/content/AffiliateDisclosure';
+import { MockDataNotice } from '@/components/content/MockDataNotice';
+import { countries } from '@/data/countries';
+import { isLocale } from '@/i18n/config';
+import { getDictionary } from '@/i18n/getDictionary';
+import { interpolate } from '@/i18n/interpolate';
+import { buildComparison } from '@/lib/comparison/buildComparison';
+import { filtersFromParams } from '@/lib/comparison/filter';
+import type { RecommendationKey } from '@/lib/comparison/recommend';
+import { isSortKey } from '@/lib/comparison/sort';
+import { getDisplayCurrency } from '@/lib/currencyServer';
+import { tripProfileFromParams } from '@/lib/types/trip';
+
+export const metadata: Metadata = {
+  // A search result is a private query, not a page for a search engine.
+  robots: { index: false, follow: false },
+};
+
+const byCode = new Map(countries.map((country) => [country.code, country]));
+
+/**
+ * Multi-stop search.
+ *
+ * Single-destination searches keep their own indexable country URL; this page
+ * exists for trips with more than one stop, which no country page can answer.
+ */
+export default async function SearchPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+
+  const dict = getDictionary(locale);
+  const query = await searchParams;
+  const profile = tripProfileFromParams(query);
+
+  const queryParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value === 'string') queryParams.set(key, value);
+    else if (Array.isArray(value) && value[0]) queryParams.set(key, value[0]);
+  }
+  const sortParam = queryParams.get('sort');
+
+  const comparison = buildComparison({
+    profile,
+    currency: await getDisplayCurrency(locale),
+  });
+  const { estimate, combination } = comparison;
+
+  const names = profile.destinations
+    .map((destination) => byCode.get(destination.countryCode)?.names[locale] ?? destination.countryCode)
+    .join(' + ');
+
+  const cheapestSingleMinor = comparison.rows.length
+    ? Math.min(...comparison.rows.map((row) => row.price.amountMinor))
+    : null;
+
+  return (
+    <>
+      <section className="bg-surface pt-10 pb-8">
+        <Container>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+            {names
+              ? interpolate(dict.search.multiTitleTemplate, { destinations: names })
+              : dict.search.chooseFirst}
+          </h1>
+          <div className="mt-6">
+            <HeroSearch locale={locale} dict={dict} initialProfile={profile} showPopular={false} />
+          </div>
+        </Container>
+      </section>
+
+      <Container className="py-10">
+        <MockDataNotice dict={dict} className="max-w-[80ch]" />
+
+        <p className="mt-6 text-[0.9375rem] text-ink-2">
+          <strong className="font-semibold text-ink">
+            {interpolate(dict.results.summaryTemplate, {
+              plans: comparison.planCount,
+              providers: comparison.providerCount,
+            })}
+          </strong>
+        </p>
+        <p className="mt-1 mb-6 text-[0.8125rem] text-ink-2">
+          {estimate.isDefault ? (
+            dict.results.defaultEstimate
+          ) : (
+            <span className="font-semibold text-brand">
+              {interpolate(dict.results.tailoredTemplate, {
+                days: estimate.days,
+                usage: dict.personalization.usages[estimate.usage],
+                gb: Math.round(estimate.requiredGb),
+              })}
+            </span>
+          )}
+        </p>
+
+        {comparison.rows.length === 0 && combination ? (
+          <p className="mb-4 rounded-sm border-s-[3px] border-s-warn-ink bg-warn-50 px-3 py-2 text-[0.8125rem] text-warn-ink">
+            {dict.search.noFullCoverage}
+          </p>
+        ) : null}
+
+        {combination ? (
+          <div className="mb-8">
+            <CombinationCard
+              combination={combination}
+              cheapestSingleMinor={cheapestSingleMinor}
+              locale={locale}
+              dict={dict}
+            />
+          </div>
+        ) : null}
+
+        {comparison.rows.length > 0 ? (
+          <ResultsView
+            rows={comparison.rows}
+            locale={locale}
+            dict={dict}
+            currency={comparison.currency}
+            tripDays={estimate.days}
+            countryCodes={comparison.countryCodes}
+            demoDataEnabled={comparison.isMockData}
+            availableRecommendations={Object.keys(comparison.recommendations) as RecommendationKey[]}
+            initialFilters={filtersFromParams(queryParams)}
+            initialSort={sortParam && isSortKey(sortParam) ? sortParam : 'recommended'}
+          />
+        ) : null}
+
+        <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
+      </Container>
+    </>
+  );
+}

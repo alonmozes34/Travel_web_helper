@@ -7,6 +7,7 @@ import type { Dictionary } from '@/i18n/getDictionary';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import { CompareToggle } from './CompareToggle';
 import { CouponChip } from './CouponChip';
+import { CoverageNote } from './CoverageNote';
 import { DataFact, FairUsageNote, NetworkFact, ValidityFact } from './PlanFacts';
 import { PlanBadges } from './PlanBadges';
 import { PlanCta } from './PlanCta';
@@ -32,6 +33,7 @@ export function PlanListItem({
   locale,
   dict,
   tripDays,
+  countryCodes = [],
   demoDataEnabled,
   isSelected,
   canSelect,
@@ -41,6 +43,7 @@ export function PlanListItem({
   locale: Locale;
   dict: Dictionary;
   tripDays: number;
+  countryCodes?: string[];
   demoDataEnabled: boolean;
   isSelected: boolean;
   canSelect: boolean;
@@ -69,6 +72,7 @@ export function PlanListItem({
         <div className="min-w-0 flex-1">
           <ProviderCell row={row} />
           <PlanBadges badges={row.badges} dict={dict} />
+          <CoverageNote coverage={row.plan.coverage} locale={locale} dict={dict} />
           <FairUsageNote row={row} dict={dict} />
         </div>
       </div>
@@ -83,7 +87,7 @@ export function PlanListItem({
         <DataFact row={row} locale={locale} dict={dict} />
         <ValidityFact row={row} dict={dict} tripDays={tripDays} />
         <div className="col-span-2 md:col-span-1 lg:col-span-1">
-          <NetworkFact row={row} dict={dict} />
+          <NetworkFact row={row} dict={dict} countryCodes={countryCodes} />
         </div>
       </div>
 

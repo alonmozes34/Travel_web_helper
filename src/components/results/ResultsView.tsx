@@ -38,6 +38,7 @@ export function ResultsView({
   dict,
   currency,
   tripDays,
+  countryCodes,
   demoDataEnabled,
   availableRecommendations,
   initialFilters,
@@ -48,6 +49,7 @@ export function ResultsView({
   dict: Dictionary;
   currency: CurrencyCode;
   tripDays: number;
+  countryCodes: string[];
   demoDataEnabled: boolean;
   availableRecommendations: RecommendationKey[];
   /** Parsed on the server from the URL, so a shared filtered link renders
@@ -134,6 +136,7 @@ export function ResultsView({
     locale,
     dict,
     tripDays,
+    countryCodes,
     demoDataEnabled,
     isSelected: selectedIds.includes(row.plan.id),
     canSelect: selectedIds.length < MAX_COMPARE,

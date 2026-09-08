@@ -4,57 +4,79 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ChipLink } from '@/components/ui/Chip';
-import { popularCountries, type Country } from '@/data/countries';
+import { countries, popularCountries, type Country } from '@/data/countries';
 import { localePath, type Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { track } from '@/lib/analytics/events';
-import { tripProfileToQuery, type TripProfile } from '@/lib/types/trip';
+import { tripProfileToQuery, type TripDestination, type TripProfile } from '@/lib/types/trip';
 import { DestinationSearch } from './DestinationSearch';
+import { DestinationList } from './DestinationList';
 import { TripPersonalization } from './TripPersonalization';
 
+const byCode = new Map(countries.map((country) => [country.code, country]));
+
 /**
- * The whole first screen asks for one thing: a destination.
+ * The whole first screen asks for one thing: where you are going. More than
+ * one stop is allowed, because plenty of trips have them and the plan that
+ * suits a two-country trip is often not the plan that suits either country
+ * alone.
  *
- * Trip details sit behind a quiet link and never block the journey — pressing
- * "Compare eSIMs" with nothing but a country goes straight to results.
+ * Trip details stay behind a quiet link and never block the journey.
  */
 export function HeroSearch({
   locale,
   dict,
-  initialCountry = null,
-  initialProfile = {},
+  initialProfile = { destinations: [] },
   showPopular = true,
 }: {
   locale: Locale;
   dict: Dictionary;
-  initialCountry?: Country | null;
   initialProfile?: TripProfile;
   showPopular?: boolean;
 }) {
   const router = useRouter();
-  const [country, setCountry] = useState<Country | null>(initialCountry);
   const [profile, setProfile] = useState<TripProfile>(initialProfile);
-  const [showDetails, setShowDetails] = useState(
-    Boolean(initialProfile.days || initialProfile.usage),
-  );
+  const [showDetails, setShowDetails] = useState(Boolean(initialProfile.usage));
   const [error, setError] = useState<string | null>(null);
 
-  function countryHref(target: Country) {
-    return `${localePath(locale, `/esim/${target.slug}`)}${tripProfileToQuery(profile)}`;
+  /**
+   * One stop keeps the shareable, indexable country URL; more than one goes to
+   * the multi-stop search, which is the only page that can answer it.
+   */
+  function hrefFor(next: TripProfile) {
+    const query = tripProfileToQuery(next);
+    if (next.destinations.length === 1) {
+      const country = byCode.get(next.destinations[0].countryCode);
+      if (country) return `${localePath(locale, `/esim/${country.slug}`)}${query}`;
+    }
+    return `${localePath(locale, '/search')}${query}`;
+  }
+
+  function addDestination(country: Country) {
+    setError(null);
+    setProfile((current) =>
+      current.destinations.some((d) => d.countryCode === country.code)
+        ? current
+        : { ...current, destinations: [...current.destinations, { countryCode: country.code }] },
+    );
+  }
+
+  function setDestinations(destinations: TripDestination[]) {
+    setProfile((current) => ({ ...current, destinations }));
   }
 
   function submit() {
-    if (!country) {
+    if (profile.destinations.length === 0) {
       setError(dict.search.chooseFirst);
       return;
     }
     track({
       name: 'search_submitted',
-      countryCode: country.code,
-      days: profile.days,
+      countryCode: profile.destinations.map((d) => d.countryCode).join('+'),
+      days: profile.destinations.reduce((sum, d) => sum + (d.days ?? 0), 0) || undefined,
       usage: profile.usage,
     });
-    router.push(countryHref(country));
+    router.push(hrefFor(profile));
   }
 
   return (
@@ -69,16 +91,21 @@ export function HeroSearch({
         <DestinationSearch
           locale={locale}
           dict={dict}
-          selected={country}
-          onSelect={(next) => {
-            setCountry(next);
-            setError(null);
-          }}
+          chosen={profile.destinations.map((d) => d.countryCode)}
+          onSelect={addDestination}
+          placeholder={profile.destinations.length ? dict.search.addAnother : dict.search.placeholder}
         />
         <Button type="submit" className="sm:w-auto">
           {dict.search.submit}
         </Button>
       </div>
+
+      <DestinationList
+        destinations={profile.destinations}
+        locale={locale}
+        dict={dict}
+        onChange={setDestinations}
+      />
 
       <p aria-live="polite" className="min-h-5 pt-2 text-[0.8125rem] text-warn-ink">
         {error}
@@ -107,7 +134,10 @@ export function HeroSearch({
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <span className="text-[0.8125rem] text-ink-3">{dict.search.popularLabel}</span>
           {popularCountries.map((destination) => (
-            <ChipLink key={destination.code} href={countryHref(destination)}>
+            <ChipLink
+              key={destination.code}
+              href={`${localePath(locale, `/esim/${destination.slug}`)}${tripProfileToQuery({ ...profile, destinations: [{ countryCode: destination.code }] })}`}
+            >
               <span aria-hidden="true">{destination.flag}</span>
               {destination.names[locale]}
             </ChipLink>

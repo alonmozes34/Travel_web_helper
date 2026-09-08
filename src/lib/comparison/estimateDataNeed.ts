@@ -7,11 +7,6 @@ import type { TripProfile, UsageLevel } from '@/lib/types/trip';
  * These are the only place the estimate is tuned, and they are deliberately
  * conservative rather than flattering: recommending a plan that runs out is a
  * far worse failure than recommending one gigabyte too many.
- *
- * light    messaging, navigation, email
- * regular  social media, maps, general browsing
- * heavy    video, hotspot, frequent use
- * unlimited a stated preference, scored as heavy usage
  */
 export const dailyDataMbByUsage: Record<UsageLevel, number> = {
   light: 250,
@@ -20,40 +15,83 @@ export const dailyDataMbByUsage: Record<UsageLevel, number> = {
   unlimited: 1500,
 };
 
-/**
- * Used when the traveller skips personalisation. Results are never withheld,
- * so the recommendation still needs a profile to reason about — a one-week
- * regular trip is the median case, and the UI says the estimate is a default.
- */
-export const neutralTripProfile: Required<Pick<TripProfile, 'days' | 'usage'>> = {
-  days: 7,
-  usage: 'regular',
+/** Used for a stop whose length the traveller has not given. */
+export const DEFAULT_LEG_DAYS = 7;
+export const DEFAULT_USAGE: UsageLevel = 'regular';
+
+/** The estimate for one stop on the trip. */
+export type LegEstimate = {
+  countryCode: string;
+  days: number;
+  requiredMb: number;
+  requiredGb: number;
+  /** True when the length was assumed rather than given. */
+  isAssumedLength: boolean;
 };
 
 export type DataNeedEstimate = {
-  days: number;
   usage: UsageLevel;
   dailyMb: number;
+  legs: LegEstimate[];
+  /** Sum across every stop. */
+  days: number;
   requiredMb: number;
   requiredGb: number;
-  /** True when the traveller has not told us about their trip. */
+  /** True when the traveller has told us nothing about the trip. */
   isDefault: boolean;
   prefersUnlimited: boolean;
 };
 
-export function estimateDataNeed(profile: TripProfile = {}): DataNeedEstimate {
-  const days = profile.days ?? neutralTripProfile.days;
-  const usage = profile.usage ?? neutralTripProfile.usage;
+/**
+ * Estimate data need per stop and in total.
+ *
+ * Sizing every leg off the whole trip would over-buy for the short ones — a
+ * night in Germany does not need two weeks' worth of data — so each stop is
+ * estimated on its own and the totals are derived from the legs.
+ */
+export function estimateDataNeed(profile: TripProfile): DataNeedEstimate {
+  const usage = profile.usage ?? DEFAULT_USAGE;
   const dailyMb = dailyDataMbByUsage[usage];
-  const requiredMb = days * dailyMb;
+
+  const destinations = profile.destinations.length
+    ? profile.destinations
+    : [{ countryCode: '', days: undefined }];
+
+  const legs: LegEstimate[] = destinations.map((destination) => {
+    const days = destination.days ?? DEFAULT_LEG_DAYS;
+    const requiredMb = days * dailyMb;
+    return {
+      countryCode: destination.countryCode,
+      days,
+      requiredMb,
+      requiredGb: requiredMb / MB_PER_GB,
+      isAssumedLength: destination.days === undefined,
+    };
+  });
+
+  const days = legs.reduce((sum, leg) => sum + leg.days, 0);
+  const requiredMb = legs.reduce((sum, leg) => sum + leg.requiredMb, 0);
 
   return {
-    days,
     usage,
     dailyMb,
+    legs,
+    days,
     requiredMb,
     requiredGb: requiredMb / MB_PER_GB,
-    isDefault: profile.days === undefined && profile.usage === undefined,
+    isDefault: profile.usage === undefined && legs.every((leg) => leg.isAssumedLength),
     prefersUnlimited: usage === 'unlimited',
+  };
+}
+
+/** The estimate for a single stop, used when pricing one leg of a combination. */
+export function legEstimate(estimate: DataNeedEstimate, countryCode: string): DataNeedEstimate {
+  const leg = estimate.legs.find((entry) => entry.countryCode === countryCode) ?? estimate.legs[0];
+  return {
+    ...estimate,
+    legs: [leg],
+    days: leg.days,
+    requiredMb: leg.requiredMb,
+    requiredGb: leg.requiredGb,
   };
 }

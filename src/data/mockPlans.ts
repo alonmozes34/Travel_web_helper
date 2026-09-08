@@ -1,8 +1,10 @@
 import type { CurrencyCode } from '@/i18n/config';
 import { MB_PER_GB } from '@/lib/formatters/data';
 import type { NetworkTechnology } from '@/lib/types/network';
+import type { PlanCoverage } from '@/lib/types/coverage';
 import type { Plan } from '@/lib/types/plan';
-import { buildNetworks } from './networks';
+import { buildNetworks, buildRegionalNetworks } from './networks';
+import { getRegion } from './regions';
 
 /**
  * MOCK PLAN DATA — NOT REAL OFFERS.
@@ -20,7 +22,12 @@ export const MOCK_PLANS_GENERATED_AT = '2026-09-01';
 type PlanSeed = {
   provider: string;
   name: string;
-  country: string;
+  /** Exactly one of these three says where the plan works. */
+  country?: string;
+  region?: string;
+  global?: boolean;
+  /** The provider's own destination count, shown as their claim. */
+  claimedDestinations?: number;
   /** Allowance in GB. Omit for unlimited plans. */
   gb?: number;
   unlimited?: boolean;
@@ -34,7 +41,8 @@ type PlanSeed = {
   was?: number;
   code?: string;
   percent?: number;
-  operators: string[];
+  /** Operators for a single-country plan. Regional plans derive theirs. */
+  operators?: string[];
   technologies?: NetworkTechnology[];
   hotspot?: boolean;
   calls?: boolean;
@@ -46,16 +54,42 @@ function toMinor(amount: number): number {
   return Math.round(amount * 100);
 }
 
+function coverageFor(seed: PlanSeed): PlanCoverage {
+  if (seed.global) {
+    return {
+      kind: 'global',
+      countries: getRegion('global')?.countries ?? [],
+      regionId: 'global',
+      publishedDestinationCount: seed.claimedDestinations ?? null,
+    };
+  }
+  if (seed.region) {
+    return {
+      kind: 'region',
+      countries: getRegion(seed.region)?.countries ?? [],
+      regionId: seed.region,
+      publishedDestinationCount: seed.claimedDestinations ?? null,
+    };
+  }
+  return {
+    kind: 'country',
+    countries: seed.country ? [seed.country] : [],
+    regionId: null,
+    publishedDestinationCount: null,
+  };
+}
+
 function buildPlan(seed: PlanSeed, index: number): Plan {
   const finalPriceMinor = toMinor(seed.price);
   const originalPriceMinor = seed.was ? toMinor(seed.was) : finalPriceMinor;
+  const coverage = coverageFor(seed);
+  const scope = seed.global ? 'global' : (seed.region ?? seed.country ?? 'x').toLowerCase();
 
   return {
-    id: `${seed.provider}-${seed.country.toLowerCase()}-${index}`,
+    id: `${seed.provider}-${scope}-${index}`,
     providerId: seed.provider,
     planName: seed.name,
-    countryCode: seed.country,
-    region: null,
+    coverage,
     dataAmountMb: seed.unlimited ? 0 : Math.round((seed.gb ?? 0) * MB_PER_GB),
     isUnlimited: Boolean(seed.unlimited),
     fairUsage: seed.fup
@@ -69,7 +103,10 @@ function buildPlan(seed: PlanSeed, index: number): Plan {
       seed.code && seed.percent
         ? { code: seed.code, percent: seed.percent, source: 'mock' }
         : null,
-    networks: buildNetworks(seed.country, seed.operators, seed.technologies),
+    networks:
+      coverage.kind === 'country'
+        ? buildNetworks(seed.country!, seed.operators ?? [], seed.technologies)
+        : buildRegionalNetworks(coverage.countries, seed.technologies),
     hotspot: seed.hotspot ?? true,
     calls: seed.calls ?? false,
     sms: seed.sms ?? false,
@@ -134,12 +171,47 @@ const seeds: PlanSeed[] = [
   { provider: 'alosim', name: 'Japan 3GB', country: 'JP', gb: 3, days: 15, currency: 'USD', price: 11.0, operators: ['KDDI'], technologies: ['4G'] },
   { provider: 'maya', name: 'Japan 20GB', country: 'JP', gb: 20, days: 30, currency: 'USD', price: 28.0, was: 33.0, code: 'MAYA15', percent: 15, operators: ['SoftBank'] },
   { provider: 'holafly', name: 'Japan Unlimited', country: 'JP', unlimited: true, fup: [5, 512], days: 15, currency: 'USD', price: 59.0, operators: ['NTT Docomo'], technologies: ['4G'], hotspot: false, topUp: false },
+  // ----------------------------------------------------------------- Germany
+  { provider: 'ubigi', name: 'Germany 1GB', country: 'DE', gb: 1, days: 30, currency: 'EUR', price: 4.5, operators: ['Telekom'], sms: true },
+  { provider: 'airalo', name: 'Hallo Germany 3GB', country: 'DE', gb: 3, days: 30, currency: 'USD', price: 8.0, operators: ['Telekom'] },
+  { provider: 'saily', name: 'Germany 5GB', country: 'DE', gb: 5, days: 30, currency: 'USD', price: 9.99, operators: ['Vodafone DE'] },
+  { provider: 'nomad', name: 'Germany 10GB', country: 'DE', gb: 10, days: 30, currency: 'USD', price: 15.0, operators: ['Telekom'] },
+
+  // ------------------------------------------------------------------ Europe
+  { provider: 'airalo', name: 'Eurolink 10GB', region: 'europe', claimedDestinations: 39, gb: 10, days: 30, currency: 'USD', price: 22.0, operators: [] },
+  { provider: 'saily', name: 'Europe 5GB', region: 'europe', claimedDestinations: 35, gb: 5, days: 30, currency: 'USD', price: 14.99, technologies: ['4G'], operators: [] },
+  { provider: 'nomad', name: 'Europe 10GB', region: 'europe', claimedDestinations: 34, gb: 10, days: 30, currency: 'USD', price: 19.0, operators: [] },
+  { provider: 'ubigi', name: 'Europe 10GB', region: 'europe', claimedDestinations: 30, gb: 10, days: 30, currency: 'EUR', price: 18.0, sms: true, operators: [] },
+  { provider: 'holafly', name: 'Europe Unlimited', region: 'europe', claimedDestinations: 32, unlimited: true, fup: [5, 512], days: 15, currency: 'USD', price: 69.0, technologies: ['4G'], hotspot: false, topUp: false, operators: [] },
+
+  // -------------------------------------------------------------------- Asia
+  { provider: 'airalo', name: 'Asialink 10GB', region: 'asia', claimedDestinations: 18, gb: 10, days: 30, currency: 'USD', price: 24.0, operators: [] },
+  { provider: 'nomad', name: 'Asia 10GB', region: 'asia', claimedDestinations: 16, gb: 10, days: 30, currency: 'USD', price: 21.0, operators: [] },
+
+  // ----------------------------------------------------------- North America
+  { provider: 'airalo', name: 'North America 10GB', region: 'north-america', claimedDestinations: 3, gb: 10, days: 30, currency: 'USD', price: 32.0, operators: [] },
+  { provider: 'nomad', name: 'North America 10GB', region: 'north-america', claimedDestinations: 3, gb: 10, days: 30, currency: 'USD', price: 28.0, operators: [] },
+
+  // ------------------------------------------------------------------ Global
+  { provider: 'airalo', name: 'Discover Global 10GB', global: true, claimedDestinations: 130, gb: 10, days: 30, currency: 'USD', price: 37.0, operators: [] },
+  { provider: 'nomad', name: 'Global 10GB', global: true, claimedDestinations: 110, gb: 10, days: 30, currency: 'USD', price: 35.0, operators: [] },
+  { provider: 'yesim', name: 'Global 5GB', global: true, claimedDestinations: 150, gb: 5, days: 30, currency: 'EUR', price: 31.0, technologies: ['4G'], topUp: false, operators: [] },
+  { provider: 'holafly', name: 'World Unlimited', global: true, claimedDestinations: 170, unlimited: true, fup: [5, 512], days: 15, currency: 'USD', price: 99.0, technologies: ['4G'], hotspot: false, topUp: false, operators: [] },
 ];
 
 export const mockPlans: Plan[] = seeds.map(buildPlan);
 
+/** Every plan that works in a country, whatever its coverage kind. */
 export function getPlansForCountry(countryCode: string): Plan[] {
-  return mockPlans.filter((plan) => plan.countryCode === countryCode);
+  return mockPlans.filter((plan) => plan.coverage.countries.includes(countryCode));
+}
+
+/** Every plan that works in all of the given countries at once. */
+export function getPlansCoveringAll(countryCodes: string[]): Plan[] {
+  if (countryCodes.length === 0) return mockPlans;
+  return mockPlans.filter((plan) =>
+    countryCodes.every((code) => plan.coverage.countries.includes(code)),
+  );
 }
 
 export function getPlanById(id: string): Plan | undefined {

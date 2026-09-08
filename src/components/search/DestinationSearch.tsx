@@ -5,7 +5,6 @@ import { searchCountries, type Country } from '@/data/countries';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { track } from '@/lib/analytics/events';
-import { cn } from '@/components/ui/cn';
 
 /**
  * Destination combobox.
@@ -17,42 +16,50 @@ import { cn } from '@/components/ui/cn';
 export function DestinationSearch({
   locale,
   dict,
-  selected,
+  chosen,
   onSelect,
+  placeholder,
   autoFocus = false,
 }: {
   locale: Locale;
   dict: Dictionary;
-  selected: Country | null;
-  onSelect: (country: Country | null) => void;
+  /** Country codes already on the trip, so they are not offered twice. */
+  chosen: string[];
+  onSelect: (country: Country) => void;
+  placeholder: string;
   autoFocus?: boolean;
 }) {
   const listboxId = useId();
   const optionId = (index: number) => `${listboxId}-option-${index}`;
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState(selected ? selected.names[locale] : '');
+  const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // While a country is selected the field shows its name, so the input is the
-  // single source of what the traveller sees — no empty box beside a token.
+  // Destinations already on the trip are filtered out rather than shown and
+  // silently ignored when picked.
   const matches = useMemo(
-    () => (selected ? [] : query.trim() ? searchCountries(query, locale) : []),
-    [selected, query, locale],
+    () =>
+      query.trim()
+        ? searchCountries(query, locale).filter((country) => !chosen.includes(country.code))
+        : [],
+    [query, locale, chosen],
   );
 
-  const showList = open && !selected && query.trim().length > 0;
+  const showList = open && query.trim().length > 0;
 
+  // The field empties after each pick, so the next stop can be typed straight
+  // away; the chosen stops live in the list below it.
   function commit(country: Country) {
     onSelect(country);
-    setQuery(country.names[locale]);
+    setQuery('');
     setOpen(false);
     setActiveIndex(0);
+    inputRef.current?.focus();
   }
 
   function clear() {
-    onSelect(null);
     setQuery('');
     setOpen(false);
     inputRef.current?.focus();
@@ -62,7 +69,6 @@ export function DestinationSearch({
     setQuery(value);
     setOpen(true);
     setActiveIndex(0);
-    if (selected) onSelect(null);
 
     const trimmed = value.trim();
     if (trimmed.length >= 2) {
@@ -101,7 +107,7 @@ export function DestinationSearch({
 
       <div className="flex min-h-12 items-center gap-2.5 px-3.5">
         <span aria-hidden="true" className="text-ink-3">
-          {selected ? selected.flag : '📍'}
+          📍
         </span>
 
         <input
@@ -118,22 +124,15 @@ export function DestinationSearch({
             showList && matches.length > 0 ? optionId(activeIndex) : undefined
           }
           value={query}
-          placeholder={dict.search.placeholder}
+          placeholder={placeholder}
           onChange={(event) => handleChange(event.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={(event) => {
-            setOpen(true);
-            // Selecting the text makes replacing the destination one keystroke.
-            if (selected) event.target.select();
-          }}
+          onFocus={() => setOpen(true)}
           onBlur={() => window.setTimeout(() => setOpen(false), 120)}
-          className={cn(
-            'min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-ink-3',
-            selected && 'font-semibold',
-          )}
+          className="min-w-0 flex-1 bg-transparent py-2 text-base outline-none placeholder:text-ink-3"
         />
 
-        {selected || query ? (
+        {query ? (
           <button
             type="button"
             onClick={clear}
@@ -165,10 +164,9 @@ export function DestinationSearch({
                   onMouseDown={(event) => event.preventDefault()}
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => commit(country)}
-                  className={cn(
-                    'flex w-full min-h-12 items-center gap-3 px-4 text-start text-[0.9375rem]',
-                    index === activeIndex ? 'bg-brand-50' : 'bg-surface',
-                  )}
+                  className={`flex w-full min-h-12 items-center gap-3 px-4 text-start text-[0.9375rem] ${
+                    index === activeIndex ? 'bg-brand-50' : 'bg-surface'
+                  }`}
                 >
                   <span aria-hidden="true">{country.flag}</span>
                   <span className="font-semibold">{country.names[locale]}</span>
