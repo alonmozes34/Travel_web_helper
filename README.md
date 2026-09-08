@@ -12,10 +12,19 @@ currencies are additions rather than rewrites.
 Next.js 16 (App Router) · TypeScript · React 19 · Tailwind CSS v4.
 
 ```bash
-npm run dev     # development server
-npm run build   # production build (also typechecks)
-npm run start   # serve the production build
-npm run lint    # eslint
+npm run dev       # development server
+npm run build     # production build (also typechecks)
+npm run start     # serve the production build
+npm run lint      # eslint
+npm run test:e2e  # smoke test the core path against a running server
+```
+
+`test:e2e` drives a real browser through destination → results. Point it at a
+server you have already started:
+
+```bash
+npm run build && npm run start &
+BASE_URL=http://localhost:3000 npm run test:e2e
 ```
 
 ## Locale routing
@@ -64,7 +73,8 @@ you can verify in the code rather than a claim on a page.
 ## Build phases
 
 1. **Foundations** — tokens, RTL, Header/Footer, UI primitives, disclosure. ✅
-2. Homepage and destination search.
+2. **Homepage and destination search** — hero, combobox, popular
+   destinations, optional trip details, how it works, trust, FAQ. ✅
 3. Plan model, mock data, pricing and scoring.
 4. Results, filters and comparison.
 5. Thailand country page, accessibility and polish.
