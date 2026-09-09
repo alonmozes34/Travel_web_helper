@@ -32,6 +32,24 @@ export const scoreWeights = {
 /** A plan whose validity is shorter than the trip is very nearly disqualified. */
 export const SHORT_VALIDITY_FACTOR = 0.15;
 
+/**
+ * How far below the estimated need a plan may fall before it stops being a
+ * candidate for "best value". Our own estimate is not precise enough to
+ * punish a plan for a five-percent shortfall — 10GB against a 10.3GB estimate
+ * is a match, not a failure — so the penalty starts below this.
+ */
+export const PROVISION_TOLERANCE = 0.95;
+
+/** The floor a badly under-provisioned plan is discounted to. */
+export const MIN_PROVISION_FACTOR = 0.2;
+
+/**
+ * What a limited plan is worth to a traveller who asked for an unlimited one.
+ * Not zero — a large limited plan at a third of the price is worth seeing —
+ * but never the answer to a question whose answer was given.
+ */
+export const LIMITED_WHEN_UNLIMITED_ASKED = 0.45;
+
 export type ScoreBreakdown = {
   needFit: number;
   price: number;
@@ -39,6 +57,10 @@ export type ScoreBreakdown = {
   features: number;
   validityFactor: number;
   fairUsageFactor: number;
+  /** Discount applied for running out before the trip does. */
+  provisionFactor: number;
+  /** Discount applied to a limited plan when unlimited was asked for. */
+  unlimitedPreferenceFactor: number;
 };
 
 export type ScoredPlan = {
@@ -79,6 +101,34 @@ export function headroomScore(plan: Plan, estimate: DataNeedEstimate): number {
   if (estimate.requiredMb <= 0) return 0;
   const extra = Math.max(0, plan.dataAmountMb - estimate.requiredMb);
   return 1 - Math.exp(-extra / estimate.requiredMb);
+}
+
+/**
+ * Running out mid-trip is a failure of the product, not a cheaper version of
+ * it — so falling short is a multiplier on the whole score, the way a too-short
+ * validity already is, rather than one term among four that a low price can
+ * outvote.
+ *
+ * Without this, a 3GB plan beat every plan on a Japanese page where the
+ * traveller had asked for enough data for a fortnight of tethering: it scored
+ * 0.01 on need and 1.00 on price, and price carries more than half the weight.
+ * "Best value" pointed at a plan that would die on day two.
+ */
+export function provisionFactor(plan: Plan, estimate: DataNeedEstimate): number {
+  if (plan.isUnlimited) return 1;
+  if (estimate.requiredMb <= 0) return 1;
+  const ratio = plan.dataAmountMb / estimate.requiredMb;
+  if (ratio >= PROVISION_TOLERANCE) return 1;
+  return Math.max(MIN_PROVISION_FACTOR, ratio ** 1.5);
+}
+
+/**
+ * A traveller who chose "unlimited" answered the question. Ranking a 3GB plan
+ * first is not a cheaper interpretation of their answer — it is ignoring it.
+ */
+export function unlimitedPreferenceFactor(plan: Plan, estimate: DataNeedEstimate): number {
+  if (!estimate.prefersUnlimited) return 1;
+  return plan.isUnlimited ? 1 : LIMITED_WHEN_UNLIMITED_ASKED;
 }
 
 /** Hotspot and 5G are what travellers actually ask about; top-up is a nicety. */
@@ -141,6 +191,8 @@ export function scorePlans(plans: Plan[], context: ScoringContext): ScoredPlan[]
         features: featureScore(plan),
         validityFactor: plan.validityDays >= estimate.days ? 1 : SHORT_VALIDITY_FACTOR,
         fairUsageFactor: fairUsageFactor(plan, estimate),
+        provisionFactor: provisionFactor(plan, estimate),
+        unlimitedPreferenceFactor: unlimitedPreferenceFactor(plan, estimate),
       };
 
       const weighted =
@@ -149,13 +201,22 @@ export function scorePlans(plans: Plan[], context: ScoringContext): ScoredPlan[]
         breakdown.headroom * scoreWeights.headroom +
         breakdown.features * scoreWeights.features;
 
-      const score = weighted * breakdown.validityFactor * breakdown.fairUsageFactor * 100;
+      const score =
+        weighted *
+        breakdown.validityFactor *
+        breakdown.fairUsageFactor *
+        breakdown.provisionFactor *
+        breakdown.unlimitedPreferenceFactor *
+        100;
 
       return {
         plan,
         score: Math.round(score * 10) / 10,
         breakdown,
-        isBelowEstimatedNeed: !plan.isUnlimited && plan.dataAmountMb < estimate.requiredMb,
+        // Flagged on the same tolerance the score uses, so the page does not
+        // warn about a three-percent shortfall in a figure we ourselves
+        // estimated — and then recommend that plan anyway.
+        isBelowEstimatedNeed: breakdown.provisionFactor < 1,
         coversTrip: plan.validityDays >= estimate.days,
       };
     })

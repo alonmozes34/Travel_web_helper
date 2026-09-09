@@ -156,6 +156,31 @@ export function HeroSearch({
         </div>
       ) : null}
 
+      {/* The shortcuts sit with the search box, above the trip questions:
+          where you are going comes before how long and what for, and a list of
+          destinations pushed below the questionnaire reads as an afterthought
+          rather than as the fastest way in. */}
+      {showPopular ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-sm text-ink-3">{dict.search.popularLabel}</span>
+          {/* Still real links, so the destination pages stay crawlable and
+              openable in a new tab — but a click here fills the trip in place
+              and asks the two questions, like any other way of choosing. */}
+          {popularCountries.map((destination) => (
+            <ChipLink
+              key={destination.code}
+              href={`${localePath(locale, `/esim/${destination.slug}`)}${tripProfileToQuery({ ...profile, destinations: [{ countryCode: destination.code }] })}`}
+              onClick={(event) => {
+                event.preventDefault();
+                addDestination(destination);
+              }}
+            >
+              <span aria-hidden="true">{destination.flag}</span>
+              {destination.names[locale]}
+            </ChipLink>
+          ))}
+        </div>
+      ) : null}
       <DestinationList
         destinations={profile.destinations}
         locale={locale}
@@ -206,27 +231,6 @@ export function HeroSearch({
         </div>
       ) : null}
 
-      {showPopular ? (
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          <span className="text-sm text-ink-3">{dict.search.popularLabel}</span>
-          {/* Still real links, so the destination pages stay crawlable and
-              openable in a new tab — but a click here fills the trip in place
-              and asks the two questions, like any other way of choosing. */}
-          {popularCountries.map((destination) => (
-            <ChipLink
-              key={destination.code}
-              href={`${localePath(locale, `/esim/${destination.slug}`)}${tripProfileToQuery({ ...profile, destinations: [{ countryCode: destination.code }] })}`}
-              onClick={(event) => {
-                event.preventDefault();
-                addDestination(destination);
-              }}
-            >
-              <span aria-hidden="true">{destination.flag}</span>
-              {destination.names[locale]}
-            </ChipLink>
-          ))}
-        </div>
-      ) : null}
     </form>
   );
 }

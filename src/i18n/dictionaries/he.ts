@@ -218,6 +218,7 @@ export const he = {
     legEstimateTemplate: '{country} · {days} {unit} ≈ {gb}GB',
     defaultEstimate: 'הערכה כללית בלבד — מלאו כמה ימים ולמה תשתמשו באינטרנט כדי לקבל המלצה אמיתית',
     change: 'שנה',
+    showAllTemplate: 'הצגת עוד {count} חבילות',
     empty: 'אין עדיין חבילות ליעד הזה.',
   },
   plan: {

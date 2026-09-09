@@ -213,6 +213,7 @@ export const en: Dictionary = {
     legEstimateTemplate: '{country} · {days} {unit} ≈ {gb}GB',
     defaultEstimate: 'A general estimate only — fill in the days and what you will use the internet for to get a real recommendation',
     change: 'Change',
+    showAllTemplate: 'Show {count} more plans',
     empty: 'No plans for this destination yet.',
   },
   plan: {

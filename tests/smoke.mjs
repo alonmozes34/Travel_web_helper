@@ -158,6 +158,15 @@ await page.goto(results, { waitUntil: 'networkidle' });
 
 const rowCount = await page.locator('article').count();
 ok('results render plan rows', rowCount > 0, `${rowCount} rows`);
+
+// Only a shortlist is rendered; the rest are one click away, not dropped.
+ok('the list opens as a shortlist', rowCount <= 5, `${rowCount} rows`);
+const showAll = page.getByRole('button', { name: /הצגת עוד/ });
+ok('the remaining plans are offered', (await showAll.count()) === 1);
+await showAll.click();
+await page.waitForTimeout(300);
+const fullCount = await page.locator('article').count();
+ok('showing everything reveals the full list', fullCount > rowCount, `${fullCount} rows`);
 ok(
   'regional and global plans appear on a country page',
   (await page.locator('main').innerText()).includes('חבילה גלובלית'),
@@ -203,16 +212,34 @@ await page.getByLabel('מטבע').selectOption('ILS');
 await page.waitForTimeout(800);
 
 // Filtering narrows the list and survives a reload through the URL.
+// Counted from the announced total rather than the rendered cards, which the
+// shortlist caps at five either way.
+const announced = async () =>
+  Number(
+    // Scoped to the results section: the page has seven live regions, and the
+    // first one belongs to the search form. sr-only text needs textContent —
+    // innerText() reads empty for it.
+    (await page
+      .locator('section[aria-label="תוצאות ההשוואה"] [aria-live="polite"]')
+      .first()
+      .textContent())?.match(/\d+/)?.[0] ?? '0',
+  );
+const beforeFilter = await announced();
 await page.locator('aside label:has-text("רק עם רשת 5G")').click();
 await page.waitForTimeout(250);
-const afterFilter = await page.locator('article').count();
-ok('filtering narrows the results', afterFilter > 0 && afterFilter < rowCount, `${afterFilter} of ${rowCount}`);
+const afterFilter = await announced();
+ok(
+  'filtering narrows the results',
+  afterFilter > 0 && afterFilter < beforeFilter,
+  `${afterFilter} of ${beforeFilter}`,
+);
 ok('filters are written into the URL', page.url().includes('5g=1'), page.url());
 
 await page.reload({ waitUntil: 'networkidle' });
 ok(
   'a shared filtered link renders the same result set',
-  (await page.locator('article').count()) === afterFilter,
+  (await announced()) === afterFilter,
+  `${await announced()} vs ${afterFilter}`,
 );
 
 // Comparison, capped at three plans.

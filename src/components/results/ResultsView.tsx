@@ -2,6 +2,15 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
+
+/**
+ * How many plans a traveller is shown before asking for more.
+ *
+ * Nobody weighs fifteen options; they weigh three or four and then pick. The
+ * rest are one click away rather than removed — the point of a comparison
+ * site is that nothing is hidden from you.
+ */
+const SHORTLIST_SIZE = 5;
 import { Sheet } from "@/components/ui/Sheet";
 import { FilterControls } from "@/components/filters/FilterControls";
 import { CompareTable } from "@/components/comparison/CompareTable";
@@ -124,6 +133,16 @@ export function ResultsView({
     }
     return sortRows(scoped, sort);
   }, [rows, filters, sort, tab, countryCodes]);
+
+  // "Show everything" applies to the list it was asked for. Remembering which
+  // list rather than a bare boolean collapses the shortlist again the moment
+  // the filters change, without an effect that resets state after render.
+  const listKey = `${tab}|${sort}|${filtersToParams(filters).toString()}|${rows.length}`;
+  const [expandedList, setExpandedList] = useState<string | null>(null);
+  const showAll = expandedList === listKey;
+
+  const shown = showAll ? visible : visible.slice(0, SHORTLIST_SIZE);
+  const hidden = visible.length - shown.length;
 
   const selected = useMemo(
     () =>
@@ -286,6 +305,10 @@ export function ResultsView({
             </Button>
           </div>
 
+          {/* Five is what a person actually weighs. The rest stay one click
+              away rather than cut, because a comparison site that quietly
+              drops options is not comparing anything — and the plan somebody
+              specifically came for might be the eleventh. */}
           {visible.length === 0 ? (
             <p className="rounded-lg border border-dashed border-line bg-surface p-8 text-center text-ink-2">
               {dict.filters.noResults}
@@ -293,10 +316,21 @@ export function ResultsView({
           ) : (
             <>
               <div className="grid gap-3 lg:block lg:gap-0 lg:overflow-hidden lg:rounded-lg lg:border lg:border-line lg:bg-surface">
-                {visible.map((row) => (
+                {shown.map((row) => (
                   <PlanListItem key={row.plan.id} {...planRowProps(row)} />
                 ))}
               </div>
+
+              {hidden > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setExpandedList(listKey)}
+                  className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-line bg-surface px-4 font-semibold text-brand hover:border-brand"
+                >
+                  {interpolate(dict.results.showAllTemplate, { count: hidden })}
+                </button>
+              ) : null}
+
               <p className="mt-2 text-sm text-ink-3">
                 {dict.plan.buyAtProvider}
               </p>
