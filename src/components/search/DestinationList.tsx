@@ -61,7 +61,6 @@ export function DestinationList({
                 max={365}
                 inputMode="numeric"
                 value={destination.days ?? ''}
-                placeholder={dict.search.daysPlaceholder}
                 onChange={(event) => {
                   const value = Number.parseInt(event.target.value, 10);
                   const next = [...destinations];

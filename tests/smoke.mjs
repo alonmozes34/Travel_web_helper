@@ -44,7 +44,9 @@ await page.locator('form li input[type="number"]').first().fill('1');
 await page.locator('form li input[type="number"]').nth(1).fill('14');
 await page.waitForTimeout(150);
 
-await page.getByRole('button', { name: /התאם לי חבילה לטיול/ }).click();
+// The two questions open on their own once a destination is chosen; they are
+// the answer to "which plan fits", not an optional refinement.
+ok('choosing a destination opens the trip questions', await page.locator('fieldset').last().isVisible());
 await page.locator('label:has-text("רגיל")').first().click();
 await page.waitForTimeout(150);
 ok(
@@ -54,6 +56,18 @@ ok(
 ok(
   'each usage level explains itself on screen',
   (await page.locator('form').innerText()).includes('רשתות חברתיות, מפות, גלישה'),
+);
+ok(
+  'and shows the daily figure behind it',
+  (await page.locator('form').innerText()).includes('ליום לפי ההערכה שלנו'),
+);
+ok(
+  'the scale reaches tethering, not just "heavy"',
+  (await page.locator('form').innerText()).includes('מודם לכל המכשירים'),
+);
+ok(
+  'a traveller who knows their own figure can give it',
+  (await page.locator('form').innerText()).includes('כמה GB לכל הטיול'),
 );
 await shot(page, 'phase2-home-desktop');
 
@@ -76,15 +90,37 @@ ok(
 );
 await shot(page, 'multi-search');
 
-// A single destination keeps its own indexable country page.
+// A single destination keeps its own indexable country page — but only once
+// the trip is described, because until then there is nothing to recommend.
 await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
 await page.getByRole('combobox', { name: 'יעד הטיול' }).type('תאילנד', { delay: 30 });
 await page.waitForSelector('[role="listbox"]');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(150);
+
+await page.getByRole('button', { name: 'למצוא חבילה' }).click();
+await page.waitForTimeout(400);
+ok(
+  'an undescribed trip does not run the search',
+  page.url().replace(/\/$/, '') === BASE,
+  page.url(),
+);
+ok(
+  'and the page says which answer is missing',
+  (await page.locator('[aria-live="polite"]').first().innerText()).includes('ימים'),
+);
+
+await page.locator('form li input[type="number"]').first().fill('10');
+await page.locator('label:has-text("רגיל")').first().click();
+await page.waitForTimeout(150);
 await page.getByRole('button', { name: 'למצוא חבילה' }).click();
 await page.waitForURL('**/esim/thailand**');
 ok('a single destination goes to its country page', new URL(page.url()).pathname === '/esim/thailand');
+ok(
+  'the answers travel with it',
+  decodeURIComponent(page.url()).includes('TH:10') && page.url().includes('usage=regular'),
+  page.url(),
+);
 
 // Submitting with no destination must not navigate.
 await page.goto(BASE, { waitUntil: 'networkidle' });

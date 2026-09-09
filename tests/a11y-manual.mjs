@@ -40,10 +40,15 @@ await kb.keyboard.press('Enter');
 await kb.waitForTimeout(200);
 ok('a destination can be chosen with the keyboard', (await kb.locator('form li').count()) === 1);
 
+// The trip questions are required now, so answer them before submitting.
+await kb.locator('form li input[type="number"]').first().fill('10');
+await kb.locator('label:has-text("רגיל")').first().click();
+await kb.waitForTimeout(150);
+
 let reachedSubmit = false;
 for (let i = 0; i < 40 && !reachedSubmit; i += 1) {
   await kb.keyboard.press('Tab');
-  reachedSubmit = (await kb.evaluate(() => document.activeElement?.textContent?.trim())) === 'השווה eSIM';
+  reachedSubmit = (await kb.evaluate(() => document.activeElement?.textContent?.trim())) === 'למצוא חבילה';
 }
 ok('the submit button is reachable by Tab', reachedSubmit);
 if (reachedSubmit) {
@@ -107,7 +112,7 @@ await reduced.close();
 const err = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 await err.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
 await err.waitForTimeout(600);
-await err.getByRole('button', { name: 'השווה eSIM' }).click();
+await err.getByRole('button', { name: 'למצוא חבילה' }).click();
 await err.waitForTimeout(300);
 const live = await err.locator('[aria-live="polite"]').first().innerText();
 ok('an empty search states the error in a live region', live.trim().length > 0, live.trim());

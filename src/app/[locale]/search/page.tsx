@@ -146,11 +146,18 @@ export default async function SearchPage({
                 dict.results.defaultEstimate
               ) : (
                 <span className="font-semibold text-brand">
-                  {interpolate(dict.results.tailoredTemplate, {
-                    days: estimate.days,
-                    usage: dict.personalization.usages[estimate.usage],
-                    gb: Math.round(estimate.requiredGb),
-                  })}
+                  {/* A figure the traveller gave is reported back as theirs, not
+                      re-described as our estimate of their usage. */}
+                  {estimate.isStatedByTraveller
+                    ? interpolate(dict.results.tailoredStatedTemplate, {
+                        days: estimate.days,
+                        gb: Math.round(estimate.requiredGb),
+                      })
+                    : interpolate(dict.results.tailoredTemplate, {
+                        days: estimate.days,
+                        usage: dict.personalization.usages[estimate.usage],
+                        gb: Math.round(estimate.requiredGb),
+                      })}
                 </span>
               )}
             </p>

@@ -143,7 +143,9 @@ export default async function CountryPage({
           {/* The whole product is named after a word a first-time traveller
               does not know. One sentence, before anything else, so nobody has
               to guess what they are looking at. */}
-          <p className="mt-3 max-w-[62ch] text-base text-ink-2">{dict.search.whatIsEsim}</p>
+          <p className="mt-3 max-w-[62ch] text-base text-ink-2">
+            {dict.search.whatIsEsim}
+          </p>
 
           <div className="mt-6">
             <HeroSearch
@@ -189,11 +191,18 @@ export default async function CountryPage({
                 dict.results.defaultEstimate
               ) : (
                 <span className="font-semibold text-brand">
-                  {interpolate(dict.results.tailoredTemplate, {
-                    days: estimate.days,
-                    usage: dict.personalization.usages[estimate.usage],
-                    gb: Math.round(estimate.requiredGb),
-                  })}
+                  {/* A figure the traveller gave is reported back as theirs, not
+                      re-described as our estimate of their usage. */}
+                  {estimate.isStatedByTraveller
+                    ? interpolate(dict.results.tailoredStatedTemplate, {
+                        days: estimate.days,
+                        gb: Math.round(estimate.requiredGb),
+                      })
+                    : interpolate(dict.results.tailoredTemplate, {
+                        days: estimate.days,
+                        usage: dict.personalization.usages[estimate.usage],
+                        gb: Math.round(estimate.requiredGb),
+                      })}
                 </span>
               )}
             </p>

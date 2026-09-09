@@ -28,7 +28,16 @@ export function durationForDays(days: number): TripDurationKey | undefined {
   );
 }
 
-export const usageLevels = ['light', 'regular', 'heavy', 'unlimited'] as const;
+/**
+ * How the traveller intends to use the connection.
+ *
+ * The range matters more than the granularity: someone navigating with Waze
+ * and someone replacing their home broadband with a hotspot are two orders of
+ * magnitude apart, and a scale that stops at "heavy" cannot describe the
+ * second. `hotspot` exists for the traveller who tethers a laptop and a
+ * second phone all day.
+ */
+export const usageLevels = ['navigation', 'light', 'regular', 'heavy', 'hotspot', 'unlimited'] as const;
 export type UsageLevel = (typeof usageLevels)[number];
 
 export function isUsageLevel(value: string): value is UsageLevel {
@@ -48,7 +57,45 @@ export type TripDestination = {
 export type TripProfile = {
   destinations: TripDestination[];
   usage?: UsageLevel;
+  /**
+   * A data figure the traveller stated themselves, in GB for the whole trip.
+   * When present it replaces the usage estimate outright: someone who says
+   * "I need 100GB" knows something about their trip that no daily average
+   * does, and guessing over their answer would be worse than useless.
+   */
+  requestedGb?: number;
 };
+
+/** The largest figure the GB field accepts, guarding the URL against nonsense. */
+export const MAX_REQUESTED_GB = 1000;
+
+export function parseRequestedGb(value: string | number | undefined): number | undefined {
+  const gb = typeof value === 'number' ? value : Number.parseFloat(value ?? '');
+  if (!Number.isFinite(gb) || gb <= 0) return undefined;
+  return Math.min(MAX_REQUESTED_GB, Math.round(gb * 10) / 10);
+}
+
+/**
+ * A trip is described once both the length of every stop and how the
+ * connection will be used are known. Until then any recommendation is a guess
+ * dressed as an answer, so the search asks for both before it runs.
+ */
+export function isTripDescribed(profile: TripProfile): boolean {
+  if (profile.destinations.length === 0) return false;
+  if (profile.destinations.some((destination) => destination.days === undefined)) return false;
+  return profile.usage !== undefined || profile.requestedGb !== undefined;
+}
+
+/** What is still missing, so the form can say so rather than just refusing. */
+export function missingTripFields(profile: TripProfile): Array<'destination' | 'days' | 'usage'> {
+  const missing: Array<'destination' | 'days' | 'usage'> = [];
+  if (profile.destinations.length === 0) missing.push('destination');
+  else if (profile.destinations.some((destination) => destination.days === undefined)) {
+    missing.push('days');
+  }
+  if (profile.usage === undefined && profile.requestedGb === undefined) missing.push('usage');
+  return missing;
+}
 
 export const emptyTripProfile: TripProfile = { destinations: [] };
 
@@ -78,6 +125,7 @@ export function tripProfileToQuery(profile: TripProfile): string {
     );
   }
   if (profile.usage) params.set('usage', profile.usage);
+  if (profile.requestedGb !== undefined) params.set('gb', String(profile.requestedGb));
   const query = params.toString();
   return query ? `?${query}` : '';
 }
@@ -90,6 +138,7 @@ export function tripProfileFromParams(params: {
   to?: string | string[];
   days?: string | string[];
   usage?: string | string[];
+  gb?: string | string[];
 }): TripProfile {
   const profile: TripProfile = { destinations: [] };
 
@@ -105,6 +154,9 @@ export function tripProfileFromParams(params: {
 
   const rawUsage = first(params.usage);
   if (rawUsage && isUsageLevel(rawUsage)) profile.usage = rawUsage;
+
+  const gb = parseRequestedGb(first(params.gb));
+  if (gb !== undefined) profile.requestedGb = gb;
 
   return profile;
 }

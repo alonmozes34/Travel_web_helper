@@ -1,17 +1,23 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { ChipLink } from '@/components/ui/Chip';
-import { countries, popularCountries, type Country } from '@/data/countries';
-import { localePath, type Locale } from '@/i18n/config';
-import type { Dictionary } from '@/i18n/getDictionary';
-import { track } from '@/lib/analytics/events';
-import { tripProfileToQuery, type TripDestination, type TripProfile } from '@/lib/types/trip';
-import { DestinationSearch } from './DestinationSearch';
-import { DestinationList } from './DestinationList';
-import { TripPersonalization } from './TripPersonalization';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { ChipLink } from "@/components/ui/Chip";
+import { countries, popularCountries, type Country } from "@/data/countries";
+import { localePath, type Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/getDictionary";
+import { track } from "@/lib/analytics/events";
+import {
+  isTripDescribed,
+  missingTripFields,
+  tripProfileToQuery,
+  type TripDestination,
+  type TripProfile,
+} from "@/lib/types/trip";
+import { DestinationSearch } from "./DestinationSearch";
+import { DestinationList } from "./DestinationList";
+import { TripPersonalization } from "./TripPersonalization";
 
 const byCode = new Map(countries.map((country) => [country.code, country]));
 
@@ -28,7 +34,7 @@ export function HeroSearch({
   dict,
   initialProfile = { destinations: [] },
   showPopular = true,
-  variant = 'hero',
+  variant = "hero",
 }: {
   locale: Locale;
   dict: Dictionary;
@@ -40,12 +46,18 @@ export function HeroSearch({
    * already asked for is not a search — it is 230px of the screen spent
    * telling them to do what they have done. The box stays one tap away.
    */
-  variant?: 'hero' | 'compact';
+  variant?: "hero" | "compact";
 }) {
   const router = useRouter();
   const [profile, setProfile] = useState<TripProfile>(initialProfile);
-  const [showDetails, setShowDetails] = useState(Boolean(initialProfile.usage));
-  const [showSearch, setShowSearch] = useState(variant === 'hero');
+  // Open whenever the trip is not yet described — including a visitor who
+  // landed on a destination page straight from a search engine, who has told
+  // us nothing and would otherwise be shown a recommendation built on two
+  // defaults they never chose.
+  const [showDetails, setShowDetails] = useState(
+    initialProfile.destinations.length > 0 && !isTripDescribed(initialProfile),
+  );
+  const [showSearch, setShowSearch] = useState(variant === "hero");
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -56,17 +68,31 @@ export function HeroSearch({
     const query = tripProfileToQuery(next);
     if (next.destinations.length === 1) {
       const country = byCode.get(next.destinations[0].countryCode);
-      if (country) return `${localePath(locale, `/esim/${country.slug}`)}${query}`;
+      if (country)
+        return `${localePath(locale, `/esim/${country.slug}`)}${query}`;
     }
-    return `${localePath(locale, '/search')}${query}`;
+    return `${localePath(locale, "/search")}${query}`;
   }
 
+  /**
+   * Choosing a destination does not run the search. The days and the usage
+   * decide which plan fits — a fortnight of video and a weekend of navigation
+   * want different packages at the same destination — so picking a country
+   * opens those two questions instead of skipping past them.
+   */
   function addDestination(country: Country) {
     setError(null);
+    setShowDetails(true);
     setProfile((current) =>
       current.destinations.some((d) => d.countryCode === country.code)
         ? current
-        : { ...current, destinations: [...current.destinations, { countryCode: country.code }] },
+        : {
+            ...current,
+            destinations: [
+              ...current.destinations,
+              { countryCode: country.code },
+            ],
+          },
     );
   }
 
@@ -75,14 +101,29 @@ export function HeroSearch({
   }
 
   function submit() {
-    if (profile.destinations.length === 0) {
-      setError(dict.search.chooseFirst);
+    // Say which answer is missing rather than refusing without a reason.
+    const missing = missingTripFields(profile);
+    if (missing.length > 0) {
+      setShowDetails(true);
+      setError(
+        missing
+          .map((field) =>
+            field === "destination"
+              ? dict.personalization.missingDestination
+              : field === "days"
+                ? dict.personalization.missingDays
+                : dict.personalization.missingUsage,
+          )
+          .join(" · "),
+      );
       return;
     }
     track({
-      name: 'search_submitted',
-      countryCode: profile.destinations.map((d) => d.countryCode).join('+'),
-      days: profile.destinations.reduce((sum, d) => sum + (d.days ?? 0), 0) || undefined,
+      name: "search_submitted",
+      countryCode: profile.destinations.map((d) => d.countryCode).join("+"),
+      days:
+        profile.destinations.reduce((sum, d) => sum + (d.days ?? 0), 0) ||
+        undefined,
       usage: profile.usage,
     });
     router.push(hrefFor(profile));
@@ -103,7 +144,11 @@ export function HeroSearch({
             dict={dict}
             chosen={profile.destinations.map((d) => d.countryCode)}
             onSelect={addDestination}
-            placeholder={profile.destinations.length ? dict.search.addAnother : dict.search.placeholder}
+            placeholder={
+              profile.destinations.length
+                ? dict.search.addAnother
+                : dict.search.placeholder
+            }
           />
           <Button type="submit" className="sm:w-auto">
             {dict.search.submit}
@@ -137,27 +182,44 @@ export function HeroSearch({
           type="button"
           onClick={() => setShowDetails((open) => !open)}
           aria-expanded={showDetails}
-          className="inline-flex items-center gap-1.5 font-semibold text-brand"
+          className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand"
         >
           {dict.personalization.trigger}
-          <span aria-hidden="true">{showDetails ? '⌃' : '›'}</span>
+          <span aria-hidden="true">{showDetails ? "⌃" : "›"}</span>
         </button>
-        <span className="text-sm text-ink-3">{dict.personalization.optional}</span>
+        <span className="text-sm text-ink-2">
+          {dict.personalization.optional}
+        </span>
       </div>
 
       {showDetails ? (
         <div className="mt-3 max-w-[640px]">
-          <TripPersonalization dict={dict} profile={profile} onChange={setProfile} />
+          <TripPersonalization
+            dict={dict}
+            locale={locale}
+            profile={profile}
+            onChange={(next) => {
+              setError(null);
+              setProfile(next);
+            }}
+          />
         </div>
       ) : null}
 
       {showPopular ? (
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <span className="text-sm text-ink-3">{dict.search.popularLabel}</span>
+          {/* Still real links, so the destination pages stay crawlable and
+              openable in a new tab — but a click here fills the trip in place
+              and asks the two questions, like any other way of choosing. */}
           {popularCountries.map((destination) => (
             <ChipLink
               key={destination.code}
               href={`${localePath(locale, `/esim/${destination.slug}`)}${tripProfileToQuery({ ...profile, destinations: [{ countryCode: destination.code }] })}`}
+              onClick={(event) => {
+                event.preventDefault();
+                addDestination(destination);
+              }}
             >
               <span aria-hidden="true">{destination.flag}</span>
               {destination.names[locale]}

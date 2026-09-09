@@ -7,12 +7,23 @@ import type { TripProfile, UsageLevel } from '@/lib/types/trip';
  * These are the only place the estimate is tuned, and they are deliberately
  * conservative rather than flattering: recommending a plan that runs out is a
  * far worse failure than recommending one gigabyte too many.
+ *
+ * They are our assumptions, not measurements, so the interface shows each
+ * figure next to its option — a traveller who knows their own consumption can
+ * see immediately whether ours matches, and override it with a GB number if
+ * it does not.
+ *
+ * The top of the range is the reason the scale exists at all: a phone used
+ * for navigation and a phone tethering a laptop all day are twenty times
+ * apart, and one number in the middle serves neither.
  */
 export const dailyDataMbByUsage: Record<UsageLevel, number> = {
+  navigation: 150,
   light: 250,
   regular: 600,
   heavy: 1500,
-  unlimited: 1500,
+  hotspot: 4 * MB_PER_GB,
+  unlimited: 4 * MB_PER_GB,
 };
 
 /** Used for a stop whose length the traveller has not given. */
@@ -32,6 +43,8 @@ export type LegEstimate = {
 export type DataNeedEstimate = {
   usage: UsageLevel;
   dailyMb: number;
+  /** True when the traveller gave a GB figure instead of picking a usage. */
+  isStatedByTraveller: boolean;
   legs: LegEstimate[];
   /** Sum across every stop. */
   days: number;
@@ -51,14 +64,25 @@ export type DataNeedEstimate = {
  */
 export function estimateDataNeed(profile: TripProfile): DataNeedEstimate {
   const usage = profile.usage ?? DEFAULT_USAGE;
-  const dailyMb = dailyDataMbByUsage[usage];
 
   const destinations = profile.destinations.length
     ? profile.destinations
     : [{ countryCode: '', days: undefined }];
 
-  const legs: LegEstimate[] = destinations.map((destination) => {
-    const days = destination.days ?? DEFAULT_LEG_DAYS;
+  const dayCounts = destinations.map((destination) => destination.days ?? DEFAULT_LEG_DAYS);
+  const totalDays = dayCounts.reduce((sum, value) => sum + value, 0);
+
+  // A stated GB figure wins over any daily average. It is spread across the
+  // stops in proportion to their length, so a night in Germany is not sized
+  // like a fortnight in the States — the same reason the legs exist at all.
+  const statedMb =
+    profile.requestedGb !== undefined ? profile.requestedGb * MB_PER_GB : null;
+  const dailyMb = statedMb !== null && totalDays > 0
+    ? statedMb / totalDays
+    : dailyDataMbByUsage[usage];
+
+  const legs: LegEstimate[] = destinations.map((destination, index) => {
+    const days = dayCounts[index];
     const requiredMb = days * dailyMb;
     return {
       countryCode: destination.countryCode,
@@ -75,11 +99,15 @@ export function estimateDataNeed(profile: TripProfile): DataNeedEstimate {
   return {
     usage,
     dailyMb,
+    isStatedByTraveller: statedMb !== null,
     legs,
     days,
     requiredMb,
     requiredGb: requiredMb / MB_PER_GB,
-    isDefault: profile.usage === undefined && legs.every((leg) => leg.isAssumedLength),
+    isDefault:
+      profile.usage === undefined &&
+      profile.requestedGb === undefined &&
+      legs.every((leg) => leg.isAssumedLength),
     prefersUnlimited: usage === 'unlimited',
   };
 }

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from './cn';
 
@@ -29,13 +29,16 @@ export function ChipLink({
   href,
   children,
   className,
+  onClick,
 }: {
   href: string;
   children: ReactNode;
   className?: string;
+  /** Optional interception; the href stays real so the link is still a link. */
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   return (
-    <Link href={href} className={cn(chipBase, chipIdle, className)}>
+    <Link href={href} onClick={onClick} className={cn(chipBase, chipIdle, className)}>
       {children}
     </Link>
   );
