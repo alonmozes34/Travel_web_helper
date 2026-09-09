@@ -15,7 +15,7 @@ export function Checkbox({
   return (
     <label
       className={cn(
-        'group flex min-h-11 cursor-pointer items-center gap-2.5 text-[0.8125rem] text-ink-2',
+        'group flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-ink-2',
         className,
       )}
     >

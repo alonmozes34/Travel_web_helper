@@ -55,7 +55,11 @@ export function PlanListItem({
   return (
     <article
       className={cn(
-        'relative rounded-lg border border-line bg-surface p-4',
+        // A grid item defaults to min-width:auto, so one unbreakable string
+        // inside the card widens the whole card past the screen instead of
+        // wrapping. This is the third time that default has cost us a reflow
+        // failure; the card now declares that it may shrink.
+        'relative min-w-0 rounded-lg border border-line bg-surface p-4',
         // Tablet gets its own layout rather than a stretched phone card: the
         // facts spread across three columns and the price moves alongside them.
         'md:grid md:grid-cols-[1.5fr_minmax(11rem,1fr)] md:items-start md:gap-x-6 md:p-5',
@@ -79,7 +83,10 @@ export function PlanListItem({
 
       <div
         className={cn(
-          'mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-y border-line-soft py-3',
+          // minmax(0,…) rather than the default auto: a grid column sized to
+          // its min-content grows past a 320px screen the moment a fact gains
+          // a full sentence, and takes the whole card sideways with it.
+          'mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-4 gap-y-3 border-y border-line-soft py-3',
           'md:col-start-1 md:row-start-2 md:mt-4 md:grid-cols-3',
           'lg:contents',
         )}
@@ -101,12 +108,11 @@ export function PlanListItem({
         <PriceBlock row={row} locale={locale} dict={dict} />
         <CouponChip row={row} locale={locale} dict={dict} demoDataEnabled={demoDataEnabled} />
         {row.isBelowEstimatedNeed ? (
-          <p className="text-[0.8125rem] text-warn-ink">{dict.plan.belowNeed}</p>
+          <p className="text-sm text-warn-ink">{dict.plan.belowNeed}</p>
         ) : null}
         <PlanCta
           row={row}
           dict={dict}
-          showNote={false}
           detailsOpen={detailsOpen}
           onToggleDetails={() => setDetailsOpen((open) => !open)}
         />

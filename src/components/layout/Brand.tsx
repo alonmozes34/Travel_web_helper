@@ -31,7 +31,7 @@ export function Brand({
         <rect x="12.4" y="6.5" width="4" height="16.5" rx="1.4" fill="#16BFB6" />
         <rect x="18.1" y="1" width="4" height="22" rx="1.4" fill="#0B6BD3" />
       </svg>
-      <span className="font-head text-[1.05rem] font-semibold tracking-tight text-ink">
+      <span className="font-head text-lg font-semibold tracking-tight text-ink">
         eSIM <span className="text-brand">Compare</span>
       </span>
     </Link>

@@ -14,7 +14,7 @@ export function TrustSection({ dict }: { dict: Dictionary }) {
           {dict.trust.items.map((item) => (
             <li key={item.title} className="border-t-2 border-teal pt-3.5">
               <h3 className="font-head font-semibold">{item.title}</h3>
-              <p className="mt-1 text-[0.9375rem] text-ink-2">{item.text}</p>
+              <p className="mt-1 text-base text-ink-2">{item.text}</p>
             </li>
           ))}
         </ul>

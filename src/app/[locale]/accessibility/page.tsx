@@ -27,7 +27,7 @@ export async function generateMetadata({
 function Field({ label, value, fallback }: { label: string; value: string | null; fallback: string }) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line-soft py-3 last:border-b-0">
-      <dt className="w-40 shrink-0 text-[0.8125rem] font-semibold text-ink-2">{label}</dt>
+      <dt className="w-40 shrink-0 text-sm font-semibold text-ink-2">{label}</dt>
       <dd className={value ? 'font-medium' : 'text-warn-ink'}>
         {value ?? <Badge tone="warn">{fallback}</Badge>}
       </dd>
@@ -60,7 +60,7 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
       {!complete ? (
         <div className="mt-5 rounded-sm border-s-[3px] border-s-warn-ink bg-warn-50 px-4 py-3">
           <p className="font-semibold text-warn-ink">{copy.pendingBadge}</p>
-          <p className="mt-1 text-[0.9375rem] text-warn-ink">{copy.pendingNotice}</p>
+          <p className="mt-1 text-base text-warn-ink">{copy.pendingNotice}</p>
         </div>
       ) : null}
 
@@ -75,7 +75,7 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
             level: accessibilityStandard.level,
           })}
         </p>
-        <p className="mt-2 text-[0.8125rem] text-ink-3">{copy.standardNote}</p>
+        <p className="mt-2 text-sm text-ink-3">{copy.standardNote}</p>
 
         <dl className="mt-5">
           <Field
@@ -152,7 +152,7 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
       </section>
 
       {accessibilityStatement.lastReviewedAt ? (
-        <p className="mt-10 text-[0.8125rem] text-ink-3">
+        <p className="mt-10 text-sm text-ink-3">
           <Ltr className="tnum">
             {interpolate(copy.updatedTemplate, { date: accessibilityStatement.lastReviewedAt })}
           </Ltr>

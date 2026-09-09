@@ -25,17 +25,15 @@ export function Fact({
 }) {
   return (
     <div className={className}>
-      <span className="block text-[0.7rem] font-semibold tracking-[0.08em] text-ink-3 uppercase">
-        {label}
-      </span>
-      <span className="block font-head text-lg font-semibold tracking-tight">
+      <span className="block text-sm font-medium text-ink-2">{label}</span>
+      <span className="block font-head text-xl font-semibold tracking-tight">
         {value}
       </span>
       {sub ? (
         <span
           className={cn(
-            "mt-0.5 block text-[0.8125rem]",
-            subTone === "warn" ? "text-warn-ink" : "text-ink-3",
+            "mt-1 block text-sm",
+            subTone === "warn" ? "text-warn-ink" : "text-ink-2",
           )}
         >
           {sub}
@@ -45,7 +43,14 @@ export function Fact({
   );
 }
 
-/** Data allowance, with price per GB as the quiet sub-line beneath it. */
+/**
+ * Data allowance.
+ *
+ * "5GB" is a unit of measurement, not an answer. The line beneath it says how
+ * long that lasts at the traveller's own chosen rate, which is the thing they
+ * were actually trying to work out. Price per GB stays, one step quieter: it
+ * is what a practised comparer wants and what a first-time buyer does not.
+ */
 export function DataFact({
   row,
   locale,
@@ -63,33 +68,45 @@ export function DataFact({
     <Ltr className="tnum">{formatData(plan.dataAmountMb, locale)}</Ltr>
   );
 
-  const sub = plan.isUnlimited
+  const inPlainWords = plan.isUnlimited
+    ? dict.plan.unlimitedNote
+    : row.daysOfData === null
+      ? null
+      : row.daysOfData === 1
+        ? dict.plan.dataDaysOneTemplate
+        : interpolate(dict.plan.dataDaysTemplate, { days: row.daysOfData });
+
+  const perUnit = plan.isUnlimited
     ? plan.fairUsage?.dailyThresholdMb
       ? interpolate(dict.plan.perDayTemplate, {
           price: formatData(plan.fairUsage.dailyThresholdMb, locale),
         })
-      : undefined
+      : null
     : row.pricePerGbMinor !== null
       ? interpolate(dict.plan.perGbTemplate, {
-          // Per-unit figures are in the comparison currency, so they carry the
-          // same "≈" as any other converted amount.
-          price: row.price.isConverted
-            ? interpolate(dict.plan.approxTemplate, {
-                price: formatPrice(
-                  row.pricePerGbMinor,
-                  row.price.currency,
-                  locale,
-                ),
-              })
-            : formatPrice(row.pricePerGbMinor, row.price.currency, locale),
+          // No "≈" here: the price block above already labels the shekel
+          // figure as approximate, and a lone symbol at the head of an RTL
+          // line is noise rather than a disclosure.
+          price: formatPrice(row.pricePerGbMinor, row.price.currency, locale),
         })
-      : undefined;
+      : null;
 
   return (
     <Fact
       label={dict.plan.data}
       value={value}
-      sub={sub ? <Ltr className="tnum">{sub}</Ltr> : undefined}
+      sub={
+        inPlainWords || perUnit ? (
+          <>
+            {inPlainWords ? <span className="block">{inPlainWords}</span> : null}
+            {perUnit ? (
+              <Ltr className="tnum mt-0.5 block text-xs text-ink-3">
+                {perUnit}
+              </Ltr>
+            ) : null}
+          </>
+        ) : undefined
+      }
     />
   );
 }
@@ -112,7 +129,7 @@ export function ValidityFact({
       value={
         <Ltr className="tnum">
           {plan.validityDays}
-          <span className="ms-1 font-body text-[0.8125rem] font-normal text-ink-2">
+          <span className="ms-1 font-body text-sm font-normal text-ink-2">
             {dict.units.days}
           </span>
         </Ltr>
@@ -151,7 +168,7 @@ export function NetworkFact({
     // With no network published for this destination we do not know whether
     // there is 5G there, and "no 5G" would be a claim rather than a fact.
     ...(networks.length > 0
-      ? [{ label: fiveG ? "5G" : dict.plan.no5g, on: fiveG }]
+      ? [{ label: fiveG ? dict.plan.fiveG : dict.plan.no5g, on: fiveG }]
       : []),
     {
       label: plan.hotspot ? dict.plan.hotspot : dict.plan.noHotspot,
@@ -162,23 +179,23 @@ export function NetworkFact({
 
   return (
     <div>
-      <span className="block text-[0.7rem] font-semibold tracking-[0.08em] text-ink-3 uppercase">
+      <span className="block text-sm font-medium text-ink-2">
         {dict.plan.network}
       </span>
       <span
         className={cn(
           "block font-head",
-          operators ? "font-semibold" : "text-[0.8125rem] text-ink-3",
+          operators ? "text-xl font-semibold" : "text-sm text-ink-2",
         )}
       >
         {operators || dict.plan.networkUnknown}
       </span>
-      <div className="mt-1.5 flex flex-wrap gap-1">
+      <div className="mt-2 flex flex-wrap gap-1.5">
         {tags.map((tag) => (
           <span
             key={tag.label}
             className={cn(
-              "rounded-xs border border-line bg-surface px-1.5 py-0.5 text-[0.7rem]",
+              "rounded-sm border border-line bg-surface px-2 py-1 text-sm",
               tag.on ? "text-ink-2" : "text-ink-3",
             )}
           >
@@ -202,7 +219,7 @@ export function FairUsageNote({
   if (!row.plan.isUnlimited || !fup?.dailyThresholdMb) return null;
 
   return (
-    <details className="mt-2 inline-block max-w-full rounded-xs bg-warn-50 px-2 py-1 text-[0.8125rem] text-warn-ink">
+    <details className="mt-2 inline-block max-w-full rounded-xs bg-warn-50 px-2 py-1 text-sm text-warn-ink">
       <summary className="cursor-pointer list-none marker:content-none">
         <span aria-hidden="true">⚠︎</span> {dict.plan.fairUsage}
       </summary>

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { cn } from './cn';
 
 const chipBase =
-  'inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[0.8125rem] ' +
+  'inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm ' +
   'transition-colors';
 const chipIdle = 'border-line bg-surface text-ink hover:border-brand hover:text-brand';
 const chipActive = 'border-brand bg-brand-50 font-semibold text-brand';

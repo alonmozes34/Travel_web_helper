@@ -8,16 +8,19 @@
    ========================================================================== */
 @theme {
   /* Neutrals — cool, slightly blue-biased. White-first interface. */
-  --color-canvas: #f6f9fb;
+  /* The ground is a warm off-white rather than a cool blue-grey. The old
+     tint made a page about a holiday read like a bank statement; this one
+     stays quiet without being cold, and still lets white cards lift off it. */
+  --color-canvas: #f8f7f4;
   --color-surface: #ffffff;
-  --color-surface-2: #f1f6f9;
-  --color-line: #e2eaf0;
-  --color-line-soft: #edf2f6;
+  --color-surface-2: #f5f4f1;
+  --color-line: #e6e3dd;
+  --color-line-soft: #efedE8;
   /* Three greys, all of which have to carry body text at 13px, so the range
      is bounded below by AA contrast on both white and the canvas tint. */
   --color-ink: #14232f;
   --color-ink-2: #47596b;
-  --color-ink-3: #5f7386;
+  --color-ink-3: #5c6f82;
 
   /* Primary — actions only */
   --color-brand: #0b6bd3;
@@ -39,16 +42,35 @@
   /* Deep — compare tray and footer ground */
   --color-deep: #0a2540;
 
+  /* Type scale.
+     Sized for a reader who is not going to reach for their glasses: the body
+     is 17px, secondary text 15px, and 13px is reserved for genuine fine print
+     — never for anything a traveller needs in order to choose. Nothing in the
+     interface is allowed below that.
+
+     The old scale bottomed out at 11px and put three thousand characters of a
+     results page under 14px, which is how a comparison site quietly becomes
+     unusable for the half of its audience over fifty. */
+  --text-xs: 0.8125rem; /* 13px — fine print only */
+  --text-sm: 0.9375rem; /* 15px — secondary */
+  --text-base: 1.0625rem; /* 17px — body */
+  --text-lg: 1.1875rem; /* 19px — lead */
+  --text-xl: 1.375rem; /* 22px */
+  --text-2xl: 1.625rem; /* 26px */
+  --text-3xl: 2rem; /* 32px */
+  --text-4xl: 2.5rem; /* 40px */
+
   /* Typography: Rubik for headings, numbers and buttons; Assistant for body. */
   --font-head: var(--font-rubik), "Assistant", system-ui, -apple-system, sans-serif;
   --font-body: var(--font-assistant), "Rubik", system-ui, -apple-system, sans-serif;
   --font-sans: var(--font-assistant), "Rubik", system-ui, -apple-system, sans-serif;
 
-  /* Radii carry hierarchy: small for tags, large for surfaces. */
-  --radius-xs: 5px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  /* Radii carry hierarchy: small for tags, large for surfaces. Softened a
+     step across the board — the sharper set read as institutional. */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
 
   /* The entire product has exactly two shadows. */
   --shadow-search: 0 10px 30px -14px rgb(16 44 68 / 0.28);
@@ -65,7 +87,8 @@
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-body);
-    line-height: 1.6;
+    font-size: var(--text-base);
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -77,6 +100,15 @@
     line-height: 1.2;
     letter-spacing: -0.015em;
     text-wrap: balance;
+  }
+
+  /* A disclosure is a control, so it has to be as easy to hit as a button.
+     WCAG 2.2 asks for 24px; a bare <summary> is the height of its text. */
+  summary {
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
   }
 
   /* Numbers line up in columns across the whole comparison UI. */

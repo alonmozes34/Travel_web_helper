@@ -19,7 +19,7 @@ export function AffiliateDisclosure({
 }) {
   if (variant === 'inline') {
     return (
-      <p className={cn('text-[0.8125rem] text-ink-2', className)}>
+      <p className={cn('text-sm text-ink-2', className)}>
         <strong className="font-semibold text-ink">{dict.disclosure.short}</strong>{' '}
         {dict.disclosure.full}
       </p>
@@ -27,7 +27,7 @@ export function AffiliateDisclosure({
   }
 
   return (
-    <div className={cn('text-[0.8125rem] leading-relaxed text-ink-2', className)}>
+    <div className={cn('text-sm leading-relaxed text-ink-2', className)}>
       <p className="font-semibold text-ink">{dict.disclosure.short}</p>
       <p className="mt-1">{dict.disclosure.full}</p>
       <p className="mt-1">{dict.disclosure.rankingNote}</p>

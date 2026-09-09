@@ -27,7 +27,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
             <HeroSearch locale={locale} dict={dict} />
           </div>
 
-          <ul className="mt-9 flex flex-wrap gap-x-7 gap-y-2 border-t border-line-soft pt-5 text-[0.8125rem] text-ink-2">
+          <ul className="mt-9 flex flex-wrap gap-x-7 gap-y-2 border-t border-line-soft pt-5 text-sm text-ink-2">
             {dict.home.trustStrip.map((item) => (
               <li key={item.strong}>
                 <strong className="font-semibold text-ink">{item.strong}</strong> {item.rest}

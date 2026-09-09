@@ -9,16 +9,22 @@ import { formatPrice } from '@/lib/formatters/price';
 /**
  * Price.
  *
- * The large number is the amount the provider actually charges, in the
- * currency it charges in. That figure can be checked against the provider's
- * own page and can never be wrong.
+ * Two numbers, both large, both labelled — because the traveller has two
+ * different questions and the old layout only answered one of them.
  *
- * The converted amount sits underneath, smaller, always prefixed with "≈" and
- * labelled as an estimate — because it will differ from what the traveller is
- * billed: exchange rates move, and card issuers convert at their own rate and
- * add a foreign-transaction fee. Comparison and sorting still run on the
- * converted figure, which is what makes plans priced in different currencies
- * comparable at all.
+ * "What does this cost me?" is answered in shekels, because that is the
+ * currency they think in. "What will actually appear on my card?" is answered
+ * in the provider's currency, at the same size, right beside it: that figure
+ * can be checked against the provider's own page and can never be wrong.
+ *
+ * Neither is hidden. The earlier version demoted the shekel to small grey
+ * text with "estimate only" attached, which protected us from complaints about
+ * conversion at the cost of making the price unreadable to anyone who does not
+ * price their holiday in dollars. The honest disclosure stays — it is just no
+ * longer doing its job by being illegible.
+ *
+ * Comparison and sorting still run on the converted figure, which is what
+ * makes plans priced in different currencies comparable at all.
  */
 export function PriceBlock({
   row,
@@ -37,39 +43,60 @@ export function PriceBlock({
   const chargedBefore = originalPrice
     ? formatPrice(originalPrice.sourceAmountMinor, originalPrice.sourceCurrency, locale)
     : null;
+  const home = formatPrice(price.amountMinor, price.currency, locale);
+  // When the big number is in shekels the struck-out "before" must be too, or
+  // the card shows a discount from one currency to another.
+  const homeBefore = originalPrice
+    ? formatPrice(originalPrice.amountMinor, originalPrice.currency, locale)
+    : null;
+  const big = size === 'row' ? 'text-3xl' : 'text-2xl';
 
-  return (
-    <div className="grid gap-1">
-      <div className="flex flex-wrap items-baseline gap-2">
-        <Ltr
-          className={cn(
-            'tnum font-head font-bold tracking-tight',
-            size === 'row' ? 'text-2xl' : 'text-xl',
-          )}
-        >
-          {charged}
-        </Ltr>
-        {chargedBefore ? (
-          <Ltr className="tnum text-[0.8125rem] text-ink-3 line-through">{chargedBefore}</Ltr>
-        ) : null}
-      </div>
-
-      {price.isConverted ? (
-        <p className="text-[0.8125rem] text-ink-3">
-          <Ltr className="tnum">
-            {interpolate(dict.plan.approxTemplate, {
-              price: formatPrice(price.amountMinor, price.currency, locale),
-            })}
-          </Ltr>
-          <span className="ms-1">· {dict.plan.estimateOnly}</span>
-        </p>
-      ) : (
-        <p className="text-[0.8125rem] text-ink-3">
+  // Not converted: the provider bills in the traveller's own currency, so
+  // there is one number and nothing to reconcile.
+  if (!price.isConverted) {
+    return (
+      <div className="grid gap-1">
+        <div className="flex flex-wrap items-baseline gap-2">
+          <Ltr className={cn('tnum font-head font-bold tracking-tight', big)}>{charged}</Ltr>
+          {chargedBefore ? (
+            <Ltr className="tnum text-base text-ink-2 line-through">{chargedBefore}</Ltr>
+          ) : null}
+        </div>
+        <p className="text-sm text-ink-2">
           {interpolate(dict.plan.chargedHereTemplate, {
             currency: currencyConfig[price.sourceCurrency].label,
           })}
         </p>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-2">
+      <div>
+        <span className="block text-sm text-ink-2">{dict.plan.youPayLabel}</span>
+        <div className="flex flex-wrap items-baseline gap-2">
+          {/* The "≈" belongs in the label, not glued to the number: inside an
+              LTR run it lands on the wrong side of a Hebrew line, and it is a
+              symbol many readers do not know. The label says "roughly". */}
+          <Ltr className={cn('tnum font-head font-bold tracking-tight', big)}>{home}</Ltr>
+          {homeBefore ? (
+            <Ltr className="tnum text-base text-ink-2 line-through">{homeBefore}</Ltr>
+          ) : null}
+        </div>
+      </div>
+
+      {/* The explanation of why the two differ is on the page once, above the
+          results — repeating it on every card would bury the numbers again. */}
+      <div className="rounded-sm bg-surface-2 px-2.5 py-1.5">
+        <span className="block text-sm text-ink-2">{dict.plan.chargedLabel}</span>
+        <div className="flex flex-wrap items-baseline gap-2">
+          <Ltr className="tnum font-head text-xl font-semibold">{charged}</Ltr>
+          {chargedBefore ? (
+            <Ltr className="tnum text-sm text-ink-2 line-through">{chargedBefore}</Ltr>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

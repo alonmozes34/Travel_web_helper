@@ -21,17 +21,17 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
         <div>
           <Brand locale={locale} dict={dict} />
           <h2 className="sr-only">{dict.footer.aboutTitle}</h2>
-          <p className="mt-4 max-w-[46ch] text-[0.9375rem] text-ink-2">{dict.footer.aboutText}</p>
+          <p className="mt-4 max-w-[46ch] text-base text-ink-2">{dict.footer.aboutText}</p>
         </div>
 
         <nav aria-label={dict.footer.productTitle}>
-          <h2 className="text-xs font-semibold tracking-[0.09em] text-ink-3 uppercase">
+          <h2 className="text-sm font-semibold text-ink-2">
             {dict.footer.productTitle}
           </h2>
           <ul className="mt-3 flex flex-col gap-2.5">
             {links.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="inline-flex min-h-6 items-center text-[0.9375rem] text-ink-2 hover:text-brand">
+                <Link href={link.href} className="inline-flex min-h-6 items-center text-base text-ink-2 hover:text-brand">
                   {link.label}
                 </Link>
               </li>
@@ -40,13 +40,13 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
         </nav>
 
         <nav aria-label={dict.footer.legalTitle}>
-          <h2 className="text-xs font-semibold tracking-[0.09em] text-ink-3 uppercase">
+          <h2 className="text-sm font-semibold text-ink-2">
             {dict.footer.legalTitle}
           </h2>
           <ul className="mt-3 flex flex-col gap-2.5">
             {legalLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="inline-flex min-h-6 items-center text-[0.9375rem] text-ink-2 hover:text-brand">
+                <Link href={link.href} className="inline-flex min-h-6 items-center text-base text-ink-2 hover:text-brand">
                   {link.label}
                 </Link>
               </li>
@@ -58,7 +58,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
       <div className="border-t border-line-soft bg-surface-2">
         <Container className="flex flex-col gap-3 py-6 md:flex-row md:items-end md:justify-between">
           <AffiliateDisclosure dict={dict} variant="full" className="max-w-[70ch]" />
-          <p className="text-[0.8125rem] text-ink-3">
+          <p className="text-sm text-ink-3">
             © {new Date().getFullYear()} {dict.brand.name}. {dict.footer.rights}.
           </p>
         </Container>

@@ -152,7 +152,7 @@ export function DestinationSearch({
           className="absolute inset-x-0 top-[calc(100%+0.75rem)] z-30 overflow-hidden rounded-md border border-line bg-surface shadow-search"
         >
           {matches.length === 0 ? (
-            <li className="px-4 py-3 text-[0.8125rem] text-ink-2">{dict.search.noResults}</li>
+            <li className="px-4 py-3 text-sm text-ink-2">{dict.search.noResults}</li>
           ) : (
             matches.map((country, index) => (
               <li key={country.code}>
@@ -164,13 +164,13 @@ export function DestinationSearch({
                   onMouseDown={(event) => event.preventDefault()}
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => commit(country)}
-                  className={`flex w-full min-h-12 items-center gap-3 px-4 text-start text-[0.9375rem] ${
+                  className={`flex w-full min-h-12 items-center gap-3 px-4 text-start text-base ${
                     index === activeIndex ? 'bg-brand-50' : 'bg-surface'
                   }`}
                 >
                   <span aria-hidden="true">{country.flag}</span>
                   <span className="font-semibold">{country.names[locale]}</span>
-                  <span className="text-[0.8125rem] text-ink-3">{country.names.en}</span>
+                  <span className="text-sm text-ink-3">{country.names.en}</span>
                 </button>
               </li>
             ))

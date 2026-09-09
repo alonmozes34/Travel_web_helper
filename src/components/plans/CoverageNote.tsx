@@ -40,7 +40,7 @@ export function CoverageNote({
         {label}
       </Badge>
       {coverage.publishedDestinationCount ? (
-        <span className="text-[0.7rem] text-ink-3">
+        <span className="text-xs text-ink-3">
           {coverage.publishedDestinationCount === coverage.countries.length ? (
             // Nothing to reconcile: repeating the same number twice reads as
             // a hedge rather than as the disclosure it is meant to be.

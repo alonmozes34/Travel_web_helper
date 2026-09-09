@@ -57,7 +57,7 @@ ok(
 );
 await shot(page, 'phase2-home-desktop');
 
-await page.getByRole('button', { name: 'השווה eSIM' }).click();
+await page.getByRole('button', { name: 'למצוא חבילה' }).click();
 await page.waitForURL('**/search**');
 const url = new URL(page.url());
 ok('a multi-stop trip goes to the search page', url.pathname === '/search', url.pathname);
@@ -82,13 +82,13 @@ await page.getByRole('combobox', { name: 'יעד הטיול' }).type('תאילנ
 await page.waitForSelector('[role="listbox"]');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(150);
-await page.getByRole('button', { name: 'השווה eSIM' }).click();
+await page.getByRole('button', { name: 'למצוא חבילה' }).click();
 await page.waitForURL('**/esim/thailand**');
 ok('a single destination goes to its country page', new URL(page.url()).pathname === '/esim/thailand');
 
 // Submitting with no destination must not navigate.
 await page.goto(BASE, { waitUntil: 'networkidle' });
-await page.getByRole('button', { name: 'השווה eSIM' }).click();
+await page.getByRole('button', { name: 'למצוא חבילה' }).click();
 await page.waitForTimeout(200);
 ok('empty search shows a hint instead of navigating', page.url().replace(/\/$/, '') === BASE && (await page.locator('[aria-live="polite"]').innerText()).length > 0);
 
@@ -132,21 +132,31 @@ ok(
 );
 ok(
   'price per GB is present but secondary to the price',
-  (await page.locator('main').innerText()).includes('/ GB'),
+  (await page.locator('main').innerText()).includes('לכל GB'),
 );
-ok(
-  'the charged price leads and the conversion is marked as an estimate',
-  (await page.locator('article').first().innerText()).includes('≈') &&
-    /(\$|€)\d/.test(await page.locator('article').first().innerText()),
-);
-ok(
-  'the page says the conversion is only an estimate',
-  (await page.locator('main').innerText()).includes('הערכה בלבד'),
-);
-ok(
-  'the exchange rate and its date are visible, not hidden in a tooltip',
-  /שערי ההמרה:.*\d\.\d+/.test(await page.locator('main').innerText()),
-);
+
+// Both currencies, both readable, both labelled. The shekel answers "what
+// does this cost me" and the provider's currency answers "what will my card
+// be charged" — a traveller has both questions and neither may be in 11px grey.
+{
+  const card = await page.locator('article').first().innerText();
+  ok('the price in the traveller’s own currency is shown', /₪\s?\d/.test(card));
+  ok('the amount the provider charges is shown too', /(\$|€)\d/.test(card));
+  ok('the shekel figure is labelled as approximate', card.includes('בערך'));
+  ok('the charged amount says where it will appear', card.includes('כרטיס האשראי'));
+}
+
+// The rate is one keyboard-reachable tap away — a disclosure, not a tooltip.
+{
+  const rates = page.locator('details:has-text("איך חישבנו")').first();
+  ok('the conversion is explained on the page', (await rates.count()) > 0);
+  await rates.locator('summary').click();
+  await page.waitForTimeout(200);
+  ok(
+    'the exchange rate and its date are readable once opened',
+    /שערי ההמרה:.*\d\.\d+/.test(await rates.innerText()),
+  );
+}
 
 // Switching currency must change the prices, not just the pill.
 await page.getByLabel('מטבע').selectOption('USD');
@@ -157,7 +167,7 @@ await page.getByLabel('מטבע').selectOption('ILS');
 await page.waitForTimeout(800);
 
 // Filtering narrows the list and survives a reload through the URL.
-await page.locator('aside label:has-text("5G בלבד")').click();
+await page.locator('aside label:has-text("רק עם רשת 5G")').click();
 await page.waitForTimeout(250);
 const afterFilter = await page.locator('article').count();
 ok('filtering narrows the results', afterFilter > 0 && afterFilter < rowCount, `${afterFilter} of ${rowCount}`);
@@ -172,7 +182,7 @@ ok(
 // Comparison, capped at three plans.
 await page.goto(results, { waitUntil: 'networkidle' });
 for (let i = 0; i < 3; i += 1) {
-  await page.locator('article label:has-text("להשוואה")').first().click();
+  await page.locator('article label:has-text("סמנו להשוואה")').first().click();
   await page.waitForTimeout(120);
 }
 const selectedCount = await page.locator('article label:has-text("הסרה")').count();
@@ -232,7 +242,7 @@ let reachedCta = false;
 for (let i = 0; i < 150 && !reachedCta; i += 1) {
   await page.keyboard.press('Tab');
   const focused = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
-  if (focused === 'צפייה בחבילה') reachedCta = true;
+  if (focused.startsWith('מעבר לאתר')) reachedCta = true;
 }
 ok('the first plan action is reachable by keyboard alone', reachedCta);
 
@@ -284,7 +294,7 @@ await page.waitForTimeout(500);
 // English locale still works.
 await page.goto(BASE + '/en', { waitUntil: 'networkidle' });
 ok('english is ltr', await page.getAttribute('html', 'dir') === 'ltr');
-ok('english copy', (await page.locator('h1').innerText()).includes('best-value'));
+ok('english copy', (await page.locator('h1').innerText()).includes('Internet abroad'));
 
 await browser.close();
 console.log(out.join('\n'));

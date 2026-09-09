@@ -28,15 +28,24 @@ export function HeroSearch({
   dict,
   initialProfile = { destinations: [] },
   showPopular = true,
+  variant = 'hero',
 }: {
   locale: Locale;
   dict: Dictionary;
   initialProfile?: TripProfile;
   showPopular?: boolean;
+  /**
+   * 'compact' is for a page that already has a destination. A large empty
+   * search box and a primary-coloured button above results the traveller has
+   * already asked for is not a search — it is 230px of the screen spent
+   * telling them to do what they have done. The box stays one tap away.
+   */
+  variant?: 'hero' | 'compact';
 }) {
   const router = useRouter();
   const [profile, setProfile] = useState<TripProfile>(initialProfile);
   const [showDetails, setShowDetails] = useState(Boolean(initialProfile.usage));
+  const [showSearch, setShowSearch] = useState(variant === 'hero');
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -87,18 +96,20 @@ export function HeroSearch({
       }}
       noValidate
     >
-      <div className="flex max-w-[640px] flex-col gap-2 rounded-lg border border-line bg-surface p-2 shadow-search sm:flex-row sm:items-stretch">
-        <DestinationSearch
-          locale={locale}
-          dict={dict}
-          chosen={profile.destinations.map((d) => d.countryCode)}
-          onSelect={addDestination}
-          placeholder={profile.destinations.length ? dict.search.addAnother : dict.search.placeholder}
-        />
-        <Button type="submit" className="sm:w-auto">
-          {dict.search.submit}
-        </Button>
-      </div>
+      {showSearch ? (
+        <div className="flex max-w-[640px] flex-col gap-2 rounded-lg border border-line bg-surface p-2 shadow-search sm:flex-row sm:items-stretch">
+          <DestinationSearch
+            locale={locale}
+            dict={dict}
+            chosen={profile.destinations.map((d) => d.countryCode)}
+            onSelect={addDestination}
+            placeholder={profile.destinations.length ? dict.search.addAnother : dict.search.placeholder}
+          />
+          <Button type="submit" className="sm:w-auto">
+            {dict.search.submit}
+          </Button>
+        </div>
+      ) : null}
 
       <DestinationList
         destinations={profile.destinations}
@@ -107,11 +118,21 @@ export function HeroSearch({
         onChange={setDestinations}
       />
 
-      <p aria-live="polite" className="min-h-5 pt-2 text-[0.8125rem] text-warn-ink">
+      <p aria-live="polite" className="min-h-5 pt-2 text-sm text-warn-ink">
         {error}
       </p>
 
       <div className="flex max-w-[640px] flex-wrap items-center gap-x-5 gap-y-2">
+        {showSearch ? null : (
+          <button
+            type="button"
+            onClick={() => setShowSearch(true)}
+            className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand"
+          >
+            {dict.search.addAnother}
+            <span aria-hidden="true">›</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={() => setShowDetails((open) => !open)}
@@ -121,7 +142,7 @@ export function HeroSearch({
           {dict.personalization.trigger}
           <span aria-hidden="true">{showDetails ? '⌃' : '›'}</span>
         </button>
-        <span className="text-[0.8125rem] text-ink-3">{dict.personalization.optional}</span>
+        <span className="text-sm text-ink-3">{dict.personalization.optional}</span>
       </div>
 
       {showDetails ? (
@@ -132,7 +153,7 @@ export function HeroSearch({
 
       {showPopular ? (
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          <span className="text-[0.8125rem] text-ink-3">{dict.search.popularLabel}</span>
+          <span className="text-sm text-ink-3">{dict.search.popularLabel}</span>
           {popularCountries.map((destination) => (
             <ChipLink
               key={destination.code}

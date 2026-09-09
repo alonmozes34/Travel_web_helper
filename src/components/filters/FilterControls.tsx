@@ -23,7 +23,7 @@ function Group({
 }) {
   return (
     <fieldset className="border-b border-line-soft py-4 first:pt-0 last:border-b-0">
-      <legend className="mb-2 text-[0.7rem] font-semibold tracking-[0.09em] text-ink-3 uppercase">
+      <legend className="mb-2 text-sm font-semibold text-ink-2">
         {title}
       </legend>
       {children}
@@ -193,7 +193,7 @@ export function FilterControls({
             className="h-11 w-full accent-brand"
           />
         </label>
-        <p className="tnum mt-1 text-[0.8125rem] text-ink-2">
+        <p className="tnum mt-1 text-sm text-ink-2">
           <Ltr>
             {formatPrice(options.minPriceMinor, currency, locale)} —{" "}
             {formatPrice(

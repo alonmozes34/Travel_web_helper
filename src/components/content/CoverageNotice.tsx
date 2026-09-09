@@ -31,10 +31,10 @@ export function CoverageNotice({
   if (kind === 'broad-only') {
     return (
       <section className="mt-6 max-w-[80ch] rounded-md border-s-4 border-s-brand bg-brand-50 px-4 py-3.5">
-        <h2 className="text-[0.9375rem] font-semibold text-ink">
+        <h2 className="text-base font-semibold text-ink">
           {interpolate(copy.broadOnlyTitleTemplate, { country: countryName })}
         </h2>
-        <p className="mt-1 text-[0.875rem] text-ink-2">{copy.broadOnlyBody}</p>
+        <p className="mt-1 text-base text-ink-2">{copy.broadOnlyBody}</p>
       </section>
     );
   }
@@ -44,17 +44,17 @@ export function CoverageNotice({
       <h2 className="text-lg font-semibold text-ink">
         {interpolate(copy.noneTitleTemplate, { country: countryName })}
       </h2>
-      <p className="mt-2 text-[0.9375rem] text-ink-2">
+      <p className="mt-2 text-base text-ink-2">
         {interpolate(copy.noneBody, { country: countryName })}
       </p>
-      <p className="mt-3 text-[0.8125rem] text-ink-3">
+      <p className="mt-3 text-sm text-ink-3">
         {interpolate(copy.noneStatusTemplate, {
           covered: coveredCount,
           total: destinationCount,
         })}
       </p>
 
-      <h3 className="mt-5 text-[0.875rem] font-semibold text-ink">
+      <h3 className="mt-5 text-base font-semibold text-ink">
         {copy.noneAlternativesTitle}
       </h3>
       <ul className="mt-2 flex flex-wrap gap-2">
@@ -62,7 +62,7 @@ export function CoverageNotice({
           <li key={country.code}>
             <Link
               href={localePath(locale, `/esim/${country.slug}`)}
-              className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-white px-4 text-[0.875rem] font-medium text-ink hover:border-brand hover:text-brand"
+              className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-white px-4 text-base font-medium text-ink hover:border-brand hover:text-brand"
             >
               <span aria-hidden="true">{country.flag}</span>
               {country.names[locale]}

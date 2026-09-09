@@ -69,7 +69,7 @@ export function CompareTable({
             row.price.sourceCurrency,
             locale,
           )}
-          <span className="ms-1 font-body text-[0.8125rem] font-normal text-ink-3">
+          <span className="ms-1 font-body text-sm font-normal text-ink-3">
             {currencyConfig[row.price.sourceCurrency].label}
           </span>
         </Ltr>
@@ -215,7 +215,7 @@ export function CompareTable({
       panelClassName="max-w-[920px]"
     >
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[520px] table-fixed border-collapse text-[0.9375rem]">
+        <table className="w-full min-w-[520px] table-fixed border-collapse text-base">
           <caption className="sr-only">{dict.compare.title}</caption>
           <tbody>
             {specs.map((spec) => {
@@ -232,11 +232,11 @@ export function CompareTable({
                 >
                   <th
                     scope="row"
-                    className="w-[9.5rem] py-3 pe-3 text-start align-top text-[0.8125rem] font-semibold text-ink-2"
+                    className="w-[9.5rem] py-3 pe-3 text-start align-top text-sm font-semibold text-ink-2"
                   >
                     {dict.compare.rows[spec.key]}
                     {differs ? (
-                      <span className="mt-1 block text-[0.7rem] font-normal text-teal-ink">
+                      <span className="mt-1 block text-xs font-normal text-teal-ink">
                         {dict.compare.differsLabel}
                       </span>
                     ) : null}
@@ -259,7 +259,7 @@ export function CompareTable({
         </table>
       </div>
       {rows.some((row) => row.price.isConverted) ? (
-        <p className="mt-4 text-[0.8125rem] text-ink-3">
+        <p className="mt-4 text-sm text-ink-3">
           {dict.plan.conversionNote}
         </p>
       ) : null}

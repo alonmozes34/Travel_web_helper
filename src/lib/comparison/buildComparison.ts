@@ -27,6 +27,12 @@ export type ComparisonRow = {
   breakdown: ScoreBreakdown;
   isBelowEstimatedNeed: boolean;
   coversTrip: boolean;
+  /**
+   * How many days of the traveller's own estimated usage this data lasts.
+   * "5GB" means nothing to most people; "about 8 days of normal use" does.
+   * Derived from the same daily figure the estimate uses, never invented.
+   */
+  daysOfData: number | null;
   /** Recommendation badges this plan won, if any. */
   badges: RecommendationKey[];
 };
@@ -95,6 +101,10 @@ export function buildComparison({
     badgesByPlanId.set(recommendation.planId, existing);
   }
 
+  // The traveller's own daily rate, so "how long does this last" is answered
+  // in their terms rather than against an average nobody chose.
+  const dailyMb = estimate.days > 0 ? estimate.requiredMb / estimate.days : 0;
+
   const rows: ComparisonRow[] = scored.map((entry) => {
     const price = displayByPlanId.get(entry.plan.id)!;
     const originalPrice = hasDiscount(entry.plan)
@@ -113,6 +123,10 @@ export function buildComparison({
       breakdown: entry.breakdown,
       isBelowEstimatedNeed: entry.isBelowEstimatedNeed,
       coversTrip: entry.coversTrip,
+      daysOfData:
+        entry.plan.isUnlimited || dailyMb <= 0
+          ? null
+          : Math.max(1, Math.round(entry.plan.dataAmountMb / dailyMb)),
       badges: badgesByPlanId.get(entry.plan.id) ?? [],
     };
   });

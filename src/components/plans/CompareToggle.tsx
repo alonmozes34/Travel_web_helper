@@ -25,11 +25,10 @@ export function CompareToggle({
   return (
     <label
       className={cn(
-        'inline-flex min-h-11 items-center gap-2 text-[0.8125rem]',
+        'inline-flex min-h-11 items-center gap-2 text-sm',
         disabled ? 'cursor-not-allowed text-ink-3' : 'cursor-pointer text-ink-2',
         className,
       )}
-      title={disabled ? dict.compare.maxReached : undefined}
       aria-label={disabled ? dict.compare.maxReached : undefined}
     >
       <input
@@ -42,11 +41,11 @@ export function CompareToggle({
       <span
         aria-hidden="true"
         className={
-          'relative size-4 shrink-0 rounded-[4px] border-[1.5px] border-line bg-surface ' +
+          'relative size-5 shrink-0 rounded-[5px] border-2 border-line bg-surface ' +
           'peer-checked:border-brand peer-checked:bg-brand ' +
           'peer-focus-visible:outline peer-focus-visible:outline-2 ' +
           'peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand ' +
-          'after:absolute after:start-[5px] after:top-[1px] after:hidden after:h-2 after:w-1 ' +
+          'after:absolute after:start-[6px] after:top-[2px] after:hidden after:h-2.5 after:w-1.5 ' +
           'after:rotate-45 after:border-on-brand after:border-e-2 after:border-b-2 ' +
           'peer-checked:after:block'
         }

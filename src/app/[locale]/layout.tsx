@@ -79,7 +79,10 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
         <CurrencyProvider defaultCurrency={defaultCurrency}>
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-sm focus:bg-brand focus:px-4 focus:py-2 focus:text-on-brand"
+            // Pinned to the inline start: a visually-hidden element left at
+            // its static position sits one pixel past the edge of an RTL page
+            // and shows up as horizontal overflow.
+            className="sr-only start-0 focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-sm focus:bg-brand focus:px-4 focus:py-2 focus:text-on-brand"
           >
             {dict.header.skipToContent}
           </a>

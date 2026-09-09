@@ -45,6 +45,10 @@ const textPairs: Array<[string, string]> = [
   ['ink-2', 'surface-2'],
   ['ink-3', 'surface'],
   ['ink-3', 'canvas'],
+  // The quiet grey lands on the tinted panel too — conversion notes, the
+  // compare tray, the charged-amount box — and that is the darkest ground it
+  // has to survive. Its absence here let a palette change ship a failure.
+  ['ink-3', 'surface-2'],
   ['brand', 'surface'],
   ['brand', 'canvas'],
   ['brand', 'brand-50'],

@@ -17,7 +17,7 @@ const variants: Record<Variant, string> = {
 
 // Minimum 44px tall on the md size keeps mobile tap targets comfortable.
 const sizes: Record<Size, string> = {
-  sm: 'min-h-9 rounded-sm px-4 text-[0.8125rem]',
+  sm: 'min-h-9 rounded-sm px-4 text-sm',
   md: 'min-h-11 rounded-md px-5 text-base',
 };
 

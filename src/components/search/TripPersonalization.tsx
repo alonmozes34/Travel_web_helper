@@ -31,10 +31,10 @@ export function TripPersonalization({
   return (
     <div className="rounded-lg border border-line bg-surface-2 p-4 sm:p-5">
       <p className="font-head font-semibold">{dict.personalization.title}</p>
-      <p className="mt-1 text-[0.8125rem] text-ink-2">{dict.personalization.note}</p>
+      <p className="mt-1 text-sm text-ink-2">{dict.personalization.note}</p>
 
       <fieldset className="mt-4">
-        <legend className="mb-2 text-xs font-semibold tracking-[0.09em] text-ink-3 uppercase">
+        <legend className="mb-2 text-sm font-semibold text-ink-2">
           {dict.personalization.usageLabel}
         </legend>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -72,7 +72,7 @@ export function TripPersonalization({
                   <span className={cn('block font-semibold', isActive && 'text-brand')}>
                     {dict.personalization.usages[level]}
                   </span>
-                  <span className="block text-[0.8125rem] text-ink-2">
+                  <span className="block text-sm text-ink-2">
                     {dict.personalization.usageHints[level]}
                   </span>
                 </span>

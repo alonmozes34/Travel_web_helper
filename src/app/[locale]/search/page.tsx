@@ -108,7 +108,7 @@ export default async function SearchPage({
             <p className="font-head text-lg font-semibold">
               {dict.search.emptyTitle}
             </p>
-            <p className="mx-auto mt-2 max-w-[52ch] text-[0.9375rem] text-ink-2">
+            <p className="mx-auto mt-2 max-w-[52ch] text-base text-ink-2">
               {dict.search.emptyBody}
             </p>
           </div>
@@ -118,12 +118,12 @@ export default async function SearchPage({
 
             {uncovered.length > 0 ? (
               <section className="mt-6 max-w-[80ch] rounded-md border border-line bg-surface px-5 py-4">
-                <h2 className="text-[1.0625rem] font-semibold text-ink">
+                <h2 className="text-lg font-semibold text-ink">
                   {interpolate(dict.search.uncoveredTitleTemplate, {
                     destinations: uncovered.join(", "),
                   })}
                 </h2>
-                <p className="mt-2 text-[0.9375rem] text-ink-2">
+                <p className="mt-2 text-base text-ink-2">
                   {uncovered.length === profile.destinations.length
                     ? dict.search.uncoveredBodyAll
                     : dict.search.uncoveredBodyPartial}
@@ -132,7 +132,7 @@ export default async function SearchPage({
             ) : null}
 
             {comparison.rows.length > 0 || combination ? (
-              <p className="mt-6 text-[0.9375rem] text-ink-2">
+              <p className="mt-6 text-base text-ink-2">
                 <strong className="font-semibold text-ink">
                   {interpolate(dict.results.summaryTemplate, {
                     plans: comparison.planCount,
@@ -141,7 +141,7 @@ export default async function SearchPage({
                 </strong>
               </p>
             ) : null}
-            <p className="mt-1 text-[0.8125rem] text-ink-2">
+            <p className="mt-1 text-sm text-ink-2">
               {estimate.isDefault ? (
                 dict.results.defaultEstimate
               ) : (
@@ -158,7 +158,7 @@ export default async function SearchPage({
             {/* On a multi-stop trip the total is not what a traveller can act on;
             what each stop needs is. */}
             {estimate.legs.length > 1 ? (
-              <ul className="mt-1 mb-6 flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem] text-ink-3">
+              <ul className="mt-1 mb-6 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-3">
                 {estimate.legs.map((leg) => (
                   <li key={leg.countryCode}>
                     {interpolate(dict.results.legEstimateTemplate, {
@@ -179,7 +179,7 @@ export default async function SearchPage({
             )}
 
             {comparison.rows.length === 0 && combination ? (
-              <p className="mb-4 rounded-sm border-s-[3px] border-s-warn-ink bg-warn-50 px-3 py-2 text-[0.8125rem] text-warn-ink">
+              <p className="mb-4 rounded-sm border-s-[3px] border-s-warn-ink bg-warn-50 px-3 py-2 text-sm text-warn-ink">
                 {dict.search.noFullCoverage}
               </p>
             ) : null}

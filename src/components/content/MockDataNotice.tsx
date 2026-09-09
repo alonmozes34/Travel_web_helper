@@ -10,14 +10,22 @@ export function MockDataNotice({ dict, className }: { dict: Dictionary; classNam
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-x-2 gap-y-1 rounded-sm bg-warn-50 px-3 py-2.5 text-[0.8125rem] text-warn-ink',
+        'flex flex-wrap items-center gap-x-2 gap-y-1 rounded-sm bg-warn-50 px-3 py-2.5 text-sm text-warn-ink',
         className,
       )}
     >
       <Badge tone="warn" className="bg-transparent">
         <span aria-hidden="true">⚠︎</span> {dict.mockData.badge}
       </Badge>
-      <span>{dict.mockData.notice}</span>
+      {/* The warning has to be unmissable, not long. The short line carries the
+          claim that matters; the full wording is one tap away. */}
+      <span>{dict.mockData.short}</span>
+      <details className="w-full">
+        <summary className="cursor-pointer text-sm font-semibold">
+          {dict.mockData.more}
+        </summary>
+        <p className="mt-1 text-sm">{dict.mockData.notice}</p>
+      </details>
     </div>
   );
 }

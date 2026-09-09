@@ -40,7 +40,7 @@ export function CompareTray({
           row ? (
             <span
               key={row.plan.id}
-              className="inline-flex items-center gap-2 rounded-sm bg-white/15 px-3 py-1.5 text-[0.8125rem] font-semibold"
+              className="inline-flex items-center gap-2 rounded-sm bg-white/15 px-3 py-1.5 text-sm font-semibold"
             >
               {row.provider.name} · {row.plan.planName}
               <button
@@ -55,7 +55,7 @@ export function CompareTray({
           ) : (
             <span
               key={`slot-${index}`}
-              className="rounded-sm border border-dashed border-white/35 px-3 py-1.5 text-[0.8125rem] text-white/70"
+              className="rounded-sm border border-dashed border-white/35 px-3 py-1.5 text-sm text-white/70"
             >
               {interpolate(dict.compare.slotTemplate, { index: index + 1 })}
             </span>
@@ -65,7 +65,7 @@ export function CompareTray({
         <button
           type="button"
           onClick={onClear}
-          className="text-[0.8125rem] text-white/70 underline hover:text-white"
+          className="text-sm text-white/70 underline hover:text-white"
         >
           {dict.compare.clear}
         </button>

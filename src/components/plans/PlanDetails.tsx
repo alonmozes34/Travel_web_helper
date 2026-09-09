@@ -33,8 +33,8 @@ export function PlanDetails({ row, dict }: { row: ComparisonRow; dict: Dictionar
   return (
     <div className="mt-3 grid gap-5 rounded-md bg-surface-2 p-4 sm:grid-cols-2">
       <div>
-        <h4 className="font-head text-[0.9375rem] font-semibold">{dict.details.title}</h4>
-        <dl className="mt-2 grid gap-1.5 text-[0.8125rem]">
+        <h4 className="font-head text-base font-semibold">{dict.details.title}</h4>
+        <dl className="mt-2 grid gap-1.5 text-sm">
           {specs.map((spec) => (
             <div key={spec.label} className="flex justify-between gap-3 border-b border-line-soft pb-1.5">
               <dt className="text-ink-2">{spec.label}</dt>
@@ -48,7 +48,7 @@ export function PlanDetails({ row, dict }: { row: ComparisonRow; dict: Dictionar
         </dl>
 
         {plan.fairUsage?.dailyThresholdMb ? (
-          <p className="mt-3 text-[0.8125rem] text-warn-ink">
+          <p className="mt-3 text-sm text-warn-ink">
             <strong className="font-semibold">{dict.details.fairUsageTitle}:</strong>{' '}
             {interpolate(dict.plan.fairUsageDetailTemplate, {
               gb: Math.round(plan.fairUsage.dailyThresholdMb / MB_PER_GB),
@@ -59,13 +59,13 @@ export function PlanDetails({ row, dict }: { row: ComparisonRow; dict: Dictionar
       </div>
 
       <div>
-        <h4 className="font-head text-[0.9375rem] font-semibold">{dict.details.whyTitle}</h4>
-        <p className="tnum mt-1 text-[0.8125rem] text-ink-2">
+        <h4 className="font-head text-base font-semibold">{dict.details.whyTitle}</h4>
+        <p className="tnum mt-1 text-sm text-ink-2">
           <Ltr>{interpolate(dict.details.scoreTemplate, { score: row.score })}</Ltr>
         </p>
         <ul className="mt-2 grid gap-2">
           {factors.map((factor) => (
-            <li key={factor.label} className="text-[0.8125rem]">
+            <li key={factor.label} className="text-sm">
               <span className="flex justify-between gap-3 text-ink-2">
                 {factor.label}
                 <Ltr className="tnum">{Math.round(factor.value * 100)}</Ltr>
@@ -82,7 +82,7 @@ export function PlanDetails({ row, dict }: { row: ComparisonRow; dict: Dictionar
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-[0.8125rem] text-ink-3">{dict.details.noCommission}</p>
+        <p className="mt-3 text-sm text-ink-3">{dict.details.noCommission}</p>
       </div>
     </div>
   );

@@ -140,6 +140,11 @@ export default async function CountryPage({
             {interpolate(dict.country.titleTemplate, { country: name })}
           </h1>
 
+          {/* The whole product is named after a word a first-time traveller
+              does not know. One sentence, before anything else, so nobody has
+              to guess what they are looking at. */}
+          <p className="mt-3 max-w-[62ch] text-base text-ink-2">{dict.search.whatIsEsim}</p>
+
           <div className="mt-6">
             <HeroSearch
               locale={locale}
@@ -151,6 +156,7 @@ export default async function CountryPage({
                   : [{ countryCode: country.code }],
               }}
               showPopular={false}
+              variant="compact"
             />
           </div>
         </Container>
@@ -170,7 +176,7 @@ export default async function CountryPage({
 
         {coverageKind !== "none" && (
           <>
-            <p className="mt-6 text-[0.9375rem] text-ink-2">
+            <p className="mt-6 text-base text-ink-2">
               <strong className="font-semibold text-ink">
                 {interpolate(dict.results.summaryTemplate, {
                   plans: comparison.planCount,
@@ -178,7 +184,7 @@ export default async function CountryPage({
                 })}
               </strong>
             </p>
-            <p className="mt-1 mb-6 text-[0.8125rem] text-ink-2">
+            <p className="mt-1 mb-6 text-sm text-ink-2">
               {estimate.isDefault ? (
                 dict.results.defaultEstimate
               ) : (

@@ -65,8 +65,8 @@ export function CombinationCard({
               className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-sm bg-surface px-3 py-2.5"
             >
               <span className="font-head font-semibold">{provider?.name ?? leg.plan.providerId}</span>
-              <span className="text-[0.9375rem] text-ink-2">{leg.plan.planName}</span>
-              <span className="text-[0.8125rem] text-ink-3">
+              <span className="text-base text-ink-2">{leg.plan.planName}</span>
+              <span className="text-sm text-ink-3">
                 {interpolate(dict.combination.legTemplate, { countries: names })}
                 {' · '}
                 {leg.plan.isUnlimited ? dict.units.unlimited : formatData(leg.plan.dataAmountMb, locale)}
@@ -99,7 +99,7 @@ export function CombinationCard({
         <Ltr className="tnum font-head text-2xl font-bold tracking-tight">
           {formatPrice(combination.totalMinor, combination.currency, locale)}
         </Ltr>
-        <span className="text-[0.8125rem] text-ink-2">
+        <span className="text-sm text-ink-2">
           {difference === null
             ? dict.combination.onlyOption
             : interpolate(
@@ -109,7 +109,7 @@ export function CombinationCard({
         </span>
       </div>
 
-      <p className="mt-2 text-[0.8125rem] text-ink-3" aria-live="polite">
+      <p className="mt-2 text-sm text-ink-3" aria-live="polite">
         {noted ? dict.plan.prototypeLink : dict.combination.note}
       </p>
     </article>

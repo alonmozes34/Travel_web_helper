@@ -27,7 +27,7 @@ export function Disclosure({
           ＋
         </span>
       </summary>
-      <div className="pb-5 text-[0.9375rem] text-ink-2">{children}</div>
+      <div className="pb-5 text-base text-ink-2">{children}</div>
     </details>
   );
 }

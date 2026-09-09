@@ -23,7 +23,7 @@ export function CurrencySwitcher({ label }: { label: string }) {
           // to be re-rendered for the change to reach them.
           router.refresh();
         }}
-        className="min-h-9 cursor-pointer appearance-none rounded-full border border-line bg-surface ps-3 pe-7 text-[0.8125rem] font-semibold text-ink-2 hover:text-brand"
+        className="min-h-9 cursor-pointer appearance-none rounded-full border border-line bg-surface ps-3 pe-7 text-sm font-semibold text-ink-2 hover:text-brand"
       >
         {currencies.map((code) => (
           <option key={code} value={code}>
@@ -33,7 +33,7 @@ export function CurrencySwitcher({ label }: { label: string }) {
       </select>
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute end-2.5 text-[0.6rem] text-ink-3"
+        className="pointer-events-none absolute end-2.5 text-xs text-ink-3"
       >
         ▼
       </span>

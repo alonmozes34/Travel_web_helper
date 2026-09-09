@@ -45,19 +45,23 @@ export function DestinationList({
             className="flex min-h-12 items-center gap-2 rounded-full border border-line bg-surface ps-3 pe-1.5"
           >
             <span aria-hidden="true">{country?.flag}</span>
-            <span className="text-[0.9375rem] font-semibold">{name}</span>
+            <span className="text-base font-semibold">{name}</span>
 
-            <label className="flex items-center gap-1.5 text-[0.8125rem] text-ink-2">
+            {/* The label was screen-reader-only and the field showed a bare
+                dash, so a sighted first-time visitor saw an empty box with no
+                idea what to type into it. */}
+            <label className="flex items-center gap-1.5 text-sm text-ink-2">
               <span className="sr-only">
                 {interpolate(dict.search.daysLabelTemplate, { country: name })}
               </span>
+              <span aria-hidden="true">{dict.search.daysFieldLabel}</span>
               <input
                 type="number"
                 min={1}
                 max={365}
                 inputMode="numeric"
                 value={destination.days ?? ''}
-                placeholder="—"
+                placeholder={dict.search.daysPlaceholder}
                 onChange={(event) => {
                   const value = Number.parseInt(event.target.value, 10);
                   const next = [...destinations];
@@ -67,7 +71,7 @@ export function DestinationList({
                   };
                   onChange(next);
                 }}
-                className="tnum h-11 w-14 rounded-sm border border-line bg-surface px-1.5 text-center text-[0.9375rem] text-ink"
+                className="tnum h-11 w-14 rounded-sm border border-line bg-surface px-1.5 text-center text-base text-ink"
               />
               <Ltr>{dict.search.daysUnit}</Ltr>
             </label>
@@ -85,7 +89,7 @@ export function DestinationList({
       })}
     </ul>
     {anyMissingDays ? (
-      <p className="mt-2 max-w-[640px] text-[0.8125rem] text-ink-3">{dict.search.daysHint}</p>
+      <p className="mt-2 max-w-[640px] text-sm text-ink-3">{dict.search.daysHint}</p>
     ) : null}
     </>
   );

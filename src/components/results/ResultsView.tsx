@@ -196,12 +196,12 @@ export function ResultsView({
             updateSort(tabSort[key]);
           }}
         />
-        <label className="ms-auto flex items-center gap-2 text-[0.8125rem] text-ink-2">
+        <label className="ms-auto flex items-center gap-2 text-sm text-ink-2">
           <span>{dict.filters.sort}</span>
           <select
             value={sort}
             onChange={(event) => updateSort(event.target.value as SortKey)}
-            className="min-h-10 rounded-sm border border-line bg-surface px-2 text-[0.8125rem] font-semibold text-ink"
+            className="min-h-10 rounded-sm border border-line bg-surface px-2 text-sm font-semibold text-ink"
           >
             {sortKeys.map((key) => (
               <option key={key} value={key}>
@@ -212,22 +212,30 @@ export function ResultsView({
         </label>
       </div>
 
+      {/* The rates stay on the page — they are the one thing here that cannot
+          live behind a disclosure, because a traveller checking our shekel
+          figure against the provider's needs them. The paragraph explaining
+          why the two differ is one tap away instead of four lines tall, now
+          that each card labels both numbers itself. */}
       {conversion ? (
-        <p className="mb-4 rounded-sm border-s-[3px] border-s-line bg-surface-2 px-3 py-2 text-[0.8125rem] text-ink-2">
-          {dict.plan.conversionNote}{" "}
+        <details className="mb-4 rounded-sm border-s-[3px] border-s-line bg-surface-2 px-3 py-2">
+          <summary className="cursor-pointer text-sm text-ink-2 marker:text-ink-3">
+            {dict.plan.conversionSummary}
+          </summary>
+          <p className="mt-2 text-sm text-ink-2">{dict.plan.conversionNote}</p>
           {conversion.asOf ? (
-            <span>
+            <p className="mt-2 text-sm text-ink-2">
               {interpolate(dict.plan.conversionRateTemplate, {
                 rates: conversion.rates,
                 date: conversion.asOf,
               })}
-            </span>
+            </p>
           ) : null}
-        </p>
+        </details>
       ) : null}
 
       {tab === "bestForBrowsing" ? (
-        <p className="mb-4 rounded-sm bg-brand-50 px-3 py-2 text-[0.8125rem] text-ink-2">
+        <p className="mb-4 rounded-sm bg-brand-50 px-3 py-2 text-sm text-ink-2">
           {dict.recommendations.browsingNote}
         </p>
       ) : null}
@@ -238,14 +246,14 @@ export function ResultsView({
           aria-label={dict.filters.title}
         >
           <div className="flex items-center justify-between pb-2">
-            <h2 className="text-[0.7rem] font-semibold tracking-[0.09em] text-ink-3 uppercase">
+            <h2 className="text-sm font-semibold text-ink-2">
               {dict.filters.title}
             </h2>
             {activeCount > 0 ? (
               <button
                 type="button"
                 onClick={() => updateFilters(emptyFilters)}
-                className="text-[0.8125rem] font-semibold text-brand"
+                className="text-sm font-semibold text-brand"
               >
                 {dict.filters.clearAll}
               </button>
@@ -289,7 +297,7 @@ export function ResultsView({
                   <PlanListItem key={row.plan.id} {...planRowProps(row)} />
                 ))}
               </div>
-              <p className="mt-2 text-[0.8125rem] text-ink-3">
+              <p className="mt-2 text-sm text-ink-3">
                 {dict.plan.buyAtProvider}
               </p>
             </>

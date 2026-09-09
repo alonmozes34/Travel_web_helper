@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import type { Dictionary } from '@/i18n/getDictionary';
+import { interpolate } from '@/i18n/interpolate';
 import { track } from '@/lib/analytics/events';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 
@@ -18,7 +19,6 @@ export function PlanCta({
   row,
   dict,
   size = 'sm',
-  showNote = true,
   detailsOpen,
   onToggleDetails,
 }: {
@@ -26,7 +26,6 @@ export function PlanCta({
   dict: Dictionary;
   size?: 'sm' | 'md';
   /** The desktop list states this once beneath the rows instead. */
-  showNote?: boolean;
   detailsOpen: boolean;
   onToggleDetails: () => void;
 }) {
@@ -46,7 +45,7 @@ export function PlanCta({
             setNoted(true);
           }}
         >
-          {dict.plan.view}
+          {interpolate(dict.plan.viewAtTemplate, { provider: row.provider.name })}
         </Button>
         <Button
           variant="quiet"
@@ -62,11 +61,13 @@ export function PlanCta({
           {detailsOpen ? dict.details.close : dict.plan.details}
         </Button>
       </div>
-      {showNote || noted ? (
-        <p className="text-[0.7rem] text-ink-3" aria-live="polite">
-          {noted ? dict.plan.prototypeLink : dict.plan.buyAtProvider}
-        </p>
-      ) : null}
+      {/* Naming the destination on the button, and saying what happens there,
+          is the difference between a link someone follows and a link someone
+          is afraid of. Nobody should have to click to find out whether this
+          charges them. */}
+      <p className="text-sm text-ink-2" aria-live="polite">
+        {noted ? dict.plan.prototypeLink : dict.plan.buyAtProvider}
+      </p>
     </div>
   );
 }

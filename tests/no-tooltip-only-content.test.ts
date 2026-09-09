@@ -12,10 +12,12 @@ import { describe, test } from 'node:test';
  * This test is a regression guard, not a substitute for judgement: it fails on
  * any new `title=` in a component so that adding one is a deliberate decision.
  */
-const ALLOWED = new Set([
-  // Restates the visible "up to 3 plans" label on a disabled checkbox.
-  'src/components/plans/CompareToggle.tsx',
-]);
+/**
+ * Empty on purpose. The one exemption that used to live here — a disabled
+ * compare checkbox whose title restated its visible label — turned out to be
+ * redundant with the aria-label beside it, so the rule now holds everywhere.
+ */
+const ALLOWED = new Set<string>([]);
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {

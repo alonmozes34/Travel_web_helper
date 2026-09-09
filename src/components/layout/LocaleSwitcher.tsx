@@ -24,7 +24,7 @@ export function LocaleSwitcher({ locale, label }: { locale: Locale; label: strin
             hrefLang={localeConfig[option].htmlLang}
             aria-current={isActive ? 'true' : undefined}
             className={
-              'inline-flex min-h-9 items-center rounded-full border px-3 text-[0.8125rem] font-semibold transition-colors ' +
+              'inline-flex min-h-9 items-center rounded-full border px-3 text-sm font-semibold transition-colors ' +
               (isActive
                 ? 'border-line bg-surface-2 text-ink'
                 : 'border-transparent text-ink-2 hover:text-brand')

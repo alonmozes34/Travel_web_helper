@@ -12,13 +12,13 @@ export function HowItWorks({ dict }: { dict: Dictionary }) {
             <li key={step.title} className="flex gap-4">
               <span
                 aria-hidden="true"
-                className="tnum flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-50 font-head text-[0.8125rem] font-semibold text-brand"
+                className="tnum flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-50 font-head text-sm font-semibold text-brand"
               >
                 {index + 1}
               </span>
               <div>
                 <h3 className="font-head text-lg font-semibold">{step.title}</h3>
-                <p className="mt-1 text-[0.9375rem] text-ink-2">{step.text}</p>
+                <p className="mt-1 text-base text-ink-2">{step.text}</p>
               </div>
             </li>
           ))}
