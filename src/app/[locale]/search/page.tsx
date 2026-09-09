@@ -114,7 +114,13 @@ export default async function SearchPage({
           </div>
         ) : (
           <>
-            <MockDataNotice dict={dict} className="max-w-[80ch]" />
+            {/* Only while something on the page is invented. Once every plan comes
+                from a real source the warning is not merely unnecessary, it is
+                false — and a warning that cries wolf is how a real one stops
+                being read. */}
+            {comparison.isMockData ? (
+              <MockDataNotice dict={dict} className="max-w-[80ch]" />
+            ) : null}
 
             {uncovered.length > 0 ? (
               <section className="mt-6 max-w-[80ch] rounded-md border border-line bg-surface px-5 py-4">

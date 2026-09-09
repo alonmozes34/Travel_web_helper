@@ -57,7 +57,11 @@ export type Plan = {
   sms: boolean;
   topUp: boolean;
 
-  /** Not implemented in the prototype — always null. */
+  /**
+   * Where the traveller goes to buy, as the source supplied it. Null for a
+   * plan whose source has no link — the button then says so rather than
+   * pretending to lead somewhere.
+   */
   affiliateUrl: string | null;
   source: PlanSource;
   /** Only shown once a real API supplies it. */

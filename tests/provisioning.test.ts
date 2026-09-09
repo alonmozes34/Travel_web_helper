@@ -5,7 +5,7 @@ import { provisionFactor, unlimitedPreferenceFactor } from '../src/lib/compariso
 import { estimateDataNeed } from '../src/lib/comparison/estimateDataNeed';
 import { MB_PER_GB } from '../src/lib/formatters/data';
 
-const japan = (usage: 'unlimited' | 'heavy' | 'regular') =>
+const japan = (usage: 'unlimited' | 'heavy' | 'regular' | 'hotspot') =>
   buildComparison({
     profile: { destinations: [{ countryCode: 'JP', days: 7 }], usage },
     currency: 'ILS',

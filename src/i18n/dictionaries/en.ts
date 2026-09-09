@@ -232,6 +232,7 @@ export const en: Dictionary = {
     details: 'More details',
     buyAtProvider: 'You do not pay here — the purchase happens on the provider’s site',
     prototypeLink: 'Prototype — the provider link is not live yet',
+    opensInNewTab: '(opens in a new tab, on the provider’s site)',
     hotspot: 'Tethering',
     noHotspot: 'No tethering',
     calls: 'Calls',

@@ -240,6 +240,7 @@ export const he = {
     details: 'עוד פרטים',
     buyAtProvider: 'לא משלמים כאן — הרכישה מתבצעת באתר הספק',
     prototypeLink: 'אב־טיפוס — הקישור לספק עדיין לא פעיל',
+    opensInNewTab: '(נפתח בלשונית חדשה, באתר הספק)',
     hotspot: 'שיתוף אינטרנט',
     noHotspot: 'בלי שיתוף אינטרנט',
     calls: 'שיחות טלפון',

@@ -165,7 +165,13 @@ export default async function CountryPage({
       </section>
 
       <Container className="py-10">
-        <MockDataNotice dict={dict} className="max-w-[80ch]" />
+        {/* Only while something on the page is invented. Once every plan comes
+                from a real source the warning is not merely unnecessary, it is
+                false — and a warning that cries wolf is how a real one stops
+                being read. */}
+        {comparison.isMockData ? (
+          <MockDataNotice dict={dict} className="max-w-[80ch]" />
+        ) : null}
 
         {coverageKind !== "full" && (
           <CoverageNotice
