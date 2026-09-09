@@ -6,14 +6,16 @@ import type { Dictionary } from './he';
  */
 export const en: Dictionary = {
   meta: {
-    siteName: 'eSIM Compare',
+    siteName: 'Yesh Klita',
     tagline: 'Compare travel eSIM plans',
     defaultDescription:
-      'Compare eSIM plans from multiple providers in one place — by price, data, validity and local network.',
+      'Compare travel eSIM plans by destination, price, data, validity and network — and pick the one that fits your trip.',
   },
   brand: {
-    name: 'eSIM Compare',
-    logoAlt: 'eSIM Compare — compare travel eSIM plans',
+    // The Hebrew brand is "יש קליטה?"; English keeps the transliteration
+    // rather than a literal translation, which would read as nonsense.
+    name: 'Yesh Klita',
+    logoAlt: 'Yesh Klita — compare travel eSIM plans',
     homeLabel: 'Go to homepage',
   },
   nav: {
@@ -33,7 +35,7 @@ export const en: Dictionary = {
   footer: {
     aboutTitle: 'About',
     aboutText:
-      'eSIM Compare is an independent comparison tool. We do not sell eSIM plans — you buy directly from the provider you choose.',
+      'Yesh Klita is an independent comparison site for travel eSIM plans. We neither sell nor issue eSIMs; comparing is free, and you buy directly from the provider you choose.',
     productTitle: 'Product',
     legalTitle: 'Information',
     disclosureLink: 'Affiliate disclosure',
@@ -64,9 +66,10 @@ export const en: Dictionary = {
     unknown: 'Unknown',
   },
   home: {
-    heroTitle: 'Internet abroad, with no surprises on the bill',
+    heroTitle: 'Yesh Klita',
+    heroDescriptor: 'Compare travel eSIM plans',
     heroSubtitle:
-      'An eSIM is a digital SIM card: install it on your phone before you travel and land abroad with working internet. Here you compare every plan in one place — by price, how much data, how long it lasts and which local network.',
+      'Compare travel eSIM plans in one place and pick the one that fits your trip.',
     trustStrip: [
       { strong: 'Everything in one place', rest: 'instead of ten provider sites' },
       { strong: 'The price in your currency', rest: 'next to what your card is charged' },
@@ -76,7 +79,7 @@ export const en: Dictionary = {
   search: {
     label: 'Destination',
     placeholder: 'Where are you going?',
-    submit: 'Find a plan',
+    submit: 'Compare plans',
     clear: 'Clear destination',
     suggestionsLabel: 'Destination suggestions',
     noResults: 'No destination found. Try a country name.',
@@ -360,7 +363,7 @@ export const en: Dictionary = {
   },
   country: {
     titleTemplate: 'eSIM for {country}',
-    seoTitleTemplate: 'eSIM for {country} — compare prices and plans',
+    seoTitleTemplate: 'eSIM for {country} – compare plans and prices',
     metaDescriptionTemplate:
       'Compare eSIM plans for {country}: price, data, validity, local network and 5G — from every provider in one place.',
     factsTitle: 'Practical information',

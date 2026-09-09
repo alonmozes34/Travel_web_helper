@@ -47,9 +47,12 @@ export function CombinationCard({
           <span aria-hidden="true">🧩</span>
           {dict.combination.badge}
         </Badge>
-        <h3 className="font-head text-lg font-semibold">
+        {/* An H2, not an H3: the combination sits directly under the page
+            H1 as a peer of the results list, and a level skipped for visual
+            weight is a level a screen-reader user has to guess at. */}
+        <h2 className="font-head text-lg font-semibold">
           {interpolate(dict.combination.titleTemplate, { count: combination.legs.length })}
-        </h3>
+        </h2>
       </div>
 
       <ul className="mt-4 grid gap-2.5">

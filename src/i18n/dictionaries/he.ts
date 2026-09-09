@@ -4,14 +4,19 @@
  */
 export const he = {
   meta: {
-    siteName: 'eSIM Compare',
-    tagline: 'השוואת חבילות eSIM לטיולים',
+    siteName: 'יש קליטה?',
+    tagline: 'השוואת חבילות eSIM לחו״ל',
     defaultDescription:
-      'משווים חבילות eSIM ממגוון ספקים במקום אחד — לפי מחיר, נפח גלישה, תוקף ורשת מקומית.',
+      'משווים חבילות eSIM לחו״ל לפי יעד, מחיר, נפח גלישה, תוקף ורשת — ובוחרים את החבילה שמתאימה לטיול.',
   },
   brand: {
-    name: 'eSIM Compare',
-    logoAlt: 'eSIM Compare — השוואת חבילות eSIM',
+    // The visible wordmark, question mark included: it is the brand.
+    name: 'יש קליטה?',
+    // The accessible name of the logo link. It opens with the visible
+    // wordmark verbatim, which is what WCAG 2.5.3 (Label in Name) asks for,
+    // and then says what the site is — so a screen-reader user who lands on
+    // the logo learns the same thing a sighted user learns from the tagline.
+    logoAlt: 'יש קליטה? — השוואת חבילות eSIM לחו״ל',
     homeLabel: 'לדף הבית',
   },
   nav: {
@@ -31,7 +36,7 @@ export const he = {
   footer: {
     aboutTitle: 'על האתר',
     aboutText:
-      'eSIM Compare הוא כלי השוואה עצמאי. אנחנו לא מוכרים חבילות eSIM — הרכישה מתבצעת ישירות אצל הספק שתבחרו.',
+      'יש קליטה? — אתר השוואה עצמאי לחבילות eSIM לחו״ל. אנחנו לא מוכרים ולא מנפיקים חבילות eSIM; ההשוואה כאן חינם, והרכישה מתבצעת ישירות אצל הספק שתבחרו.',
     productTitle: 'המוצר',
     legalTitle: 'מידע',
     disclosureLink: 'גילוי נאות',
@@ -62,9 +67,14 @@ export const he = {
     unknown: 'לא ידוע',
   },
   home: {
-    heroTitle: 'אינטרנט בחו״ל, בלי הפתעות בחשבון',
+    // The H1 is two lines: the brand, then what the site does. Splitting them
+    // means a search engine and a screen reader both get "יש קליטה?
+    // השוואת חבילות eSIM לחו״ל" as one heading, while the page still opens
+    // with the question a traveller actually asks on landing.
+    heroTitle: 'יש קליטה?',
+    heroDescriptor: 'השוואת חבילות eSIM לחו״ל',
     heroSubtitle:
-      'eSIM הוא כרטיס SIM דיגיטלי: מתקינים אותו בטלפון עוד לפני הנסיעה, ונוחתים בחו״ל עם אינטרנט שעובד. כאן משווים את כל החבילות במקום אחד — לפי מחיר, כמה גלישה, לכמה זמן ואיזו רשת מקומית.',
+      'משווים חבילות eSIM לחו״ל במקום אחד ובוחרים את החבילה שמתאימה לטיול שלכם.',
     trustStrip: [
       { strong: 'הכול במקום אחד', rest: 'במקום לפתוח עשרה אתרים של ספקים' },
       { strong: 'המחיר בשקלים', rest: 'לצד הסכום שיחויב בכרטיס האשראי' },
@@ -74,7 +84,7 @@ export const he = {
   search: {
     label: 'יעד הטיול',
     placeholder: 'לאן טסים?',
-    submit: 'למצוא חבילה',
+    submit: 'השוו חבילות',
     clear: 'ניקוי היעד',
     suggestionsLabel: 'הצעות יעדים',
     noResults: 'לא מצאנו יעד כזה. נסו שם מדינה.',
@@ -368,7 +378,7 @@ export const he = {
   },
   country: {
     titleTemplate: 'eSIM ל{country}',
-    seoTitleTemplate: 'eSIM ל{country} — השוואת מחירים וחבילות',
+    seoTitleTemplate: 'eSIM ל{country} – השוואת חבילות ומחירים',
     metaDescriptionTemplate:
       'השוואת חבילות eSIM ל{country}: מחיר, נפח גלישה, תוקף, רשת מקומית ו‑5G — מכל הספקים במקום אחד.',
     factsTitle: 'מידע פרקטי',

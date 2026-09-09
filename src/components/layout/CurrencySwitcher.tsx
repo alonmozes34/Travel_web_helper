@@ -23,7 +23,7 @@ export function CurrencySwitcher({ label }: { label: string }) {
           // to be re-rendered for the change to reach them.
           router.refresh();
         }}
-        className="min-h-9 cursor-pointer appearance-none rounded-full border border-line bg-surface ps-3 pe-7 text-sm font-semibold text-ink-2 hover:text-brand"
+        className="min-h-11 cursor-pointer appearance-none rounded-full border border-line bg-surface ps-3 pe-7 text-sm font-semibold text-ink-2 hover:text-brand md:min-h-9"
       >
         {currencies.map((code) => (
           <option key={code} value={code}>

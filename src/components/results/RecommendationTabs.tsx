@@ -43,7 +43,7 @@ export function RecommendationTabs({
           aria-pressed={key === active}
           onClick={() => onSelect(key)}
           className={cn(
-            'inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors',
+            'inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors',
             key === active
               ? 'border-ink bg-ink text-surface'
               : 'border-line bg-surface text-ink-2 hover:border-brand hover:text-brand',

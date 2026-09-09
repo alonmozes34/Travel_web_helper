@@ -48,7 +48,7 @@ await kb.waitForTimeout(150);
 let reachedSubmit = false;
 for (let i = 0; i < 40 && !reachedSubmit; i += 1) {
   await kb.keyboard.press('Tab');
-  reachedSubmit = (await kb.evaluate(() => document.activeElement?.textContent?.trim())) === 'למצוא חבילה';
+  reachedSubmit = (await kb.evaluate(() => document.activeElement?.textContent?.trim())) === 'השוו חבילות';
 }
 ok('the submit button is reachable by Tab', reachedSubmit);
 if (reachedSubmit) {
@@ -96,6 +96,73 @@ const small = await kb.evaluate(() => {
 });
 ok('pointer targets are at least 24x24', small.length === 0, small.slice(0, 4).join(' | '));
 
+// 2.5.5 Target size on a phone. WCAG AA only asks for 24x24 (checked above);
+// the controls a traveller actually drives the comparison with are held to
+// 44x44, which is the size a thumb can hit. Secondary chrome — footer links,
+// disclosure summaries — is deliberately not in this list: it meets AA and
+// inflating it would push the content it sits beneath off the screen.
+const thumb = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+await thumb.goto(`${BASE}/esim/thailand?days=14&usage=regular`, { waitUntil: 'domcontentloaded' });
+await thumb.waitForTimeout(700);
+const undersized = await thumb.evaluate(() => {
+  // Matched on the accessible name so the check survives a restyle.
+  const wanted = [/^מעבר לאתר /, /^עוד פרטים$/, /^סינון ומיון$/, /הכי /, /^מטבע$/];
+  const bad = [];
+  for (const el of document.querySelectorAll('button, a[href], select')) {
+    const name = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim();
+    const labelled = el.labels?.[0]?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    if (!wanted.some((re) => re.test(name) || re.test(labelled))) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) continue;
+    if (r.width < 44 || r.height < 44) bad.push(`${name || labelled} ${Math.round(r.width)}x${Math.round(r.height)}`);
+  }
+  return bad;
+});
+ok('primary mobile controls are at least 44x44', undersized.length === 0, undersized.slice(0, 5).join(' | '));
+await thumb.close();
+
+// 1.3.1 Info and relationships: exactly one H1 per page, and no level skipped
+// for visual weight. A screen-reader user navigates by heading; a jump from
+// H1 to H3 makes them guess whether they missed a section.
+for (const path of ['/', '/esim/thailand?days=14&usage=regular', '/search?to=DE:1,US:14&usage=regular', '/accessibility', '/en']) {
+  const h = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await h.goto(BASE + path, { waitUntil: 'domcontentloaded' });
+  await h.waitForTimeout(500);
+  const report = await h.evaluate(() => {
+    // A closed <dialog> is display:none and out of the accessibility tree, so
+    // its heading is not part of the document's outline.
+    const rendered = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].filter((el) => el.checkVisibility());
+    const skips = [];
+    let prev = 0;
+    for (const el of rendered) {
+      const level = Number(el.tagName[1]);
+      if (prev && level > prev + 1) skips.push(`${prev}->${level} at "${el.textContent.trim().slice(0, 30)}"`);
+      prev = level;
+    }
+    return { h1: rendered.filter((el) => el.tagName === 'H1').length, skips };
+  });
+  ok(`heading outline: ${path}`, report.h1 === 1 && report.skips.length === 0, `${report.h1} h1 · ${report.skips.join('; ') || 'no skips'}`);
+  await h.close();
+}
+
+// 2.5.3 Label in Name, on the one control that carries the brand. The visible
+// wordmark includes a question mark, and the accessible name has to start with
+// exactly what is on screen — otherwise voice control cannot reach it, and a
+// screen reader risks announcing the brand twice.
+const bm = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+for (const [path, wordmark] of [['/', 'יש קליטה?'], ['/en', 'Yesh Klita']]) {
+  await bm.goto(BASE + path, { waitUntil: 'domcontentloaded' });
+  await bm.waitForTimeout(400);
+  const link = bm.locator('header a').first();
+  const visible = (await link.innerText()).replace(/\s+/g, ' ').trim();
+  const snapshot = await bm.accessibility.snapshot({ root: await link.elementHandle() });
+  const accName = snapshot?.name ?? '';
+  ok(`brand wordmark is the visible text: ${path}`, visible === wordmark, visible);
+  ok(`brand accessible name starts with the wordmark: ${path}`, accName.startsWith(wordmark), accName);
+  ok(`brand is not announced twice: ${path}`, accName.split(wordmark).length === 2, accName);
+}
+await bm.close();
+
 // 2.3.3 / prefers-reduced-motion is honoured.
 const reduced = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
 await reduced.goto(`${BASE}/esim/thailand`, { waitUntil: 'domcontentloaded' });
@@ -112,7 +179,7 @@ await reduced.close();
 const err = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 await err.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
 await err.waitForTimeout(600);
-await err.getByRole('button', { name: 'למצוא חבילה' }).click();
+await err.getByRole('button', { name: 'השוו חבילות' }).click();
 await err.waitForTimeout(300);
 const live = await err.locator('[aria-live="polite"]').first().innerText();
 ok('an empty search states the error in a live region', live.trim().length > 0, live.trim());

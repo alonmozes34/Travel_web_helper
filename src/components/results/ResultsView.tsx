@@ -229,7 +229,7 @@ export function ResultsView({
           <select
             value={sort}
             onChange={(event) => updateSort(event.target.value as SortKey)}
-            className="min-h-10 rounded-sm border border-line bg-surface px-2 text-sm font-semibold text-ink"
+            className="min-h-11 rounded-sm border border-line bg-surface px-2 text-sm font-semibold text-ink md:min-h-10"
           >
             {sortKeys.map((key) => (
               <option key={key} value={key}>
@@ -239,6 +239,14 @@ export function ResultsView({
           </select>
         </label>
       </div>
+
+      {/* The sentence that keeps this from being mistaken for a shop, placed
+          where the choosing actually happens rather than only in the footer.
+          A traveller who is about to click through to a provider should have
+          just read who they are buying from. */}
+      <p className="mb-4 text-sm text-ink-2">
+        <strong className="font-semibold text-ink">{dict.disclosure.short}</strong>
+      </p>
 
       {/* The rates stay on the page — they are the one thing here that cannot
           live behind a disclosure, because a traveller checking our shekel

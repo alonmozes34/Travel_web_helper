@@ -15,9 +15,14 @@ const variants: Record<Variant, string> = {
   quiet: 'bg-transparent text-brand hover:bg-brand-50',
 };
 
-// Minimum 44px tall on the md size keeps mobile tap targets comfortable.
+// Every button is 44px tall on a phone — including the compact size, which
+// otherwise put the single most important control on the page (the one that
+// sends a traveller to the provider) at 36px under a thumb. WCAG 2.2 AA only
+// asks for 24px, but 24px is a floor for not failing, not a size anyone can
+// hit while walking through an airport. From `md` up, where there is a mouse,
+// the compact size goes back to 36px so a results row stays a results row.
 const sizes: Record<Size, string> = {
-  sm: 'min-h-9 rounded-sm px-4 text-sm',
+  sm: 'min-h-11 md:min-h-9 rounded-sm px-4 text-sm',
   md: 'min-h-11 rounded-md px-5 text-base',
 };
 

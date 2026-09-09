@@ -54,7 +54,7 @@ export function isCurrency(value: string): value is CurrencyCode {
  * the server knows it too and can render prices in the right currency on the
  * first paint, instead of the page changing under the reader.
  */
-export const CURRENCY_COOKIE = 'esimcompare_currency';
+export const CURRENCY_COOKIE = 'yeshklita_currency';
 
 export const currencies = ['ILS', 'USD', 'EUR', 'GBP'] as const;
 export type CurrencyCode = (typeof currencies)[number];

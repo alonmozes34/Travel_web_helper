@@ -21,6 +21,13 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 await page.goto(BASE, { waitUntil: 'networkidle' });
 ok('html dir is rtl', await page.getAttribute('html', 'dir') === 'rtl');
 
+// The brand and the descriptor share one H1. A visitor who reads nothing else
+// should know both who this is and what it does.
+const heH1 = await page.locator('h1').innerText();
+ok('hebrew h1 carries the brand', heH1.includes('יש קליטה?'), heH1);
+ok('hebrew h1 says what the site does', heH1.includes('השוואת חבילות eSIM לחו״ל'), heH1);
+ok('the page title names the brand', (await page.title()).startsWith('יש קליטה?'), await page.title());
+
 const input = page.getByRole('combobox', { name: 'יעד הטיול' });
 await input.click();
 await input.type('תא', { delay: 40 });
@@ -71,7 +78,7 @@ ok(
 );
 await shot(page, 'phase2-home-desktop');
 
-await page.getByRole('button', { name: 'למצוא חבילה' }).click();
+await page.getByRole('button', { name: 'השוו חבילות' }).click();
 await page.waitForURL('**/search**');
 const url = new URL(page.url());
 ok('a multi-stop trip goes to the search page', url.pathname === '/search', url.pathname);
@@ -98,7 +105,7 @@ await page.waitForSelector('[role="listbox"]');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(150);
 
-await page.getByRole('button', { name: 'למצוא חבילה' }).click();
+await page.getByRole('button', { name: 'השוו חבילות' }).click();
 await page.waitForTimeout(400);
 ok(
   'an undescribed trip does not run the search',
@@ -113,7 +120,7 @@ ok(
 await page.locator('form li input[type="number"]').first().fill('10');
 await page.locator('label:has-text("רגיל")').first().click();
 await page.waitForTimeout(150);
-await page.getByRole('button', { name: 'למצוא חבילה' }).click();
+await page.getByRole('button', { name: 'השוו חבילות' }).click();
 await page.waitForURL('**/esim/thailand**');
 ok('a single destination goes to its country page', new URL(page.url()).pathname === '/esim/thailand');
 ok(
@@ -124,7 +131,7 @@ ok(
 
 // Submitting with no destination must not navigate.
 await page.goto(BASE, { waitUntil: 'networkidle' });
-await page.getByRole('button', { name: 'למצוא חבילה' }).click();
+await page.getByRole('button', { name: 'השוו חבילות' }).click();
 await page.waitForTimeout(200);
 ok('empty search shows a hint instead of navigating', page.url().replace(/\/$/, '') === BASE && (await page.locator('[aria-live="polite"]').innerText()).length > 0);
 
@@ -363,10 +370,27 @@ await page.waitForTimeout(500);
   ok('a country outside the original twenty is searchable', suggestions.some((t) => t.includes('מרוקו')));
 }
 
+// No user-facing trace of the working name the prototype was built under.
+// A rebrand that leaves the old name in a footer or a meta tag is a rebrand
+// that was never finished.
+{
+  const stale = [];
+  for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14', '/accessibility', '/en']) {
+    await page.goto(BASE + path, { waitUntil: 'networkidle' });
+    const html = await page.content();
+    if (/eSIM\s*Compare/i.test(html)) stale.push(path);
+  }
+  ok('no page still shows the old working name', stale.length === 0, stale.join(', '));
+}
+
 // English locale still works.
 await page.goto(BASE + '/en', { waitUntil: 'networkidle' });
 ok('english is ltr', await page.getAttribute('html', 'dir') === 'ltr');
-ok('english copy', (await page.locator('h1').innerText()).includes('Internet abroad'));
+// The H1 must carry the brand *and* say what the site does — one heading,
+// both facts, in whichever locale.
+const enH1 = await page.locator('h1').innerText();
+ok('english h1 carries the brand', enH1.includes('Yesh Klita'), enH1);
+ok('english h1 says what the site does', enH1.includes('Compare travel eSIM plans'), enH1);
 
 await browser.close();
 console.log(out.join('\n'));

@@ -1,8 +1,17 @@
-# eSIM Compare
+# יש קליטה? (Yesh Klita)
 
-An independent eSIM comparison tool for travellers. The launch market is Israel
+An independent eSIM comparison site for travellers. The launch market is Israel
 (Hebrew, RTL, ₪), and the product is built so that other languages and
 currencies are additions rather than rewrites.
+
+The brand is **יש קליטה?** — the question a traveller asks on landing. The
+question mark is part of the visible wordmark and never appears in a URL, a
+file name, an environment variable or any other identifier; the technical
+identifier is `yeshklita`. The intended production domain is `yeshklita.co.il`,
+supplied through `NEXT_PUBLIC_SITE_URL` rather than hard-coded anywhere.
+
+We compare. The traveller buys from the provider — this site never sells or
+issues an eSIM, and the copy says so on every page that shows a price.
 
 > **All plan data in this repository is mock data.** Nothing here is a real
 > offer from any provider. See [Mock data](#mock-data).

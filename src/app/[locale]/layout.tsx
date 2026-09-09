@@ -39,7 +39,7 @@ export async function generateMetadata({
   return {
     metadataBase: new URL(siteUrl),
     title: {
-      default: `${dict.meta.siteName} — ${dict.meta.tagline}`,
+      default: `${dict.meta.siteName} | ${dict.meta.tagline}`,
       template: `%s | ${dict.meta.siteName}`,
     },
     description: dict.meta.defaultDescription,
@@ -53,7 +53,7 @@ export async function generateMetadata({
       type: 'website',
       siteName: dict.meta.siteName,
       locale: localeConfig[locale].intlLocale.replace('-', '_'),
-      title: `${dict.meta.siteName} — ${dict.meta.tagline}`,
+      title: `${dict.meta.siteName} | ${dict.meta.tagline}`,
       description: dict.meta.defaultDescription,
     },
     // Mock prices must never reach a search result.
