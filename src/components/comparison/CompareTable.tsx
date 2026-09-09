@@ -59,39 +59,33 @@ export function CompareTable({
       ),
     },
     {
+      // Shekels lead here for the same reason they lead on the card: it is the
+      // number the traveller is comparing. The provider's own figure follows
+      // on its own row, so the table never disagrees with the card above it.
       key: "price",
-      compare: (row) =>
-        `${row.price.sourceCurrency}${row.price.sourceAmountMinor}`,
+      compare: (row) => String(row.price.amountMinor),
       render: (row) => (
-        <Ltr className="tnum font-head text-lg font-bold">
-          {formatPrice(
-            row.price.sourceAmountMinor,
-            row.price.sourceCurrency,
-            locale,
-          )}
-          <span className="ms-1 font-body text-sm font-normal text-ink-3">
-            {currencyConfig[row.price.sourceCurrency].label}
-          </span>
+        <Ltr className="tnum font-head text-xl font-bold">
+          {formatPrice(row.price.amountMinor, row.price.currency, locale)}
         </Ltr>
       ),
     },
     {
       key: "sourcePrice",
-      compare: (row) => String(row.price.amountMinor),
-      render: (row) =>
-        row.price.isConverted ? (
-          <Ltr className="tnum text-ink-2">
-            {interpolate(dict.plan.approxTemplate, {
-              price: formatPrice(
-                row.price.amountMinor,
-                row.price.currency,
-                locale,
-              ),
-            })}
-          </Ltr>
-        ) : (
-          "—"
-        ),
+      compare: (row) =>
+        `${row.price.sourceCurrency}${row.price.sourceAmountMinor}`,
+      render: (row) => (
+        <Ltr className="tnum font-head text-lg font-semibold">
+          {formatPrice(
+            row.price.sourceAmountMinor,
+            row.price.sourceCurrency,
+            locale,
+          )}
+          <span className="ms-1 font-body text-sm font-normal text-ink-2">
+            {currencyConfig[row.price.sourceCurrency].label}
+          </span>
+        </Ltr>
+      ),
     },
     {
       key: "data",
