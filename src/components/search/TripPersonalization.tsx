@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Ltr } from '@/components/ui/Bdi';
 import { cn } from '@/components/ui/cn';
 import type { Locale } from '@/i18n/config';
@@ -46,13 +46,18 @@ export function TripPersonalization({
 }) {
   const name = useId();
   const gbFieldId = useId();
+  const gbInput = useRef<HTMLInputElement>(null);
   const [gbDraft, setGbDraft] = useState(
     profile.requestedGb !== undefined ? String(profile.requestedGb) : '',
   );
 
-  const exactChosen = profile.requestedGb !== undefined;
+  // Selected as soon as the option is picked, whether or not a number has
+  // been typed yet — otherwise choosing it appears to do nothing.
+  const [exactPicked, setExactPicked] = useState(profile.requestedGb !== undefined);
+  const exactChosen = exactPicked || profile.requestedGb !== undefined;
 
   function chooseUsage(level: UsageLevel) {
+    setExactPicked(false);
     // Picking a usage clears a stated figure and the reverse, because the two
     // answer the same question and keeping both would leave the traveller
     // unable to tell which one the results came from.
@@ -63,6 +68,19 @@ export function TripPersonalization({
     setGbDraft(raw);
     const gb = parseRequestedGb(raw);
     onChange({ ...profile, usage: undefined, requestedGb: gb });
+  }
+
+  /**
+   * Choosing this option used to select the radio, silently fill in 20 and
+   * leave the field somewhere down the panel — so the answer on screen was a
+   * number nobody typed, and the question "where do I write it?" had no
+   * visible answer. Now the field is empty and focused, and the form asks for
+   * it by name if it is submitted blank.
+   */
+  function chooseExactOption() {
+    setExactPicked(true);
+    onChange({ ...profile, usage: undefined, requestedGb: parseRequestedGb(gbDraft) });
+    requestAnimationFrame(() => gbInput.current?.focus());
   }
 
   return (
@@ -130,7 +148,7 @@ export function TripPersonalization({
               name={name}
               value="exact"
               checked={exactChosen}
-              onChange={() => chooseExact(gbDraft || String(dict.personalization.exactPlaceholder))}
+              onChange={chooseExactOption}
               className="peer sr-only"
             />
             <Marker active={exactChosen} />
@@ -146,6 +164,7 @@ export function TripPersonalization({
                 </label>
                 <input
                   id={gbFieldId}
+                  ref={gbInput}
                   type="number"
                   min={1}
                   max={MAX_REQUESTED_GB}
@@ -153,8 +172,12 @@ export function TripPersonalization({
                   inputMode="numeric"
                   value={gbDraft}
                   placeholder={dict.personalization.exactPlaceholder}
+                  onFocus={() => setExactPicked(true)}
                   onChange={(event) => chooseExact(event.target.value)}
-                  className="tnum h-11 w-24 rounded-sm border border-line bg-surface px-2 text-center text-base text-ink"
+                  className={cn(
+                    'tnum h-12 w-28 rounded-sm border-2 bg-surface px-2 text-center font-head text-lg font-semibold text-ink',
+                    exactChosen ? 'border-brand' : 'border-line',
+                  )}
                 />
                 <span className="text-sm text-ink-2">GB</span>
               </span>

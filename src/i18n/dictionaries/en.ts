@@ -214,6 +214,11 @@ export const en: Dictionary = {
     defaultEstimate: 'A general estimate only — fill in the days and what you will use the internet for to get a real recommendation',
     change: 'Change',
     showAllTemplate: 'Show {count} more plans',
+    shortSectionTitle: 'Plans smaller than your expected usage',
+    shortSectionBody:
+      'These will run out before the trip ends on the usage you described, so they are not ranked against the plans above. They are here because people sometimes choose one anyway — for instance when they expect to be on Wi‑Fi most of the time.',
+    noneCoverNeed:
+      'No plan in our catalogue reaches the amount of data you described for this destination. Everything below will run out before the trip ends.',
     empty: 'No plans for this destination yet.',
   },
   plan: {

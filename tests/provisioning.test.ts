@@ -72,6 +72,16 @@ test('a limited plan is still shown to someone who asked for unlimited', () => {
   assert.ok(rows.some((row) => !row.plan.isUnlimited), 'limited plans disappeared');
 });
 
+test('a shortfall is ordered by how short it is, not by price', () => {
+  // A 3GB plan and a 10GB plan against a 28GB need both hit the old floor of
+  // 0.2, so price broke the tie and the 3GB plan ranked above the 10GB one.
+  const { rows } = japan('hotspot');
+  const short = rows.filter((row) => row.isBelowEstimatedNeed && !row.plan.isUnlimited);
+  const sizes = short.map((row) => row.plan.dataAmountMb);
+  assert.ok(sizes.length > 2, 'expected several short plans');
+  assert.equal(Math.max(...sizes), sizes[0], 'the largest short plan should come first');
+});
+
 test('the shortfall warning and the ranking use the same threshold', () => {
   // The page must not warn "below your expected usage" on a plan it is
   // simultaneously recommending.

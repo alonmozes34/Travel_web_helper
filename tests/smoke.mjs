@@ -160,7 +160,16 @@ const rowCount = await page.locator('article').count();
 ok('results render plan rows', rowCount > 0, `${rowCount} rows`);
 
 // Only a shortlist is rendered; the rest are one click away, not dropped.
-ok('the list opens as a shortlist', rowCount <= 5, `${rowCount} rows`);
+// Counted within the top group: plans that fall short of the trip are listed
+// separately below, under their own heading.
+const fitting = await page
+  .locator('section[aria-label="תוצאות ההשוואה"] > div > article')
+  .count();
+ok('the list opens as a shortlist', fitting <= 5 && fitting > 0, `${fitting} rows`);
+ok(
+  'plans that run out are separated, not mixed in',
+  (await page.locator('h3', { hasText: 'חבילות קטנות מהצריכה שלכם' }).count()) <= 1,
+);
 const showAll = page.getByRole('button', { name: /הצגת עוד/ });
 ok('the remaining plans are offered', (await showAll.count()) === 1);
 await showAll.click();

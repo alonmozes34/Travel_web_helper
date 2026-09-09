@@ -141,8 +141,17 @@ export function ResultsView({
   const [expandedList, setExpandedList] = useState<string | null>(null);
   const showAll = expandedList === listKey;
 
-  const shown = showAll ? visible : visible.slice(0, SHORTLIST_SIZE);
-  const hidden = visible.length - shown.length;
+  // Plans that cover the trip and plans that run out are not competing for
+  // the same purchase, so they are not ranked against each other in one list.
+  // Mixing them put a 3GB plan three rows under an unlimited one for a
+  // traveller tethering a laptop, which reads as a broken site rather than as
+  // a cheaper option.
+  const fits = visible.filter((row) => !row.isBelowEstimatedNeed);
+  const short = visible.filter((row) => row.isBelowEstimatedNeed);
+
+  const shown = showAll ? fits : fits.slice(0, SHORTLIST_SIZE);
+  const hidden = fits.length - shown.length;
+  const shortShown = showAll ? short : short.slice(0, SHORTLIST_SIZE);
 
   const selected = useMemo(
     () =>
@@ -315,20 +324,58 @@ export function ResultsView({
             </p>
           ) : (
             <>
-              <div className="grid gap-3 lg:block lg:gap-0 lg:overflow-hidden lg:rounded-lg lg:border lg:border-line lg:bg-surface">
-                {shown.map((row) => (
-                  <PlanListItem key={row.plan.id} {...planRowProps(row)} />
-                ))}
-              </div>
+              {fits.length === 0 ? (
+                <p className="mb-4 rounded-md border-s-4 border-s-warn-ink bg-warn-50 px-4 py-3 text-warn-ink">
+                  {dict.results.noneCoverNeed}
+                </p>
+              ) : (
+                <>
+                  <div className="grid gap-3 lg:block lg:gap-0 lg:overflow-hidden lg:rounded-lg lg:border lg:border-line lg:bg-surface">
+                    {shown.map((row) => (
+                      <PlanListItem key={row.plan.id} {...planRowProps(row)} />
+                    ))}
+                  </div>
 
-              {hidden > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setExpandedList(listKey)}
-                  className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-line bg-surface px-4 font-semibold text-brand hover:border-brand"
-                >
-                  {interpolate(dict.results.showAllTemplate, { count: hidden })}
-                </button>
+                  {hidden > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedList(listKey)}
+                      className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-line bg-surface px-4 font-semibold text-brand hover:border-brand"
+                    >
+                      {interpolate(dict.results.showAllTemplate, { count: hidden })}
+                    </button>
+                  ) : null}
+                </>
+              )}
+
+              {/* A separate heading rather than more rows: these plans run out
+                  before the trip does, so they are a different question, not a
+                  cheaper answer to the same one. */}
+              {short.length > 0 ? (
+                <section className="mt-8">
+                  <h3 className="font-head text-lg font-semibold text-ink">
+                    {dict.results.shortSectionTitle}
+                  </h3>
+                  <p className="mt-1 mb-3 max-w-[70ch] text-sm text-ink-2">
+                    {dict.results.shortSectionBody}
+                  </p>
+                  <div className="grid gap-3 lg:block lg:gap-0 lg:overflow-hidden lg:rounded-lg lg:border lg:border-line lg:bg-surface">
+                    {shortShown.map((row) => (
+                      <PlanListItem key={row.plan.id} {...planRowProps(row)} />
+                    ))}
+                  </div>
+                  {short.length > shortShown.length ? (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedList(listKey)}
+                      className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-line bg-surface px-4 font-semibold text-brand hover:border-brand"
+                    >
+                      {interpolate(dict.results.showAllTemplate, {
+                        count: short.length - shortShown.length,
+                      })}
+                    </button>
+                  ) : null}
+                </section>
               ) : null}
 
               <p className="mt-2 text-sm text-ink-3">

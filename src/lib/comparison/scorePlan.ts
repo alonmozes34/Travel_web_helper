@@ -40,8 +40,16 @@ export const SHORT_VALIDITY_FACTOR = 0.15;
  */
 export const PROVISION_TOLERANCE = 0.95;
 
-/** The floor a badly under-provisioned plan is discounted to. */
-export const MIN_PROVISION_FACTOR = 0.2;
+/**
+ * The floor a badly under-provisioned plan is discounted to.
+ *
+ * Low on purpose. At 0.2 the floor was reached by anything under about a
+ * third of the need, so a 3GB plan and a 10GB plan against a 28GB need scored
+ * the same on provisioning and price broke the tie — putting the 3GB plan
+ * above the 10GB one. A floor only exists to keep these plans on the page in
+ * a sensible order, not to make them comparable with each other.
+ */
+export const MIN_PROVISION_FACTOR = 0.02;
 
 /**
  * What a limited plan is worth to a traveller who asked for an unlimited one.

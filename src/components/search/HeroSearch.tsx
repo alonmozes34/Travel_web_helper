@@ -228,6 +228,16 @@ export function HeroSearch({
               setProfile(next);
             }}
           />
+
+          {/* The compact variant hides the search box, and the submit button
+              lived inside it — so on a destination page every answer given
+              here was silently discarded: the results are rendered on the
+              server from the URL, and nothing was updating the URL. */}
+          {showSearch ? null : (
+            <Button type="submit" className="mt-3 w-full sm:w-auto">
+              {dict.personalization.submit}
+            </Button>
+          )}
         </div>
       ) : null}
 
