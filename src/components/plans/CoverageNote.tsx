@@ -41,15 +41,29 @@ export function CoverageNote({
       </Badge>
       {coverage.publishedDestinationCount ? (
         <span className="text-[0.7rem] text-ink-3">
-          <Ltr className="tnum">
-            {interpolate(dict.search.coverageClaimTemplate, {
-              count: coverage.publishedDestinationCount,
-            })}
-          </Ltr>
-          {' · '}
-          <Ltr className="tnum">
-            {interpolate(dict.search.coverageVerifiedTemplate, { count: coverage.countries.length })}
-          </Ltr>
+          {coverage.publishedDestinationCount === coverage.countries.length ? (
+            // Nothing to reconcile: repeating the same number twice reads as
+            // a hedge rather than as the disclosure it is meant to be.
+            <Ltr className="tnum">
+              {interpolate(dict.search.coverageVerifiedAllTemplate, {
+                count: coverage.countries.length,
+              })}
+            </Ltr>
+          ) : (
+            <>
+              <Ltr className="tnum">
+                {interpolate(dict.search.coverageClaimTemplate, {
+                  count: coverage.publishedDestinationCount,
+                })}
+              </Ltr>
+              {' · '}
+              <Ltr className="tnum">
+                {interpolate(dict.search.coverageVerifiedTemplate, {
+                  count: coverage.countries.length,
+                })}
+              </Ltr>
+            </>
+          )}
         </span>
       ) : null}
     </div>

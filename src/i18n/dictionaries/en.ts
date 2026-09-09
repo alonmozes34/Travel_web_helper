@@ -59,6 +59,7 @@ export const en: Dictionary = {
     more: 'More',
     yes: 'Yes',
     no: 'No',
+    unknown: 'Unknown',
   },
   home: {
     heroTitle: 'The best-value eSIM for your trip',
@@ -88,6 +89,7 @@ export const en: Dictionary = {
     coverageGlobal: 'Global plan',
     coverageClaimTemplate: 'Provider states {count} destinations',
     coverageVerifiedTemplate: 'of which {count} we can verify',
+    coverageVerifiedAllTemplate: '{count} destinations, all verified',
     noFullCoverage:
       'No single plan covers all of your destinations. The combination below covers them together.',
     emptyTitle: 'Where are you going?',
@@ -186,6 +188,7 @@ export const en: Dictionary = {
     data: 'Data',
     validity: 'Validity',
     network: 'Network',
+    networkUnknown: 'The provider has not published the network for this destination',
     price: 'Price',
     view: 'View plan',
     details: 'Details',
@@ -321,18 +324,35 @@ export const en: Dictionary = {
         'Yes. We found {plans} eSIM plans for {country} from {providers} providers. Every plan listed is for this destination and runs on local networks.',
       networksQuestion: 'Which networks are available?',
       networksAnswerTemplate: 'The plans we compared run on {operators}. Each plan shows its own network on its row.',
+      networksUnknownAnswer:
+        'We do not have the network list for this destination. The plans on this page are regional or global, and their providers have not published which local network they use here. We would rather say we do not know than guess.',
       dataQuestion: 'How much data do you need?',
       dataAnswerTemplate:
         'For a {days}-day trip: about {light}GB for light use, {regular}GB for regular use and {heavy}GB for heavy use. This is an estimate based on average daily consumption, not a promise.',
       fiveGQuestion: 'Is 5G available?',
       fiveGAnswerTemplate: '{count} of {total} plans include 5G, on {operators}.',
       fiveGNoneAnswer: 'None of the plans we compared for this destination include 5G.',
+      fiveGUnknownAnswer:
+        'Unknown. Without the network list for this destination there is no way to tell which plans support 5G, and we will not guess.',
       hotspotQuestion: 'Can you use hotspot?',
       hotspotAnswerTemplate:
         '{count} of {total} plans allow tethering. Every row states explicitly whether a plan supports it.',
       hotspotNoneAnswer: 'None of the plans we compared for this destination allow tethering.',
+      worksAnswerBroadTemplate:
+        'Yes. No plan is sold for {country} alone, but we found {plans} regional and global plans from {providers} providers that list {country} among their destinations.',
     },
     backToSearch: 'Search another destination',
+    coverage: {
+      broadOnlyTitleTemplate: 'No plan is sold for {country} alone',
+      broadOnlyBody:
+        'The plans below are regional or global plans that list this destination. They work there exactly like a single-country plan, but they are sold for several countries at once — which usually makes them dearer for a trip to one.',
+      noneTitleTemplate: 'We have no plan for {country} yet',
+      noneBody:
+        'We found no plan at all — country, regional or global — that includes this destination. That does not mean no eSIM exists for {country}; it means ours does not list one.',
+      noneStatusTemplate:
+        'The current catalogue covers {covered} of the {total} destinations you can search here, and it is demo data. Once real providers are connected, coverage comes from their catalogues.',
+      noneAlternativesTitle: 'In the meantime, these destinations can be compared',
+    },
   },
   accessibility: {
     navLabel: 'Accessibility statement',

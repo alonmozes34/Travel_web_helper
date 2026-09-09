@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useCallback, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Sheet } from '@/components/ui/Sheet';
-import { FilterControls } from '@/components/filters/FilterControls';
-import { CompareTable } from '@/components/comparison/CompareTable';
-import { CompareTray, MAX_COMPARE } from '@/components/comparison/CompareTray';
-import { PlanListItem } from '@/components/plans/PlanListItem';
-import type { CurrencyCode, Locale } from '@/i18n/config';
-import type { Dictionary } from '@/i18n/getDictionary';
-import { interpolate } from '@/i18n/interpolate';
-import { track } from '@/lib/analytics/events';
-import type { ComparisonRow } from '@/lib/comparison/buildComparison';
+import { useCallback, useMemo, useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
+import { FilterControls } from "@/components/filters/FilterControls";
+import { CompareTable } from "@/components/comparison/CompareTable";
+import { CompareTray, MAX_COMPARE } from "@/components/comparison/CompareTray";
+import { PlanListItem } from "@/components/plans/PlanListItem";
+import type { CurrencyCode, Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/getDictionary";
+import { interpolate } from "@/i18n/interpolate";
+import { track } from "@/lib/analytics/events";
+import type { ComparisonRow } from "@/lib/comparison/buildComparison";
 import {
   applyFilters,
   countActiveFilters,
@@ -19,17 +19,17 @@ import {
   emptyFilters,
   filtersToParams,
   type PlanFilters,
-} from '@/lib/comparison/filter';
-import type { RecommendationKey } from '@/lib/comparison/recommend';
-import { sortRows, sortKeys, type SortKey } from '@/lib/comparison/sort';
-import { RecommendationTabs } from './RecommendationTabs';
+} from "@/lib/comparison/filter";
+import type { RecommendationKey } from "@/lib/comparison/recommend";
+import { sortRows, sortKeys, type SortKey } from "@/lib/comparison/sort";
+import { RecommendationTabs } from "./RecommendationTabs";
 
 /** Each category is an ordering preset; unlimited also narrows the list. */
 const tabSort: Record<RecommendationKey, SortKey> = {
-  bestValue: 'recommended',
-  cheapest: 'price',
-  bestForBrowsing: 'recommended',
-  bestUnlimited: 'recommended',
+  bestValue: "recommended",
+  cheapest: "price",
+  bestForBrowsing: "recommended",
+  bestUnlimited: "recommended",
 };
 
 export function ResultsView({
@@ -57,10 +57,13 @@ export function ResultsView({
   initialFilters: PlanFilters;
   initialSort: SortKey;
 }) {
-  const options = useMemo(() => deriveFilterOptions(rows), [rows]);
+  const options = useMemo(
+    () => deriveFilterOptions(rows, countryCodes),
+    [rows, countryCodes],
+  );
   const [filters, setFilters] = useState<PlanFilters>(initialFilters);
   const [sort, setSort] = useState<SortKey>(initialSort);
-  const [tab, setTab] = useState<RecommendationKey>('bestValue');
+  const [tab, setTab] = useState<RecommendationKey>("bestValue");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
@@ -73,13 +76,17 @@ export function ResultsView({
   const syncUrl = useCallback((next: PlanFilters, nextSort: SortKey) => {
     const params = filtersToParams(next);
     const existing = new URLSearchParams(window.location.search);
-    for (const key of ['days', 'usage']) {
+    for (const key of ["days", "usage"]) {
       const value = existing.get(key);
       if (value) params.set(key, value);
     }
-    if (nextSort !== 'recommended') params.set('sort', nextSort);
+    if (nextSort !== "recommended") params.set("sort", nextSort);
     const query = params.toString();
-    window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+    window.history.replaceState(
+      null,
+      "",
+      query ? `?${query}` : window.location.pathname,
+    );
   }, []);
 
   const updateFilters = useCallback(
@@ -94,28 +101,35 @@ export function ResultsView({
     (next: SortKey) => {
       setSort(next);
       syncUrl(filters, next);
-      track({ name: 'filter_used', filter: 'sort', value: next });
+      track({ name: "filter_used", filter: "sort", value: next });
     },
     [filters, syncUrl],
   );
 
   const visible = useMemo(() => {
-    const filtered = applyFilters(rows, filters);
-    const scoped = tab === 'bestUnlimited' ? filtered.filter((row) => row.plan.isUnlimited) : filtered;
+    const filtered = applyFilters(rows, filters, countryCodes);
+    const scoped =
+      tab === "bestUnlimited"
+        ? filtered.filter((row) => row.plan.isUnlimited)
+        : filtered;
 
-    if (tab === 'bestForBrowsing' && sort === 'recommended') {
+    if (tab === "bestForBrowsing" && sort === "recommended") {
       return [...scoped].sort((a, b) => b.browsingScore - a.browsingScore);
     }
-    if (tab === 'bestUnlimited' && sort === 'recommended') {
+    if (tab === "bestUnlimited" && sort === "recommended") {
       return [...scoped].sort(
-        (a, b) => (a.pricePerDayMinor ?? Infinity) - (b.pricePerDayMinor ?? Infinity),
+        (a, b) =>
+          (a.pricePerDayMinor ?? Infinity) - (b.pricePerDayMinor ?? Infinity),
       );
     }
     return sortRows(scoped, sort);
-  }, [rows, filters, sort, tab]);
+  }, [rows, filters, sort, tab, countryCodes]);
 
   const selected = useMemo(
-    () => selectedIds.map((id) => rows.find((row) => row.plan.id === id)).filter(Boolean) as ComparisonRow[],
+    () =>
+      selectedIds
+        .map((id) => rows.find((row) => row.plan.id === id))
+        .filter(Boolean) as ComparisonRow[],
     [selectedIds, rows],
   );
 
@@ -123,8 +137,9 @@ export function ResultsView({
     setSelectedIds((current) => {
       if (!isSelected) return current.filter((id) => id !== planId);
       if (current.includes(planId)) return current;
-      const next = current.length >= MAX_COMPARE ? current : [...current, planId];
-      track({ name: 'compare_selected', planId, selectionCount: next.length });
+      const next =
+        current.length >= MAX_COMPARE ? current : [...current, planId];
+      track({ name: "compare_selected", planId, selectionCount: next.length });
       return next;
     });
   }, []);
@@ -136,13 +151,25 @@ export function ResultsView({
    * traveller needs is left to a tooltip.
    */
   const conversion = useMemo(() => {
-    const converted = rows.filter((row) => row.price.isConverted && row.price.fxRate);
+    const converted = rows.filter(
+      (row) => row.price.isConverted && row.price.fxRate,
+    );
     if (converted.length === 0) return null;
     const pairs = [
-      ...new Set(converted.map((row) => `${row.price.sourceCurrency}→${row.price.currency} ${row.price.fxRate}`)),
+      ...new Set(
+        converted.map(
+          (row) =>
+            `${row.price.sourceCurrency}→${row.price.currency} ${row.price.fxRate}`,
+        ),
+      ),
     ].sort();
-    const dates = [...new Set(converted.map((row) => row.price.fxAsOf).filter(Boolean))];
-    return { rates: pairs.join(' · '), asOf: dates.length === 1 ? dates[0] : null };
+    const dates = [
+      ...new Set(converted.map((row) => row.price.fxAsOf).filter(Boolean)),
+    ];
+    return {
+      rates: pairs.join(" · "),
+      asOf: dates.length === 1 ? dates[0] : null,
+    };
   }, [rows]);
 
   const planRowProps = (row: ComparisonRow) => ({
@@ -187,7 +214,7 @@ export function ResultsView({
 
       {conversion ? (
         <p className="mb-4 rounded-sm border-s-[3px] border-s-line bg-surface-2 px-3 py-2 text-[0.8125rem] text-ink-2">
-          {dict.plan.conversionNote}{' '}
+          {dict.plan.conversionNote}{" "}
           {conversion.asOf ? (
             <span>
               {interpolate(dict.plan.conversionRateTemplate, {
@@ -199,14 +226,17 @@ export function ResultsView({
         </p>
       ) : null}
 
-      {tab === 'bestForBrowsing' ? (
+      {tab === "bestForBrowsing" ? (
         <p className="mb-4 rounded-sm bg-brand-50 px-3 py-2 text-[0.8125rem] text-ink-2">
           {dict.recommendations.browsingNote}
         </p>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
-        <aside className="hidden min-w-0 lg:block" aria-label={dict.filters.title}>
+        <aside
+          className="hidden min-w-0 lg:block"
+          aria-label={dict.filters.title}
+        >
           <div className="flex items-center justify-between pb-2">
             <h2 className="text-[0.7rem] font-semibold tracking-[0.09em] text-ink-3 uppercase">
               {dict.filters.title}
@@ -233,12 +263,18 @@ export function ResultsView({
 
         <section aria-label={dict.filters.resultsLabel} className="min-w-0">
           <p aria-live="polite" className="sr-only">
-            {interpolate(dict.filters.showResultsTemplate, { count: visible.length })}
+            {interpolate(dict.filters.showResultsTemplate, {
+              count: visible.length,
+            })}
           </p>
           <div className="mb-3 lg:hidden">
-            <Button variant="secondary" size="sm" onClick={() => setFiltersOpen(true)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setFiltersOpen(true)}
+            >
               {dict.filters.open}
-              {activeCount > 0 ? ` · ${activeCount}` : ''}
+              {activeCount > 0 ? ` · ${activeCount}` : ""}
             </Button>
           </div>
 
@@ -253,7 +289,9 @@ export function ResultsView({
                   <PlanListItem key={row.plan.id} {...planRowProps(row)} />
                 ))}
               </div>
-              <p className="mt-2 text-[0.8125rem] text-ink-3">{dict.plan.buyAtProvider}</p>
+              <p className="mt-2 text-[0.8125rem] text-ink-3">
+                {dict.plan.buyAtProvider}
+              </p>
             </>
           )}
         </section>
@@ -266,7 +304,9 @@ export function ResultsView({
         closeLabel={dict.common.close}
         footer={
           <Button className="w-full" onClick={() => setFiltersOpen(false)}>
-            {interpolate(dict.filters.showResultsTemplate, { count: visible.length })}
+            {interpolate(dict.filters.showResultsTemplate, {
+              count: visible.length,
+            })}
           </Button>
         }
       >
@@ -294,6 +334,7 @@ export function ResultsView({
         rows={selected}
         locale={locale}
         dict={dict}
+        countryCodes={countryCodes}
       />
     </div>
   );

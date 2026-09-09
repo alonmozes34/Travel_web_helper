@@ -236,6 +236,42 @@ for (let i = 0; i < 150 && !reachedCta; i += 1) {
 }
 ok('the first plan action is reachable by keyboard alone', reachedCta);
 
+// A destination the catalogue covers only through global plans.
+await page.goto(`${BASE}/esim/brazil`, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(800);
+{
+  const body = await page.locator('main, body').first().innerText();
+  ok('a country with no plan of its own says so', body.includes('אין חבילה שנמכרת לברזיל בלבד'));
+  ok('and still lists the global plans that cover it', (await page.locator('article').count()) > 0);
+  ok(
+    'an operator from another country is not shown',
+    !body.includes('AIS') && !body.includes('Cosmote'),
+  );
+  ok('the unknown network is stated, not guessed', body.includes('הספק לא פרסם את הרשת ביעד הזה'));
+  ok('no 5G claim is made without a network', !body.includes('ללא 5G'));
+}
+
+// A destination nothing in the catalogue covers.
+await page.goto(`${BASE}/esim/tonga`, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(800);
+{
+  const body = await page.locator('main, body').first().innerText();
+  ok('a destination with no coverage says so plainly', body.includes('עדיין אין לנו חבילה לטונגה'));
+  ok('and does not render an empty result list', (await page.locator('article').count()) === 0);
+  ok('and offers somewhere to go instead', (await page.locator('a[href*="/esim/"]').count()) > 0);
+}
+
+// Any country on the globe can be searched.
+await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(500);
+{
+  const input = page.locator('input[role="combobox"], input[type="search"], input[type="text"]').first();
+  await input.fill('מרוקו');
+  await page.waitForTimeout(400);
+  const suggestions = await page.locator('[role="option"], li').allInnerTexts();
+  ok('a country outside the original twenty is searchable', suggestions.some((t) => t.includes('מרוקו')));
+}
+
 // English locale still works.
 await page.goto(BASE + '/en', { waitUntil: 'networkidle' });
 ok('english is ltr', await page.getAttribute('html', 'dir') === 'ltr');

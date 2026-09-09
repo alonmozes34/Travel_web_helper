@@ -4,7 +4,7 @@ import type { NetworkTechnology } from '@/lib/types/network';
 import type { PlanCoverage } from '@/lib/types/coverage';
 import type { Plan } from '@/lib/types/plan';
 import { buildNetworks, buildRegionalNetworks } from './networks';
-import { getRegion } from './regions';
+import { mockCoverageList } from './mockCoverage';
 
 /**
  * MOCK PLAN DATA — NOT REAL OFFERS.
@@ -55,20 +55,26 @@ function toMinor(amount: number): number {
 }
 
 function coverageFor(seed: PlanSeed): PlanCoverage {
+  // The countries a plan covers and the number it advertises have to be the
+  // same set, or the site says "not covered" about a destination the plan
+  // sells. For a real provider both come from its API; for a demo plan the
+  // list is generated to match the claim.
   if (seed.global) {
+    const countries = mockCoverageList('global', seed.claimedDestinations ?? null);
     return {
       kind: 'global',
-      countries: getRegion('global')?.countries ?? [],
+      countries,
       regionId: 'global',
-      publishedDestinationCount: seed.claimedDestinations ?? null,
+      publishedDestinationCount: countries.length,
     };
   }
   if (seed.region) {
+    const countries = mockCoverageList(seed.region, seed.claimedDestinations ?? null);
     return {
       kind: 'region',
-      countries: getRegion(seed.region)?.countries ?? [],
+      countries,
       regionId: seed.region,
-      publishedDestinationCount: seed.claimedDestinations ?? null,
+      publishedDestinationCount: countries.length,
     };
   }
   return {

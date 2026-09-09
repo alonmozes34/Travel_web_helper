@@ -39,12 +39,13 @@ export function operatorNames(networks: Network[]): string[] {
 /**
  * The operators that matter for the destinations being searched.
  *
- * A regional plan may list operators in a dozen countries; showing all of them
- * tells a traveller going to Germany nothing. When no destination is given,
- * every operator is returned.
+ * A global plan lists operators in a hundred countries; showing all of them
+ * tells a traveller going to Brazil nothing, and showing the Thai one on a
+ * Brazilian page is worse than showing nothing. So when we know no operator
+ * in the destination, this returns nothing and the page says we do not know.
+ * When no destination is given, every operator is returned.
  */
 export function networksForDestinations(networks: Network[], countryCodes: string[]): Network[] {
   if (countryCodes.length === 0) return networks;
-  const relevant = networks.filter((network) => countryCodes.includes(network.countryCode));
-  return relevant.length ? relevant : networks;
+  return networks.filter((network) => countryCodes.includes(network.countryCode));
 }

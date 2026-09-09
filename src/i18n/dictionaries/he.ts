@@ -57,6 +57,7 @@ export const he = {
     more: 'עוד',
     yes: 'כן',
     no: 'לא',
+    unknown: 'לא ידוע',
   },
   home: {
     heroTitle: 'ה‑eSIM הכי משתלם לטיול שלך',
@@ -86,6 +87,7 @@ export const he = {
     coverageGlobal: 'חבילה גלובלית',
     coverageClaimTemplate: 'הספק מצהיר על {count} יעדים',
     coverageVerifiedTemplate: 'מתוכם {count} יעדים שאנחנו מאמתים',
+    coverageVerifiedAllTemplate: '{count} יעדים, כולם מאומתים',
     noFullCoverage:
       'אף חבילה בודדת לא מכסה את כל היעדים שבחרתם. הצירוף למטה מכסה אותם יחד.',
     emptyTitle: 'לאן טסים?',
@@ -194,6 +196,7 @@ export const he = {
     data: 'נפח',
     validity: 'תוקף',
     network: 'רשת',
+    networkUnknown: 'הספק לא פרסם את הרשת ביעד הזה',
     price: 'מחיר',
     view: 'צפייה בחבילה',
     details: 'פרטים',
@@ -329,18 +332,35 @@ export const he = {
         'כן. מצאנו {plans} חבילות eSIM ל{country} מ־{providers} ספקים. כל החבילות ברשימה מיועדות ליעד הזה, ופועלות על רשתות מקומיות.',
       networksQuestion: 'אילו רשתות זמינות?',
       networksAnswerTemplate: 'החבילות שהשווינו פועלות על {operators}. הרשת של כל חבילה מצוינת בשורה שלה.',
+      networksUnknownAnswer:
+        'אין לנו את רשימת הרשתות ביעד הזה. החבילות שבעמוד הן אזוריות או גלובליות, והספקים שלהן לא פרסמו איזו רשת מקומית הן משתמשות בה כאן. אנחנו מעדיפים לומר שאיננו יודעים על פני לנחש.',
       dataQuestion: 'כמה GB כדאי לטיול?',
       dataAnswerTemplate:
         'לטיול של {days} ימים: כ־{light}GB לשימוש קל, כ־{regular}GB לשימוש רגיל וכ־{heavy}GB לשימוש כבד. זו הערכה המבוססת על צריכה יומית ממוצעת, לא הבטחה.',
       fiveGQuestion: 'האם יש 5G?',
       fiveGAnswerTemplate: '{count} מתוך {total} חבילות כוללות 5G, על {operators}.',
       fiveGNoneAnswer: 'אף אחת מהחבילות שהשווינו ליעד הזה לא כוללת 5G.',
+      fiveGUnknownAnswer:
+        'לא ידוע. בלי רשימת הרשתות ביעד הזה אי אפשר לדעת אילו חבילות תומכות ב‑5G, ולא ננחש.',
       hotspotQuestion: 'האם אפשר להשתמש ב‑Hotspot?',
       hotspotAnswerTemplate:
         '{count} מתוך {total} חבילות מאפשרות שיתוף אינטרנט. בכל שורה מצוין במפורש אם החבילה תומכת ואם לא.',
       hotspotNoneAnswer: 'אף אחת מהחבילות שהשווינו ליעד הזה לא מאפשרת שיתוף אינטרנט.',
+      worksAnswerBroadTemplate:
+        'כן. אין חבילה שנמכרת ל{country} בלבד, אבל מצאנו {plans} חבילות אזוריות וגלובליות מ־{providers} ספקים ש{country} נמצאת ברשימת היעדים שלהן.',
     },
     backToSearch: 'חיפוש יעד אחר',
+    coverage: {
+      broadOnlyTitleTemplate: 'אין חבילה שנמכרת ל{country} בלבד',
+      broadOnlyBody:
+        'החבילות שלמטה הן חבילות אזוריות או גלובליות שהיעד הזה נמצא ברשימת היעדים שלהן. הן עובדות שם בדיוק כמו חבילת מדינה, רק שהן נמכרות לכמה מדינות יחד — ולכן לרוב יקרות יותר לטיול ליעד אחד.',
+      noneTitleTemplate: 'עדיין אין לנו חבילה ל{country}',
+      noneBody:
+        'לא מצאנו אף חבילה — לא של המדינה, לא אזורית ולא גלובלית — שכוללת את היעד הזה. זה לא אומר שאין eSIM ל{country}; זה אומר שהוא לא נמצא בקטלוג שלנו.',
+      noneStatusTemplate:
+        'הקטלוג הנוכחי מכסה {covered} יעדים מתוך {total} שאפשר לחפש כאן, והוא מבוסס על נתוני הדגמה בלבד. כשנתחבר לספקים אמיתיים הכיסוי יילקח מהקטלוג שלהם.',
+      noneAlternativesTitle: 'בינתיים אפשר להשוות ליעדים האלה',
+    },
   },
   accessibility: {
     navLabel: 'הצהרת נגישות',

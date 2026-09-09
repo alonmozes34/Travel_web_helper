@@ -1,28 +1,38 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { Container } from '@/components/ui/Container';
-import { HeroSearch } from '@/components/search/HeroSearch';
-import { AffiliateDisclosure } from '@/components/content/AffiliateDisclosure';
-import { MockDataNotice } from '@/components/content/MockDataNotice';
-import { countries, getCountryBySlug } from '@/data/countries';
-import { isLocale, localeConfig, localePath, locales } from '@/i18n/config';
-import { getDictionary } from '@/i18n/getDictionary';
-import { interpolate } from '@/i18n/interpolate';
-import { siteUrl } from '@/lib/site';
-import { tripProfileFromParams } from '@/lib/types/trip';
-import { buildComparison } from '@/lib/comparison/buildComparison';
-import { getDisplayCurrency } from '@/lib/currencyServer';
-import { ResultsView } from '@/components/results/ResultsView';
-import { CountryFacts } from '@/components/content/CountryFacts';
-import { Faq } from '@/components/content/Faq';
-import { buildCountryFacts } from '@/lib/comparison/countryFacts';
-import type { RecommendationKey } from '@/lib/comparison/recommend';
-import { filtersFromParams } from '@/lib/comparison/filter';
-import { isSortKey } from '@/lib/comparison/sort';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { Container } from "@/components/ui/Container";
+import { HeroSearch } from "@/components/search/HeroSearch";
+import { AffiliateDisclosure } from "@/components/content/AffiliateDisclosure";
+import { MockDataNotice } from "@/components/content/MockDataNotice";
+import { countries, getCountryBySlug } from "@/data/countries";
+import { isLocale, localeConfig, localePath, locales } from "@/i18n/config";
+import { getDictionary } from "@/i18n/getDictionary";
+import { interpolate } from "@/i18n/interpolate";
+import { siteUrl } from "@/lib/site";
+import { tripProfileFromParams } from "@/lib/types/trip";
+import { buildComparison } from "@/lib/comparison/buildComparison";
+import { getDisplayCurrency } from "@/lib/currencyServer";
+import { ResultsView } from "@/components/results/ResultsView";
+import { CountryFacts } from "@/components/content/CountryFacts";
+import { CoverageNotice } from "@/components/content/CoverageNotice";
+import { Faq } from "@/components/content/Faq";
+import { buildCountryFacts } from "@/lib/comparison/countryFacts";
+import type { RecommendationKey } from "@/lib/comparison/recommend";
+import { filtersFromParams } from "@/lib/comparison/filter";
+import { isCountryCovered } from "@/lib/comparison/catalogueCoverage";
+import { isSortKey } from "@/lib/comparison/sort";
 
+/**
+ * Every country on the globe has a page, but only the ones the catalogue can
+ * answer for are worth pre-rendering. The rest render on demand — they are
+ * rare, and their page is mostly a short "we have nothing here yet".
+ */
 export function generateStaticParams() {
+  const worthPrerendering = countries.filter(
+    (country) => country.popular || isCountryCovered(country.code),
+  );
   return locales.flatMap((locale) =>
-    countries.map((country) => ({ locale, country: country.slug })),
+    worthPrerendering.map((country) => ({ locale, country: country.slug })),
   );
 }
 
@@ -43,18 +53,26 @@ export async function generateMetadata({
 
   return {
     title: interpolate(dict.country.seoTitleTemplate, { country: name }),
-    description: interpolate(dict.country.metaDescriptionTemplate, { country: name }),
+    description: interpolate(dict.country.metaDescriptionTemplate, {
+      country: name,
+    }),
     metadataBase: new URL(siteUrl),
     alternates: {
       canonical: localePath(locale, path),
       languages: Object.fromEntries(
-        locales.map((code) => [localeConfig[code].htmlLang, localePath(code, path)]),
+        locales.map((code) => [
+          localeConfig[code].htmlLang,
+          localePath(code, path),
+        ]),
       ),
     },
   };
 }
 
-export default async function CountryPage({ params, searchParams }: PageProps<'/[locale]/esim/[country]'>) {
+export default async function CountryPage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/esim/[country]">) {
   const { locale, country: slug } = await params;
   if (!isLocale(locale)) notFound();
 
@@ -69,12 +87,13 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
   // renders correctly before any JavaScript runs.
   const queryParams = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (typeof value === 'string') queryParams.set(key, value);
+    if (typeof value === "string") queryParams.set(key, value);
     else if (Array.isArray(value) && value[0]) queryParams.set(key, value[0]);
   }
   const initialFilters = filtersFromParams(queryParams);
-  const sortParam = queryParams.get('sort');
-  const initialSort = sortParam && isSortKey(sortParam) ? sortParam : 'recommended';
+  const sortParam = queryParams.get("sort");
+  const initialSort =
+    sortParam && isSortKey(sortParam) ? sortParam : "recommended";
   const name = country.names[locale];
 
   // The traveller's chosen currency comes from the cookie, so prices render in
@@ -91,6 +110,20 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
     currency: await getDisplayCurrency(locale),
   });
   const { estimate } = comparison;
+
+  // Three states, and the page must not look the same in all of them: plans
+  // sold for this country, only regional or global plans that include it, or
+  // nothing at all.
+  const hasCountryPlan = comparison.rows.some(
+    (row) => row.plan.coverage.kind === "country",
+  );
+  const coverageKind =
+    comparison.rows.length === 0
+      ? "none"
+      : hasCountryPlan
+        ? "full"
+        : "broad-only";
+
   const facts = buildCountryFacts({
     comparison,
     countryName: name,
@@ -126,45 +159,60 @@ export default async function CountryPage({ params, searchParams }: PageProps<'/
       <Container className="py-10">
         <MockDataNotice dict={dict} className="max-w-[80ch]" />
 
-        <p className="mt-6 text-[0.9375rem] text-ink-2">
-          <strong className="font-semibold text-ink">
-            {interpolate(dict.results.summaryTemplate, {
-              plans: comparison.planCount,
-              providers: comparison.providerCount,
-            })}
-          </strong>
-        </p>
-        <p className="mt-1 mb-6 text-[0.8125rem] text-ink-2">
-          {estimate.isDefault ? (
-            dict.results.defaultEstimate
-          ) : (
-            <span className="font-semibold text-brand">
-              {interpolate(dict.results.tailoredTemplate, {
-                days: estimate.days,
-                usage: dict.personalization.usages[estimate.usage],
-                gb: Math.round(estimate.requiredGb),
-              })}
-            </span>
-          )}
-        </p>
+        {coverageKind !== "full" && (
+          <CoverageNotice
+            kind={coverageKind}
+            countryName={name}
+            locale={locale}
+            dict={dict}
+          />
+        )}
 
-        <ResultsView
-          rows={comparison.rows}
-          locale={locale}
-          dict={dict}
-          currency={comparison.currency}
-          tripDays={estimate.days}
-          countryCodes={comparison.countryCodes}
-          demoDataEnabled={comparison.isMockData}
-          availableRecommendations={Object.keys(comparison.recommendations) as RecommendationKey[]}
-          initialFilters={initialFilters}
-          initialSort={initialSort}
-        />
+        {coverageKind !== "none" && (
+          <>
+            <p className="mt-6 text-[0.9375rem] text-ink-2">
+              <strong className="font-semibold text-ink">
+                {interpolate(dict.results.summaryTemplate, {
+                  plans: comparison.planCount,
+                  providers: comparison.providerCount,
+                })}
+              </strong>
+            </p>
+            <p className="mt-1 mb-6 text-[0.8125rem] text-ink-2">
+              {estimate.isDefault ? (
+                dict.results.defaultEstimate
+              ) : (
+                <span className="font-semibold text-brand">
+                  {interpolate(dict.results.tailoredTemplate, {
+                    days: estimate.days,
+                    usage: dict.personalization.usages[estimate.usage],
+                    gb: Math.round(estimate.requiredGb),
+                  })}
+                </span>
+              )}
+            </p>
+
+            <ResultsView
+              rows={comparison.rows}
+              locale={locale}
+              dict={dict}
+              currency={comparison.currency}
+              tripDays={estimate.days}
+              countryCodes={comparison.countryCodes}
+              demoDataEnabled={comparison.isMockData}
+              availableRecommendations={
+                Object.keys(comparison.recommendations) as RecommendationKey[]
+              }
+              initialFilters={initialFilters}
+              initialSort={initialSort}
+            />
+          </>
+        )}
 
         <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
       </Container>
 
-      <CountryFacts facts={facts} dict={dict} />
+      {coverageKind !== "none" && <CountryFacts facts={facts} dict={dict} />}
       <Faq dict={dict} structuredData={false} />
     </>
   );

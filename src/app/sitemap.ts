@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { countries } from '@/data/countries';
+import { isCountryCovered } from '@/lib/comparison/catalogueCoverage';
 import { localeConfig, localePath, locales } from '@/i18n/config';
 import { siteUrl } from '@/lib/site';
 
@@ -12,7 +13,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     '/',
     '/accessibility',
-    ...countries.map((country) => `/esim/${country.slug}`),
+    // A destination page with no plans behind it still exists and answers
+    // honestly, but it is not worth asking a search engine to index.
+    ...countries
+      .filter((country) => isCountryCovered(country.code))
+      .map((country) => `/esim/${country.slug}`),
   ];
 
   return paths.flatMap((path) =>

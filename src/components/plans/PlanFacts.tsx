@@ -1,26 +1,26 @@
-import { Ltr } from '@/components/ui/Bdi';
-import { cn } from '@/components/ui/cn';
-import type { Locale } from '@/i18n/config';
-import type { Dictionary } from '@/i18n/getDictionary';
-import { interpolate } from '@/i18n/interpolate';
-import type { ComparisonRow } from '@/lib/comparison/buildComparison';
-import { MB_PER_GB } from '@/lib/formatters/data';
-import { formatData } from '@/lib/formatters/data';
-import { formatPrice } from '@/lib/formatters/price';
-import { hasTechnology, networksForDestinations } from '@/lib/types/network';
+import { Ltr } from "@/components/ui/Bdi";
+import { cn } from "@/components/ui/cn";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/getDictionary";
+import { interpolate } from "@/i18n/interpolate";
+import type { ComparisonRow } from "@/lib/comparison/buildComparison";
+import { MB_PER_GB } from "@/lib/formatters/data";
+import { formatData } from "@/lib/formatters/data";
+import { formatPrice } from "@/lib/formatters/price";
+import { hasTechnology, networksForDestinations } from "@/lib/types/network";
 
 /** One labelled fact: a small caption, a prominent value, a quiet sub-line. */
 export function Fact({
   label,
   value,
   sub,
-  subTone = 'muted',
+  subTone = "muted",
   className,
 }: {
   label: string;
   value: React.ReactNode;
   sub?: React.ReactNode;
-  subTone?: 'muted' | 'warn';
+  subTone?: "muted" | "warn";
   className?: string;
 }) {
   return (
@@ -28,12 +28,14 @@ export function Fact({
       <span className="block text-[0.7rem] font-semibold tracking-[0.08em] text-ink-3 uppercase">
         {label}
       </span>
-      <span className="block font-head text-lg font-semibold tracking-tight">{value}</span>
+      <span className="block font-head text-lg font-semibold tracking-tight">
+        {value}
+      </span>
       {sub ? (
         <span
           className={cn(
-            'mt-0.5 block text-[0.8125rem]',
-            subTone === 'warn' ? 'text-warn-ink' : 'text-ink-3',
+            "mt-0.5 block text-[0.8125rem]",
+            subTone === "warn" ? "text-warn-ink" : "text-ink-3",
           )}
         >
           {sub}
@@ -73,7 +75,11 @@ export function DataFact({
           // same "≈" as any other converted amount.
           price: row.price.isConverted
             ? interpolate(dict.plan.approxTemplate, {
-                price: formatPrice(row.pricePerGbMinor, row.price.currency, locale),
+                price: formatPrice(
+                  row.pricePerGbMinor,
+                  row.price.currency,
+                  locale,
+                ),
               })
             : formatPrice(row.pricePerGbMinor, row.price.currency, locale),
         })
@@ -116,7 +122,7 @@ export function ValidityFact({
           ? interpolate(dict.plan.coversTripTemplate, { days: tripDays })
           : dict.plan.shortValidity
       }
-      subTone={row.coversTrip ? 'muted' : 'warn'}
+      subTone={row.coversTrip ? "muted" : "warn"}
     />
   );
 }
@@ -138,12 +144,19 @@ export function NetworkFact({
 }) {
   const { plan } = row;
   const networks = networksForDestinations(plan.networks, countryCodes);
-  const operators = networks.map((network) => network.operator).join(' + ');
-  const fiveG = hasTechnology(networks, '5G');
+  const operators = networks.map((network) => network.operator).join(" + ");
+  const fiveG = hasTechnology(networks, "5G");
 
   const tags: Array<{ label: string; on: boolean }> = [
-    { label: fiveG ? '5G' : dict.plan.no5g, on: fiveG },
-    { label: plan.hotspot ? dict.plan.hotspot : dict.plan.noHotspot, on: plan.hotspot },
+    // With no network published for this destination we do not know whether
+    // there is 5G there, and "no 5G" would be a claim rather than a fact.
+    ...(networks.length > 0
+      ? [{ label: fiveG ? "5G" : dict.plan.no5g, on: fiveG }]
+      : []),
+    {
+      label: plan.hotspot ? dict.plan.hotspot : dict.plan.noHotspot,
+      on: plan.hotspot,
+    },
     { label: plan.calls ? dict.plan.calls : dict.plan.noCalls, on: plan.calls },
   ];
 
@@ -152,14 +165,21 @@ export function NetworkFact({
       <span className="block text-[0.7rem] font-semibold tracking-[0.08em] text-ink-3 uppercase">
         {dict.plan.network}
       </span>
-      <span className="block font-head font-semibold">{operators || '—'}</span>
+      <span
+        className={cn(
+          "block font-head",
+          operators ? "font-semibold" : "text-[0.8125rem] text-ink-3",
+        )}
+      >
+        {operators || dict.plan.networkUnknown}
+      </span>
       <div className="mt-1.5 flex flex-wrap gap-1">
         {tags.map((tag) => (
           <span
             key={tag.label}
             className={cn(
-              'rounded-xs border border-line bg-surface px-1.5 py-0.5 text-[0.7rem]',
-              tag.on ? 'text-ink-2' : 'text-ink-3',
+              "rounded-xs border border-line bg-surface px-1.5 py-0.5 text-[0.7rem]",
+              tag.on ? "text-ink-2" : "text-ink-3",
             )}
           >
             {tag.label}
@@ -171,7 +191,13 @@ export function NetworkFact({
 }
 
 /** Fair-usage disclosure for unlimited plans — visible, with the detail one click away. */
-export function FairUsageNote({ row, dict }: { row: ComparisonRow; dict: Dictionary }) {
+export function FairUsageNote({
+  row,
+  dict,
+}: {
+  row: ComparisonRow;
+  dict: Dictionary;
+}) {
   const fup = row.plan.fairUsage;
   if (!row.plan.isUnlimited || !fup?.dailyThresholdMb) return null;
 
@@ -183,7 +209,7 @@ export function FairUsageNote({ row, dict }: { row: ComparisonRow; dict: Diction
       <p className="mt-1 max-w-[46ch]">
         {interpolate(dict.plan.fairUsageDetailTemplate, {
           gb: Math.round(fup.dailyThresholdMb / MB_PER_GB),
-          kbps: fup.throttledToKbps ?? '—',
+          kbps: fup.throttledToKbps ?? "—",
         })}
       </p>
     </details>
