@@ -95,6 +95,11 @@ export const en: Dictionary = {
     emptyTitle: 'Where are you going?',
     emptyBody:
       'Pick one destination or more to compare plans. Several stops can share one trip — we look for a single plan covering them all and for a cheaper combination.',
+    uncoveredTitleTemplate: 'We have no plan at all for {destinations}',
+    uncoveredBodyPartial:
+      'Because of that destination there is no single plan covering the whole trip, and no combination either. Remove it from the search to see what exists for the rest.',
+    uncoveredBodyAll:
+      'We found no plan at all — country, regional or global — that includes the destinations you chose. That does not mean no eSIM exists there; it means ours does not list one.',
     daysHint: 'How many days at each stop? Without it we assume a week each.',
     assumedDaysTemplate: 'We assumed {days} days per stop. Set the days to sharpen it.',
     chooseFirst: 'Pick a destination to compare plans',

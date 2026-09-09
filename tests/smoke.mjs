@@ -261,6 +261,15 @@ await page.waitForTimeout(800);
   ok('and offers somewhere to go instead', (await page.locator('a[href*="/esim/"]').count()) > 0);
 }
 
+// A multi-stop trip through a destination nothing covers names that stop.
+await page.goto(`${BASE}/search?to=BR:5,TO:3&usage=regular`, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(800);
+{
+  const body = await page.locator('main, body').first().innerText();
+  ok('the uncovered stop is named, not counted as zero', body.includes('אין לנו אף חבילה לטונגה'));
+  ok('and zero results are not reported as a finding', !body.includes('מצאנו 0 חבילות'));
+}
+
 // Any country on the globe can be searched.
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(500);
