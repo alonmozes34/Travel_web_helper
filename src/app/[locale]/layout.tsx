@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Assistant, Rubik } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '../globals.css';
@@ -7,7 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { CurrencyProvider } from '@/components/providers/CurrencyProvider';
 import { isLocale, localeConfig, localePath, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/getDictionary';
-import { allowIndexing, siteUrl } from '@/lib/site';
+import { allowIndexing, shareImagePath, shareImageSize, siteUrl } from '@/lib/site';
 
 // Rubik carries headings, numbers and buttons; Assistant carries body text.
 // Both ship a real Hebrew design rather than a Latin face with Hebrew bolted on.
@@ -22,6 +22,17 @@ const assistant = Assistant({
   variable: '--font-assistant',
   display: 'swap',
 });
+
+/**
+ * The browser chrome takes the brand blue on mobile. `color-scheme: light` is
+ * stated rather than assumed: V1 paints one palette explicitly, and without
+ * this a device in dark mode inverts form controls and scrollbars against a
+ * page that is not going to follow them.
+ */
+export const viewport: Viewport = {
+  themeColor: '#0b6bd3',
+  colorScheme: 'light',
+};
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -55,6 +66,14 @@ export async function generateMetadata({
       locale: localeConfig[locale].intlLocale.replace('-', '_'),
       title: `${dict.meta.siteName} | ${dict.meta.tagline}`,
       description: dict.meta.defaultDescription,
+      images: [{ ...shareImageSize, url: shareImagePath(locale), alt: dict.meta.shareImageAlt }],
+    },
+    // A 1200x630 card, so the platforms that offer a large preview take it.
+    twitter: {
+      card: 'summary_large_image',
+      title: `${dict.meta.siteName} | ${dict.meta.tagline}`,
+      description: dict.meta.defaultDescription,
+      images: [{ ...shareImageSize, url: shareImagePath(locale), alt: dict.meta.shareImageAlt }],
     },
     // Mock prices must never reach a search result.
     robots: allowIndexing ? undefined : { index: false, follow: false },

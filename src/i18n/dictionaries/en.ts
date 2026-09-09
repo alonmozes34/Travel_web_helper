@@ -10,6 +10,7 @@ export const en: Dictionary = {
     tagline: 'Compare travel eSIM plans',
     defaultDescription:
       'Compare travel eSIM plans by destination, price, data, validity and network — and pick the one that fits your trip.',
+    shareImageAlt: 'Yesh Klita — compare travel eSIM plans. Compare here, buy directly from the provider.',
   },
   brand: {
     // The Hebrew brand is "יש קליטה?"; English keeps the transliteration

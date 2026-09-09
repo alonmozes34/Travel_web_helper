@@ -370,6 +370,31 @@ await page.waitForTimeout(500);
   ok('a country outside the original twenty is searchable', suggestions.some((t) => t.includes('מרוקו')));
 }
 
+// The brand assets exist AND are referenced. A share card that is generated,
+// committed and served but linked from nothing is the failure mode here: it
+// looks fine in the repo and shows a blank preview in WhatsApp.
+{
+  const problems = [];
+  for (const [path, expected] of [['/', 'share-he.png'], ['/en', 'share-en.png'], ['/esim/thailand', 'share-he.png']]) {
+    await page.goto(BASE + path, { waitUntil: 'domcontentloaded' });
+    const image = await page.getAttribute('meta[property="og:image"]', 'content');
+    if (!image) { problems.push(`${path}: no og:image`); continue; }
+    if (!image.endsWith(expected)) problems.push(`${path}: og:image is ${image}, expected ${expected}`);
+    // Fetched from the page's own origin — the metadata carries the canonical
+    // production URL, which is not what is running here.
+    const response = await page.request.get(new URL(new URL(image).pathname, BASE).href);
+    if (!response.ok()) problems.push(`${path}: ${image} -> ${response.status()}`);
+  }
+  for (const asset of ['/favicon.ico', '/icon.svg', '/apple-icon.png', '/manifest.webmanifest']) {
+    const response = await page.request.get(BASE + asset);
+    if (!response.ok()) problems.push(`${asset} -> ${response.status()}`);
+  }
+  ok('brand assets are served and referenced', problems.length === 0, problems.join(' | '));
+
+  const manifest = await (await page.request.get(BASE + '/manifest.webmanifest')).json();
+  ok('the manifest carries the brand', manifest.short_name === 'יש קליטה?' && manifest.dir === 'rtl', `${manifest.short_name} · ${manifest.dir}`);
+}
+
 // No user-facing trace of the working name the prototype was built under.
 // A rebrand that leaves the old name in a footer or a meta tag is a rebrand
 // that was never finished.

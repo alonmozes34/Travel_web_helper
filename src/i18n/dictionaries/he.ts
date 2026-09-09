@@ -8,6 +8,8 @@ export const he = {
     tagline: 'השוואת חבילות eSIM לחו״ל',
     defaultDescription:
       'משווים חבילות eSIM לחו״ל לפי יעד, מחיר, נפח גלישה, תוקף ורשת — ובוחרים את החבילה שמתאימה לטיול.',
+    // Read aloud when the share card cannot be loaded or seen.
+    shareImageAlt: 'יש קליטה? — השוואת חבילות eSIM לחו״ל. משווים אצלנו, רוכשים ישירות מהספק.',
   },
   brand: {
     // The visible wordmark, question mark included: it is the brand.

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="יש קליטה?">
+  <!--
+    The brand mark: a signal-strength climb. It is the literal picture of the
+    name, which is why it survived the rebrand unchanged.
+
+    The tab version is a filled tile rather than the header's bare bars: at
+    16px, thin grey strokes on a white tab strip disappear. The bars keep the
+    header's proportions, so the two read as the same mark at two sizes.
+  -->
+  <rect width="512" height="512" rx="112" fill="#0b6bd3" />
+  <g fill="#ffffff">
+    <rect x="93"  y="288" width="62" height="96"  rx="20" opacity="0.45" />
+    <rect x="181" y="226" width="62" height="158" rx="20" opacity="0.62" />
+    <rect x="269" y="164" width="62" height="220" rx="20" opacity="0.80" />
+    <rect x="357" y="102" width="62" height="282" rx="20" />
+  </g>
+</svg>

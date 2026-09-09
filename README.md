@@ -13,6 +13,30 @@ supplied through `NEXT_PUBLIC_SITE_URL` rather than hard-coded anywhere.
 We compare. The traveller buys from the provider — this site never sells or
 issues an eSIM, and the copy says so on every page that shows a price.
 
+## Brand assets
+
+`src/app/icon.svg` is the mark — a signal-strength climb, which is the literal
+picture of the name. Everything else is derived from it and from the
+dictionaries by `npm run generate:brand`, which needs the built site running
+because the share cards are drawn inside a page of it, in the same Rubik and
+Assistant that `next/font` self-hosts:
+
+```
+npm run build && npm run start &
+BASE_URL=http://localhost:3000 npm run generate:brand
+```
+
+It writes `src/app/favicon.ico` (16/32/48), `src/app/apple-icon.png`,
+`public/icon-192.png`, `public/icon-512.png` and one 1200x630 share card per
+locale (`public/share-he.png`, `public/share-en.png`). The output is committed
+so a deploy never depends on a browser being available at build time.
+
+The share cards are referenced explicitly from `generateMetadata` rather than
+through Next's `opengraph-image` file convention: the locale layout declares
+its own `openGraph` block, and a segment that does so replaces the images it
+would otherwise inherit. `npm run test:e2e` fails if a page stops carrying an
+`og:image`, or if any brand asset stops being served.
+
 > **All plan data in this repository is mock data.** Nothing here is a real
 > offer from any provider. See [Mock data](#mock-data).
 
@@ -28,6 +52,9 @@ npm run lint      # eslint
 npm run test:unit # unit tests for pricing, estimation and scoring
 npm run test:e2e  # smoke test the core path against a running server
 npm run test:a11y # axe-core audit plus reflow, zoom, keyboard and target-size checks
+
+npm run generate:countries # regenerate the country list from CLDR
+npm run generate:brand     # regenerate favicon, app icons and share cards
 ```
 
 `test:e2e` drives a real browser through destination → results. Point it at a
