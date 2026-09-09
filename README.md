@@ -13,6 +13,32 @@ supplied through `NEXT_PUBLIC_SITE_URL` rather than hard-coded anywhere.
 We compare. The traveller buys from the provider — this site never sells or
 issues an eSIM, and the copy says so on every page that shows a price.
 
+## The preview gate
+
+Every price in `src/data/mockPlans.ts` is invented, and each one is attached to
+a **real, named company** — Airalo, Nomad, Saily, Ubigi and four others. A
+public page stating what Airalo charges, when the number was made up, is a
+misstatement about somebody else's commercial terms. A warning banner does not
+cure that, and `noindex` does not make a page private.
+
+So while the catalogue is mock, the site is reachable only with a shared
+password, checked in `src/proxy.ts` before any routing. That is enough to show
+a working product to a partner programme without publishing fabricated offers.
+
+| Environment | Behaviour |
+| --- | --- |
+| `next dev` | open — not reachable from the internet |
+| production, `SITE_PASSWORD` set | HTTP Basic; any username, that password |
+| production, `ALLOW_UNPROTECTED_MOCK=true` | open — for local runs and the test suites |
+| production, neither set | **503 on every page** |
+
+The last row is the point: forgetting to set the password on a deploy must not
+silently publish the site, so the gate is default closed. Only pages are gated
+— the matcher lets anything with a file extension past, so the brand assets,
+`robots.txt` and the sitemap stay reachable. None of them carries a price.
+
+Remove the gate when the catalogue carries real provider data, not before.
+
 ## Brand assets
 
 `src/app/icon.svg` is the mark — a signal-strength climb, which is the literal
@@ -61,9 +87,12 @@ npm run generate:brand     # regenerate favicon, app icons and share cards
 server you have already started:
 
 ```bash
-npm run build && npm run start &
+npm run build && ALLOW_UNPROTECTED_MOCK=true npm run start &
 BASE_URL=http://localhost:3000 npm run test:e2e
 ```
+
+`ALLOW_UNPROTECTED_MOCK=true` is needed because a production-mode server is
+password-gated by default — see [The preview gate](#the-preview-gate).
 
 ## Locale routing
 
