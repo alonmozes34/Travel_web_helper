@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Throwaway measurement scripts used while auditing the UI.
+*.tmp.mjs
+*.tmp.ts
