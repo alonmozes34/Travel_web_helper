@@ -6,6 +6,7 @@ import {
   isAccessibilityStatementComplete,
   missingAccessibilityFields,
 } from '@/data/accessibility';
+import { allowIndexing } from '@/lib/site';
 
 /**
  * An accessibility statement is a legal document. Publishing one with
@@ -39,12 +40,28 @@ describe('accessibility statement', () => {
   /**
    * The guardrail that matters: the site must not be opened to search engines
    * while its accessibility statement is still a skeleton.
+   *
+   * Asserted against the value the application actually serves, not against
+   * the environment variable. The earlier version of this test only ran when
+   * NEXT_PUBLIC_ALLOW_INDEXING happened to be set in the shell — which is
+   * never true on the host where it is really set, and `next build` does not
+   * run tests anyway. The gate now lives in `src/lib/site.ts`; this holds it
+   * there.
    */
-  test('indexing is not enabled while the statement is incomplete', () => {
-    if (process.env.NEXT_PUBLIC_ALLOW_INDEXING !== 'true') return;
-    assert.ok(
-      isAccessibilityStatementComplete(),
+  test('indexing is refused while the statement is incomplete', () => {
+    if (isAccessibilityStatementComplete()) return;
+    assert.equal(
+      allowIndexing,
+      false,
       `indexing is on but these fields are still empty: ${missingAccessibilityFields().join(', ')}`,
     );
+  });
+
+  test('a complete statement is what releases the gate', () => {
+    // Guards the other direction: once the statement is filled in, indexing
+    // must follow the environment variable and nothing else — so that a
+    // finished statement cannot be silently ignored either.
+    if (!isAccessibilityStatementComplete()) return;
+    assert.equal(allowIndexing, process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true');
   });
 });

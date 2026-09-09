@@ -186,11 +186,21 @@ it comes from `src/data/accessibility.ts`, where **all fields are currently
 
 While anything is missing the page carries a "draft — not yet complete" notice
 and marks each empty field, rather than reading like a finished legal document
-with invented details. Two tests hold that line: one fails if any field looks
-like a placeholder (`example`, `123456`, `ישראל ישראלי`), and one fails the
-build's test run if `NEXT_PUBLIC_ALLOW_INDEXING=true` while the statement is
-still incomplete — the site cannot be opened to search engines with a skeleton
-statement.
+with invented details.
+
+**Indexing is gated on this at runtime.** `allowIndexing` in `src/lib/site.ts`
+requires both `NEXT_PUBLIC_ALLOW_INDEXING=true` *and* a complete statement, so
+`robots.txt` keeps disallowing and every page keeps its `noindex` until the
+table above is filled in. A build that asked to be indexed and was refused
+says so on stdout, naming the missing fields. This used to be a unit test
+alone, which never runs on the host where that variable is actually set —
+`next build` does not run tests — so the guard existed everywhere except where
+the risk was.
+
+Tests hold both halves: one fails if any field looks like a placeholder
+(`example`, `123456`, `ישראל ישראלי`), one fails if indexing is ever on while
+the statement is incomplete, and one fails if a *complete* statement stops
+releasing the gate.
 
 **Automated rules find a minority of real barriers.** Nothing here has been
 tested with an actual screen reader, and the site has not been reviewed by a
