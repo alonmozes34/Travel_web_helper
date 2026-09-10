@@ -6,7 +6,7 @@ import {
   isAccessibilityStatementComplete,
   missingAccessibilityFields,
 } from '@/data/accessibility';
-import { allowIndexing } from '@/lib/site';
+import { allowIndexing, resolveSiteUrl } from '@/lib/site';
 
 /**
  * An accessibility statement is a legal document. Publishing one with
@@ -63,5 +63,37 @@ describe('accessibility statement', () => {
     // finished statement cannot be silently ignored either.
     if (!isAccessibilityStatementComplete()) return;
     assert.equal(allowIndexing, process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true');
+  });
+});
+
+describe('canonical origin', () => {
+  test('an explicitly configured URL wins', () => {
+    assert.equal(
+      resolveSiteUrl({
+        NEXT_PUBLIC_SITE_URL: 'https://yeshklita.co.il',
+        VERCEL_PROJECT_PRODUCTION_URL: 'travel-web-helper.vercel.app',
+      }),
+      'https://yeshklita.co.il',
+    );
+  });
+
+  test("the host's production domain is used when none is configured", () => {
+    // So a first deploy needs no URL and no second deploy to correct one.
+    assert.equal(
+      resolveSiteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'travel-web-helper.vercel.app' }),
+      'https://travel-web-helper.vercel.app',
+    );
+  });
+
+  test('localhost is the last resort, never a domain we do not own', () => {
+    assert.equal(resolveSiteUrl({}), 'http://localhost:3000');
+    assert.equal(resolveSiteUrl({ NEXT_PUBLIC_SITE_URL: '   ' }), 'http://localhost:3000');
+  });
+
+  test('a trailing slash or a scheme the host did not send is normalised away', () => {
+    // Two of these produced "https://host//share-he.png" in an OG tag.
+    assert.equal(resolveSiteUrl({ NEXT_PUBLIC_SITE_URL: 'https://a.test/' }), 'https://a.test');
+    assert.equal(resolveSiteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'a.test/' }), 'https://a.test');
+    assert.equal(resolveSiteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'https://a.test' }), 'https://a.test');
   });
 });

@@ -7,8 +7,13 @@ currencies are additions rather than rewrites.
 The brand is **יש קליטה?** — the question a traveller asks on landing. The
 question mark is part of the visible wordmark and never appears in a URL, a
 file name, an environment variable or any other identifier; the technical
-identifier is `yeshklita`. The intended production domain is `yeshklita.co.il`,
-supplied through `NEXT_PUBLIC_SITE_URL` rather than hard-coded anywhere.
+identifier is `yeshklita`.
+
+The domain is never hard-coded. `resolveSiteUrl` in `src/lib/site.ts` takes
+`NEXT_PUBLIC_SITE_URL` when it is set, otherwise the host's own
+`VERCEL_PROJECT_PRODUCTION_URL`, otherwise localhost — so a first deploy needs
+no URL configured and no second deploy to correct one, and attaching a custom
+domain later is picked up on its own.
 
 We compare. The traveller buys from the provider — this site never sells or
 issues an eSIM, and the copy says so on every page that shows a price.

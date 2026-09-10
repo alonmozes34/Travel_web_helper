@@ -4,11 +4,46 @@ import {
 } from '@/data/accessibility';
 
 /**
- * Canonical origin for metadata. Set NEXT_PUBLIC_SITE_URL in the deployment
- * environment; the localhost default keeps development links honest rather
- * than claiming a domain the prototype does not own.
+ * Resolves the canonical origin from the environment.
+ *
+ * Three sources, in order of how much they can be trusted to be what we mean
+ * by "this site":
+ *
+ *  1. `NEXT_PUBLIC_SITE_URL` — set deliberately, so it wins. This is the real
+ *     domain once there is one.
+ *  2. `VERCEL_PROJECT_PRODUCTION_URL` — the host's own production domain,
+ *     injected at build and at runtime. It exists before anyone has bought a
+ *     domain, and it becomes the custom domain automatically once one is
+ *     attached, so a first deploy needs no manual URL and no second deploy to
+ *     correct one. Note it is the *production* domain even on a preview
+ *     build, which is what a canonical tag should say — a preview must not
+ *     advertise itself as the canonical copy.
+ *  3. localhost, which keeps development links honest rather than claiming a
+ *     domain the prototype does not own.
+ *
+ * Deliberately not `VERCEL_URL`: that is the per-deployment hostname and
+ * changes on every push, which would make every canonical link and every
+ * share card point at a URL that stops being the site tomorrow.
  */
-export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+export function resolveSiteUrl(env: {
+  NEXT_PUBLIC_SITE_URL?: string;
+  VERCEL_PROJECT_PRODUCTION_URL?: string;
+}): string {
+  const explicit = env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/+$/, '');
+
+  const host = env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  // The host supplies a bare hostname, never a scheme.
+  if (host) return `https://${host.replace(/^https?:\/\//, '').replace(/\/+$/, '')}`;
+
+  return 'http://localhost:3000';
+}
+
+/** Canonical origin for metadata, canonical links, the sitemap and share cards. */
+export const siteUrl = resolveSiteUrl({
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+});
 
 /** Whether a deployment has asked to be indexed. Not the same as being allowed to. */
 const indexingRequested = process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true';
