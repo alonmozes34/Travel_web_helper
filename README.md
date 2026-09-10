@@ -15,6 +15,11 @@ The domain is never hard-coded. `resolveSiteUrl` in `src/lib/site.ts` takes
 no URL configured and no second deploy to correct one, and attaching a custom
 domain later is picked up on its own.
 
+**Redeploy after attaching a domain.** The homepage and the English homepage
+are prerendered, so their canonical link and share-card URL are fixed at build
+time. Dynamic routes pick the new domain up immediately; those two do not,
+until the next build.
+
 We compare. The traveller buys from the provider — this site never sells or
 issues an eSIM, and the copy says so on every page that shows a price.
 
