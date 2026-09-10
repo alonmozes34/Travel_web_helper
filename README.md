@@ -15,6 +15,13 @@ The domain is never hard-coded. `resolveSiteUrl` in `src/lib/site.ts` takes
 no URL configured and no second deploy to correct one, and attaching a custom
 domain later is picked up on its own.
 
+A configured `NEXT_PUBLIC_SITE_URL` that names a different host than the one
+serving the deployment is a misconfiguration, and the build says so by name.
+It has already shipped once: the variable pointed at a domain that was never
+bought, so every canonical link, every sitemap entry and the Open Graph image
+addressed a host with no DNS. The site looked perfect and a shared link showed
+a blank preview.
+
 **Redeploy after attaching a domain.** The homepage and the English homepage
 are prerendered, so their canonical link and share-card URL are fixed at build
 time. Dynamic routes pick the new domain up immediately; those two do not,

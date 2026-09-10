@@ -6,7 +6,7 @@ import {
   isAccessibilityStatementComplete,
   missingAccessibilityFields,
 } from '@/data/accessibility';
-import { allowIndexing, resolveSiteUrl } from '@/lib/site';
+import { allowIndexing, resolveSiteUrl, siteUrlMismatch } from '@/lib/site';
 
 /**
  * An accessibility statement is a legal document. Publishing one with
@@ -95,5 +95,34 @@ describe('canonical origin', () => {
     assert.equal(resolveSiteUrl({ NEXT_PUBLIC_SITE_URL: 'https://a.test/' }), 'https://a.test');
     assert.equal(resolveSiteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'a.test/' }), 'https://a.test');
     assert.equal(resolveSiteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'https://a.test' }), 'https://a.test');
+  });
+});
+
+describe('a configured origin that contradicts the host', () => {
+  test('is reported, naming both', () => {
+    // The failure that shipped: a domain that was never bought.
+    const warning = siteUrlMismatch('https://yeshklita.co.il', 'www.yeshklita.com');
+    assert.ok(warning, 'a mismatch must be reported');
+    assert.match(warning, /yeshklita\.co\.il/);
+    assert.match(warning, /www\.yeshklita\.com/);
+    assert.match(warning, /blank preview/);
+  });
+
+  test('agreement is silent', () => {
+    assert.equal(siteUrlMismatch('https://www.yeshklita.com', 'www.yeshklita.com'), null);
+    // The host sends a bare hostname, but tolerate a scheme and a trailing slash.
+    assert.equal(siteUrlMismatch('https://a.test', 'https://a.test/'), null);
+    assert.equal(siteUrlMismatch('https://A.TEST', 'a.test'), null);
+  });
+
+  test('nothing is claimed when the host says nothing', () => {
+    // Off Vercel there is no second opinion, so there is no disagreement.
+    assert.equal(siteUrlMismatch('https://a.test', undefined), null);
+    assert.equal(siteUrlMismatch('https://a.test', ''), null);
+  });
+
+  test('an unparsable configured value is not reported as a mismatch', () => {
+    // It is a different bug, and resolveSiteUrl has already dealt with it.
+    assert.equal(siteUrlMismatch('not a url', 'a.test'), null);
   });
 });

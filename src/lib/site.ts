@@ -39,11 +39,49 @@ export function resolveSiteUrl(env: {
   return 'http://localhost:3000';
 }
 
+/**
+ * Whether a configured origin contradicts the domain this deployment is
+ * actually served from.
+ *
+ * This is a real failure that shipped: `NEXT_PUBLIC_SITE_URL` was set to a
+ * domain that was never bought, so every canonical link, every sitemap entry
+ * and — worst — every Open Graph image URL pointed at a host with no DNS at
+ * all. The site looked perfect. Sharing a link produced a blank preview,
+ * which is the one thing the share card exists to prevent, and nothing in the
+ * build said a word about it.
+ *
+ * The explicit value still wins: fronting a deployment with a different
+ * public domain is legitimate. But the host cannot be wrong about which
+ * domain answers for this deployment, so a disagreement between the two is
+ * worth saying out loud.
+ */
+export function siteUrlMismatch(configured: string, hostDomain: string | undefined): string | null {
+  if (!hostDomain) return null;
+  const host = hostDomain.replace(/^https?:\/\//, '').replace(/\/+$/, '').toLowerCase();
+  let configuredHost: string;
+  try {
+    configuredHost = new URL(configured).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+  if (configuredHost === host) return null;
+  return (
+    `NEXT_PUBLIC_SITE_URL is ${configured}, but this deployment is served from ${host}. ` +
+    'Canonical links, the sitemap and the Open Graph image will all point at a domain ' +
+    'this deployment does not answer on — a shared link will show a blank preview.'
+  );
+}
+
 /** Canonical origin for metadata, canonical links, the sitemap and share cards. */
 export const siteUrl = resolveSiteUrl({
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
 });
+
+if (process.env.NEXT_PUBLIC_SITE_URL && typeof window === 'undefined') {
+  const warning = siteUrlMismatch(siteUrl, process.env.VERCEL_PROJECT_PRODUCTION_URL);
+  if (warning) console.warn(`[site] ${warning}`);
+}
 
 /** Whether a deployment has asked to be indexed. Not the same as being allowed to. */
 const indexingRequested = process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true';
