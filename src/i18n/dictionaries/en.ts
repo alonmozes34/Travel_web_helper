@@ -451,6 +451,17 @@ export const en: Dictionary = {
     responseTemplate: 'Within {days} business days',
     updatedTemplate: 'Last updated: {date}',
   },
+  preview: {
+    navTitle: 'Preview',
+    heading: 'This part is still closed',
+    body: 'The comparison pages show demo data — prices created for development, which are not real offers from any provider. So they are not published yet.',
+    invite: 'Been given a password? Enter it here.',
+    label: 'Password',
+    submit: 'Enter',
+    error: 'That password is not right. Try again.',
+    back: 'Back to the homepage',
+    publicHint: 'The rest of the site is open and explains what the tool does.',
+  },
   units: {
     perGb: '/GB',
     perDay: '/day',

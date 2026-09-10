@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { gateMode, isAuthorised, PREVIEW_REALM } from '@/lib/previewGate';
+import {
+  gateMode,
+  isAuthorised,
+  isGatedPath,
+  matchesPreviewPassword,
+  safeNextPath,
+} from '@/lib/previewGate';
+import { locales } from '@/i18n/config';
 
 /**
  * While the catalogue is mock, the site must not be publicly readable: every
@@ -36,18 +43,6 @@ describe('preview gate', () => {
     }
   });
 
-  test('the realm is ASCII, so the 401 does not become a 500', () => {
-    // HTTP header values are ByteStrings. An em dash here throws inside the
-    // response constructor, and every refusal turns into a server error —
-    // which is how this shipped the first time.
-    for (const character of PREVIEW_REALM) {
-      assert.ok(
-        character.charCodeAt(0) <= 255,
-        `"${character}" (${character.charCodeAt(0)}) cannot go in a header value`,
-      );
-    }
-    assert.ok(!PREVIEW_REALM.includes('"'), 'a quote would terminate the realm early');
-  });
 
   const header = (user: string, password: string) =>
     `Basic ${Buffer.from(`${user}:${password}`).toString('base64')}`;
@@ -69,5 +64,102 @@ describe('preview gate', () => {
     assert.equal(isAuthorised(`Basic ${Buffer.from('no-colon').toString('base64')}`, 'letmein'), false);
     // An empty configured password must not turn the gate into a no-op.
     assert.equal(isAuthorised(header('user', ''), 'letmein'), false);
+  });
+
+  /**
+   * Which routes the gate covers.
+   *
+   * The split is measured, not assumed: the public pages render zero prices
+   * and name zero providers, while a country page renders seventeen prices
+   * across seven real companies.
+   */
+  describe('scope', () => {
+    const gated = [
+      '/esim/thailand',
+      '/esim',
+      '/search',
+      '/search/',
+      '/he/esim/thailand',
+      '/en/esim/thailand',
+      '/en/search',
+      '/esim/thailand/',
+    ];
+    for (const path of gated) {
+      test(`gated: ${path}`, () => assert.ok(isGatedPath(path, locales), path));
+    }
+
+    const open = [
+      '/',
+      '/en',
+      '/he',
+      '/accessibility',
+      '/en/accessibility',
+      '/disclosure',
+      '/privacy',
+      '/terms',
+    ];
+    for (const path of open) {
+      test(`public: ${path}`, () => assert.equal(isGatedPath(path, locales), false, path));
+    }
+
+    test('matching is on whole segments, not prefixes', () => {
+      // A route that merely starts with the same letters must not be gated by
+      // accident, and — far worse — a price-bearing route must not slip past
+      // because someone matched loosely.
+      assert.equal(isGatedPath('/esimulator', locales), false);
+      assert.equal(isGatedPath('/searching', locales), false);
+      assert.equal(isGatedPath('/esim-compare', locales), false);
+    });
+
+    test('a locale-looking segment that is not a locale is not stripped', () => {
+      // '/de' is not one of our locales, so '/de/esim' has no locale prefix
+      // and its first segment is 'de' — not gated, and correctly so: it is a
+      // 404, not a results page.
+      assert.equal(isGatedPath('/de/esim', locales), false);
+    });
+  });
+
+
+  describe('the unlock cookie', () => {
+    test('the right password matches', () => {
+      assert.ok(matchesPreviewPassword('letmein', 'letmein'));
+    });
+
+    test('an unset password never opens the gate', () => {
+      // Otherwise a deployment with SITE_PASSWORD="" would be opened by a
+      // visitor sending an empty cookie.
+      assert.equal(matchesPreviewPassword('', ''), false);
+      assert.equal(matchesPreviewPassword('anything', ''), false);
+    });
+
+    test('a wrong or absent cookie does not', () => {
+      assert.equal(matchesPreviewPassword('nope', 'letmein'), false);
+      assert.equal(matchesPreviewPassword('', 'letmein'), false);
+    });
+  });
+
+  describe('where unlocking sends you', () => {
+    test('same-site paths are kept', () => {
+      assert.equal(safeNextPath('/esim/thailand'), '/esim/thailand');
+      assert.equal(safeNextPath('/en/search?to=DE:1'), '/en/search?to=DE:1');
+    });
+
+    test('anything that could leave the origin is discarded', () => {
+      // `next` arrives in a URL somebody can be sent, so this is an open
+      // redirect if it is trusted.
+      for (const hostile of [
+        '//evil.test',
+        'https://evil.test',
+        'http://evil.test',
+        '/\\evil.test',
+        '/foo\\bar',
+        'esim/thailand',
+        '',
+        null,
+        undefined,
+      ]) {
+        assert.equal(safeNextPath(hostile), null, String(hostile));
+      }
+    });
   });
 });

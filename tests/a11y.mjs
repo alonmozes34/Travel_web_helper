@@ -22,6 +22,8 @@ const PAGES = [
   ['empty search', '/search'],
   ['accessibility statement', '/accessibility'],
   ['english homepage', '/en'],
+  ['preview unlock', '/unlock'],
+  ['preview unlock, after a wrong password', '/unlock?next=%2Fesim%2Fthailand&error=1'],
 ];
 
 const browser = await chromium.launch();

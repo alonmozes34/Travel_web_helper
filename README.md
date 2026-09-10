@@ -21,21 +21,52 @@ public page stating what Airalo charges, when the number was made up, is a
 misstatement about somebody else's commercial terms. A warning banner does not
 cure that, and `noindex` does not make a page private.
 
-So while the catalogue is mock, the site is reachable only with a shared
-password, checked in `src/proxy.ts` before any routing. That is enough to show
-a working product to a partner programme without publishing fabricated offers.
+So the pages that carry those prices need a shared password, checked in
+`src/proxy.ts` before any routing.
 
-| Environment | Behaviour |
+**Only those pages.** Gating the whole site was the first attempt and it was
+the wrong trade: the reason to deploy at all is that a partner programme wants
+to see a working product before it hands over the credentials that would make
+the data real, and a reviewer who opens the link and meets a password box
+learns nothing. The split is measured, not assumed:
+
+| Route | Prices | Providers named |
+| --- | --- | --- |
+| `/`, `/en`, `/accessibility` | 0 | none |
+| `/esim/<country>` | 17 | 7 |
+| `/search` | 13 | 5 |
+
+`GATED_SEGMENTS` in `src/lib/previewGate.ts` lists what is closed — `esim` and
+`search`. It is an allow-nothing list on purpose: a new route that shows
+prices has to be added there deliberately, which fails safe in the direction
+that matters.
+
+| Environment | Behaviour on a gated route |
 | --- | --- |
 | `next dev` | open — not reachable from the internet |
-| production, `SITE_PASSWORD` set | HTTP Basic; any username, that password |
+| production, `SITE_PASSWORD` set | redirect to `/unlock` |
 | production, `ALLOW_UNPROTECTED_MOCK=true` | open — for local runs and the test suites |
-| production, neither set | **503 on every page** |
+| production, neither set | **503** |
 
 The last row is the point: forgetting to set the password on a deploy must not
-silently publish the site, so the gate is default closed. Only pages are gated
-— the matcher lets anything with a file extension past, so the brand assets,
-`robots.txt` and the sitemap stay reachable. None of them carries a price.
+silently publish invented prices, so the gate is default closed.
+
+`/unlock` is a real page, not the browser's credential dialog. A dialog cannot
+be reached by client-side navigation — pressing "השוו חבילות" fetched the next
+route, got a 401 it could not prompt for, and left the visitor exactly where
+they were with nothing having happened. A redirect is something the router
+follows. Unlocking sets an httpOnly cookie holding the password; the `next`
+parameter is validated by `safeNextPath` so it cannot become an open redirect.
+An `Authorization: Basic` header is still accepted, so `curl` and a deploy
+check can reach a gated page without a browser session:
+
+```
+curl -s -o /dev/null -w "%{http_code}\n" https://<host>/esim/thailand
+# 307 -> /unlock
+
+curl -s -o /dev/null -w "%{http_code}\n" -u "x:<password>" https://<host>/esim/thailand
+# 200
+```
 
 Remove the gate when the catalogue carries real provider data, not before.
 
