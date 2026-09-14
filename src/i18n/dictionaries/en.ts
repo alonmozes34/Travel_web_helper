@@ -85,6 +85,8 @@ export const en: Dictionary = {
     suggestionsLabel: 'Destination suggestions',
     noResults: 'No destination found. Try a country name.',
     popularLabel: 'Popular destinations:',
+    recentLabel: 'Recent searches',
+    popularGroupLabel: 'Popular destinations',
     daysFieldLabel: 'For how many days?',
     whatIsEsim:
       'An eSIM is a digital SIM card. You install it on your phone before you travel and land abroad with working internet — no hunting for a shop at the airport, and your home SIM stays where it is.',

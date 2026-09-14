@@ -195,6 +195,72 @@ try {
   await p.close();
 } catch (e) { check('run', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ the destination list before anything is typed ════════════════════════
+// Reported as "there was a list of countries under the search bar, now there
+// is nothing — and I would put search history there too". The field only ever
+// opened its list once you had typed, so the first move was always: guess a
+// spelling, on a phone, behind a keyboard covering half the screen.
+try {
+  const ctx = await b.newContext({ viewport: { width: 390, height: 900 } });
+  const p = await ctx.newPage();
+  await p.goto(B + '/', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1200);
+  const field = () => p.getByRole('combobox', { name: 'יעד הטיול' });
+
+  await field().click();
+  await p.waitForTimeout(500);
+  const firstVisit = await p.locator('[role="listbox"] [role="group"]').allInnerTexts();
+  check('destination list', 'tapping the empty field opens a list', (await p.locator('[role="option"]').count()) > 0, `${await p.locator('[role="option"]').count()} options`);
+  check('destination list', 'a first-time visitor gets popular destinations', firstVisit.length === 1 && firstVisit[0].includes('יעדים פופולריים'), firstVisit.map((t) => t.split('\n')[0]).join(' | '));
+
+  // Pick one, then come back on a fresh page load.
+  await p.locator('[role="option"]').first().click();
+  await p.waitForTimeout(500);
+  check('destination list', 'picking one closes the list', (await p.locator('[role="option"]').count()) === 0);
+
+  await p.goto(B + '/', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1200);
+  await field().click();
+  await p.waitForTimeout(500);
+  const second = await p.locator('[role="listbox"] [role="group"]').allInnerTexts();
+  check('destination list', 'the next visit leads with what was searched before', second.length === 2 && second[0].includes('חיפושים אחרונים'), second.map((t) => t.split('\n')[0]).join(' | '));
+  // A place in the history is not offered twice.
+  const recentName = second[0].split('\n').find((line) => /[א-ת]/.test(line) && !line.includes('חיפושים'));
+  check('destination list', 'and it is not repeated under popular', recentName ? !second[1].includes(recentName) : false, recentName ?? 'none');
+
+  // Typing still narrows, and still says so when nothing matches.
+  await field().type('תא', { delay: 30 });
+  await p.waitForTimeout(600);
+  check('destination list', 'typing replaces it with matches, ungrouped', (await p.locator('[role="listbox"] [role="group"]').count()) === 0 && (await p.locator('[role="option"]').count()) > 0);
+  await field().fill('זזזזז');
+  await p.waitForTimeout(600);
+  const body = await p.locator('body').innerText();
+  check('destination list', 'no match says so and offers no options', body.includes('לא מצאנו') && (await p.locator('[role="option"]').count()) === 0);
+
+  await ctx.close();
+} catch (e) { check('destination list', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+// History is a local convenience, and a browser that refuses to store it must
+// not take the field down with it.
+try {
+  const ctx = await b.newContext({ viewport: { width: 390, height: 900 }, javaScriptEnabled: true });
+  const p = await ctx.newPage();
+  await p.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      get() { throw new Error('blocked'); },
+    });
+  });
+  await p.goto(B + '/', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1200);
+  await p.getByRole('combobox', { name: 'יעד הטיול' }).click();
+  await p.waitForTimeout(500);
+  check('destination list', 'the list still opens when storage is blocked', (await p.locator('[role="option"]').count()) > 0, `${await p.locator('[role="option"]').count()} options`);
+  await p.locator('[role="option"]').first().click();
+  await p.waitForTimeout(500);
+  check('destination list', 'and a destination can still be chosen', (await p.locator('body').innerText()).includes('הסרת') || (await p.getByRole('button', { name: /^הסרת / }).count()) > 0);
+  await ctx.close();
+} catch (e) { check('destination list', 'blocked storage: section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ editing the trip after results are on screen ═════════════════════════
 // Reported as: "I deleted the country and I still see its plans, its flag and
 // its name." Removing a chip changed local state only, the results are

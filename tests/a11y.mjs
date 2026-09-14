@@ -68,6 +68,17 @@ const menu = await audit(page, 'mobile menu open');
 console.log(`mobile menu open: ${menu.violations.length} violation types`);
 
 await page.keyboard.press('Escape');
+
+// The destination list as it opens before anything is typed: recent searches
+// and popular destinations, which is `listbox > group > option` rather than
+// the flat list the typed suggestions use.
+await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(700);
+await page.getByRole('combobox', { name: 'יעד הטיול' }).click();
+await page.waitForTimeout(400);
+const suggestions = await audit(page, 'destination list open, nothing typed');
+console.log(`destination list open, nothing typed: ${suggestions.violations.length} violation types, ${suggestions.passes.length} rules passing`);
+
 await page.setViewportSize({ width: 1400, height: 1000 });
 await page.goto(`${BASE}/esim/thailand`, { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(700);

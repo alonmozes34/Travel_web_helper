@@ -60,6 +60,7 @@ export function HeroSearch({
   );
   const [showSearch, setShowSearch] = useState(variant === "hero");
   const [error, setError] = useState<string | null>(null);
+  const [listOpen, setListOpen] = useState(false);
 
   /**
    * Adopt the page's trip when the page changes under us.
@@ -202,12 +203,13 @@ export function HeroSearch({
       noValidate
     >
       {showSearch ? (
-        <div className="flex max-w-[640px] flex-col gap-2 rounded-lg border border-line bg-surface p-2 shadow-search sm:flex-row sm:items-stretch">
+        <div className="relative flex max-w-[640px] flex-col gap-2 rounded-lg border border-line bg-surface p-2 shadow-search sm:flex-row sm:items-stretch">
           <DestinationSearch
             locale={locale}
             dict={dict}
             chosen={profile.destinations.map((d) => d.countryCode)}
             onSelect={addDestination}
+            onOpenChange={setListOpen}
             placeholder={
               profile.destinations.length
                 ? dict.search.addAnother
@@ -225,7 +227,14 @@ export function HeroSearch({
           destinations pushed below the questionnaire reads as an afterthought
           rather than as the fastest way in. */}
       {showPopular ? (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        /* Kept in the flow but taken out of reach while the destination list
+           is open: the popup covers this row, and half a chip showing from
+           under an overlay is a target you can only hit by mistake. The list
+           offers the same destinations while it is open, so nothing is lost —
+           and `invisible` rather than `hidden` keeps the page from jumping. */
+        <div
+          className={`mt-4 flex flex-wrap items-center gap-2${listOpen ? " invisible" : ""}`}
+        >
           <span className="text-sm text-ink-3">{dict.search.popularLabel}</span>
           {/* Still real links, so the destination pages stay crawlable and
               openable in a new tab — but a click here fills the trip in place
