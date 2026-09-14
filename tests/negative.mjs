@@ -179,6 +179,24 @@ for (const [label, path, expect] of [
   check('url trips', label, ok, `h1="${h1}"`);
 }
 
+// ══ the impact.com ownership tag must be in <head> on every page ═════════
+// It is how the affiliate platform verifies the site belongs to us, and it is
+// only checked when someone clicks "Add Website" — so a page that quietly
+// lost it would not be noticed until an application failed.
+{
+  const token = 'd5ba34ba-7ca1-49fb-b386-c8a19431adb7';
+  const missing = [];
+  for (const path of ['/', '/en', '/esim/thailand', '/search?to=TH:5&usage=regular', '/accessibility', '/disclosure']) {
+    const html = await (await fetch(B + path)).text();
+    const head = html.slice(0, html.indexOf('</head>'));
+    // Their own spelling uses `value`; the standard one uses `content`.
+    const hasValue = head.includes(`name="impact-site-verification" value="${token}"`);
+    const hasContent = head.includes(`name="impact-site-verification" content="${token}"`);
+    if (!hasValue || !hasContent) missing.push(`${path}${hasValue ? '' : ' [no value=]'}${hasContent ? '' : ' [no content=]'}`);
+  }
+  check('verification', 'the impact.com tag is in <head> in both spellings', missing.length === 0, missing.join(' ; ') || '6 pages');
+}
+
 console.log(out.join('\n'));
 
 console.log(`\n  ${pass} pass, ${fail} fail`);
