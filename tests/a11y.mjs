@@ -21,6 +21,7 @@ const PAGES = [
   ['multi-stop search', '/search?to=DE:1,US:14&usage=regular'],
   ['empty search', '/search'],
   ['accessibility statement', '/accessibility'],
+  ['affiliate disclosure', '/disclosure'],
   ['english homepage', '/en'],
   ['preview unlock', '/unlock'],
   ['preview unlock, after a wrong password', '/unlock?next=%2Fesim%2Fthailand&error=1'],

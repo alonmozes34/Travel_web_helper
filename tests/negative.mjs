@@ -147,6 +147,39 @@ for (const [p, want, loc] of [
   check('regression', 'the 5G filter actually narrows', prices(a.body) < prices(unfiltered.body), `${prices(a.body)} vs ${prices(unfiltered.body)}`);
 }
 
+// ══ no link on the site may lead nowhere ═════════════════════════════════
+// The footer linked to /disclosure, /privacy and /terms from every page and
+// all three returned 404 — including the affiliate disclosure, on a site
+// whose whole argument is that its ranking is not for sale.
+{
+  const seen = new Set();
+  const dead = [];
+  for (const path of ['/', '/en', '/accessibility', '/disclosure', '/esim/thailand?days=14&usage=regular', '/search?to=GR:3,JP:5&usage=regular', '/unlock']) {
+    const html = await (await fetch(B + path)).text();
+    for (const m of html.matchAll(/href="(\/[^"#?]*)(?:[?#][^"]*)?"/g)) {
+      const href = m[1];
+      if (seen.has(href) || href.startsWith('//')) continue;
+      seen.add(href);
+      const res = await fetch(B + href, { redirect: 'follow' });
+      if (!res.ok) dead.push(`${href} -> ${res.status} (from ${path})`);
+    }
+  }
+  check('links', 'every internal link resolves', dead.length === 0, dead.slice(0, 4).join(' ; ') || `${seen.size} checked`);
+}
+
+// ══ a URL cannot describe a trip the interface would refuse ══════════════
+for (const [label, path, expect] of [
+  ['a code that is not a country', '/search?to=ZZ:5&usage=regular', 'empty'],
+  ['a real code beside a fake one', '/search?to=ZZ:5,TH:3&usage=regular', 'eSIM לתאילנד'],
+  ['the same stop twice', '/search?to=TH:5,TH:3&usage=regular', 'eSIM לתאילנד'],
+]) {
+  const html = await (await fetch(B + path)).text();
+  const h1 = (html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || [])[1]?.replace(/<[^>]+>/g, '').trim() ?? '';
+  const ok = expect === 'empty' ? !h1.includes('ZZ') : h1 === expect;
+  check('url trips', label, ok, `h1="${h1}"`);
+}
+
 console.log(out.join('\n'));
+
 console.log(`\n  ${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

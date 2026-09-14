@@ -8,11 +8,21 @@ import { mainNavLinks } from './navLinks';
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const links = mainNavLinks(locale, dict);
+  /**
+   * Only routes that exist. This list linked to /disclosure, /privacy and
+   * /terms from the foot of every page and all three returned 404 — three
+   * dead links site-wide, one of them the affiliate disclosure on a site
+   * whose whole argument is that its ranking is not for sale.
+   *
+   * /disclosure is written now, out of facts the code can be checked against.
+   * A privacy notice and terms of use cannot be: both have to name who
+   * operates the service and how to reach them, and inventing either is the
+   * one thing this project never does with a legal page. They go back when
+   * the owner supplies them.
+   */
   const legalLinks = [
     { href: localePath(locale, '/accessibility'), label: dict.accessibility.navLabel },
     { href: localePath(locale, '/disclosure'), label: dict.footer.disclosureLink },
-    { href: localePath(locale, '/privacy'), label: dict.footer.privacy },
-    { href: localePath(locale, '/terms'), label: dict.footer.terms },
   ];
 
   return (

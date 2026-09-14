@@ -49,6 +49,34 @@ export const en: Dictionary = {
     full: 'Some links on this site are affiliate links. We may earn a commission if you make a purchase, at no extra cost to you. Commission never affects ranking.',
     rankingNote: 'Ranking is based on customer value only.',
   },
+  disclosurePage: {
+    title: 'Affiliate disclosure',
+    intro:
+      'Yesh Klita is an independent comparison site. We do not sell or issue eSIM plans, and every purchase is made directly with the provider.',
+    sections: [
+      {
+        heading: 'How we make money',
+        body: [
+          'Some links to providers are affiliate links. If you buy through one, the provider may pay us a commission — at no extra cost to you, and with no change to the price you pay them.',
+          'Not every provider on the site is an affiliate partner, and providers who pay us nothing are shown in exactly the same way.',
+        ],
+      },
+      {
+        heading: 'Why commission cannot affect the ranking',
+        body: [
+          'This is structural rather than a promise: the model every plan is stored in has no commission field, no payout field and no manual-rank field. The scorer receives only the plan\u2019s own facts and the trip you described, so it has no way to know what a provider pays us — even if someone wanted it to.',
+          'The order comes from price, how well the allowance fits the data we estimate for your trip, headroom and extras. The full explanation is on the results page, under the sort control.',
+        ],
+      },
+      {
+        heading: 'What we do not do',
+        body: [
+          'We do not take payment for placement, sell positions at the top of a list, or hide a provider who does not work with us.',
+          'We do not invent prices, ratings or provider capabilities. Anything we cannot verify is marked as such, or not shown at all.',
+        ],
+      },
+    ],
+  },
   mockData: {
     badge: 'Demo data',
     short: 'The prices here are not real.',

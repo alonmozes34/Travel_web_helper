@@ -124,7 +124,7 @@ await thumb.close();
 // 1.3.1 Info and relationships: exactly one H1 per page, and no level skipped
 // for visual weight. A screen-reader user navigates by heading; a jump from
 // H1 to H3 makes them guess whether they missed a section.
-for (const path of ['/', '/esim/thailand?days=14&usage=regular', '/search?to=DE:1,US:14&usage=regular', '/accessibility', '/en']) {
+for (const path of ['/', '/esim/thailand?days=14&usage=regular', '/search?to=DE:1,US:14&usage=regular', '/accessibility', '/disclosure', '/en']) {
   const h = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await h.goto(BASE + path, { waitUntil: 'domcontentloaded' });
   await h.waitForTimeout(500);

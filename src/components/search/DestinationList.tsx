@@ -42,7 +42,13 @@ export function DestinationList({
         return (
           <li
             key={destination.countryCode}
-            className="flex min-h-12 items-center gap-2 rounded-full border border-line bg-surface ps-3 pe-1.5"
+            /* `max-w-full` and wrapping because a destination chip is as wide
+               as its country's name, and the longest of those are 38-39
+               characters in both languages ("South Georgia & South Sandwich
+               Islands"). Without them the pill simply grew past the viewport:
+               12px of horizontal scroll at 320px, on a page whose reflow is
+               otherwise clean. The pill goes to two lines instead. */
+            className="flex min-h-12 max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-line bg-surface py-1 ps-3 pe-1.5"
           >
             <span aria-hidden="true">{country?.flag}</span>
             <span className="text-base font-semibold">{name}</span>

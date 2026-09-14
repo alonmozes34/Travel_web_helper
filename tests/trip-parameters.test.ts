@@ -155,3 +155,34 @@ describe('an edited trip against the one on screen', () => {
     assert.equal(sameTrip({ destinations: [{ countryCode: 'TH' }] }, { destinations: [{ countryCode: 'TH' }] }), true);
   });
 });
+
+describe('a URL cannot describe a trip the interface would refuse', () => {
+  test('a two-letter code that is not a country is dropped', () => {
+    // It used to render "eSIM for ZZ" and then reassure the traveller that an
+    // eSIM might still exist there — about two letters that are not a place.
+    assert.deepEqual(tripProfileFromParams({ to: 'ZZ:5' }).destinations, []);
+    assert.deepEqual(tripProfileFromParams({ to: 'ZZ:5,TH:3' }).destinations, [
+      { countryCode: 'TH', days: 3 },
+    ]);
+  });
+
+  test('a destination appears once, and the first entry wins', () => {
+    assert.deepEqual(tripProfileFromParams({ to: 'TH:5,TH:3' }).destinations, [
+      { countryCode: 'TH', days: 5 },
+    ]);
+    assert.deepEqual(tripProfileFromParams({ to: 'TH:5,JP:2,TH:9' }).destinations, [
+      { countryCode: 'TH', days: 5 },
+      { countryCode: 'JP', days: 2 },
+    ]);
+  });
+
+  test('real destinations are still read exactly as before', () => {
+    assert.deepEqual(tripProfileFromParams({ to: 'GR:3,JP:5', usage: 'regular' }), {
+      destinations: [
+        { countryCode: 'GR', days: 3 },
+        { countryCode: 'JP', days: 5 },
+      ],
+      usage: 'regular',
+    });
+  });
+})

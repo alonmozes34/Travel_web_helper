@@ -1,3 +1,5 @@
+import { getCountryByCode } from '@/data/countries';
+
 /**
  * The traveller's trip profile. Both fields are optional: results are always
  * shown, and answering only sharpens the recommendation.
@@ -134,6 +136,21 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+/**
+ * Read a trip out of the query string.
+ *
+ * Two things a URL can carry that the interface cannot produce, and both used
+ * to reach the page as if they were real trips:
+ *
+ * `?to=ZZ:5` rendered "eSIM for ZZ" and then told the traveller we have no
+ * package for it — "that does not mean there is no eSIM there, only that it is
+ * not in our catalogue" — about two letters that are not a country. A shape
+ * test is not an existence test, so the code is now looked up.
+ *
+ * `?to=TH:5,TH:3` produced "eSIM for Thailand + Thailand", the same stop
+ * twice, and eight days of estimated data for a five-day visit. A destination
+ * appears once; the first entry for it wins, as the list is ordered.
+ */
 export function tripProfileFromParams(params: {
   to?: string | string[];
   days?: string | string[];
@@ -142,9 +159,13 @@ export function tripProfileFromParams(params: {
 }): TripProfile {
   const profile: TripProfile = { destinations: [] };
 
+  const seen = new Set<string>();
   for (const entry of (first(params.to) ?? '').split(',').filter(Boolean)) {
     const [code, rawDays] = entry.split(':');
     if (!/^[A-Z]{2}$/.test(code)) continue;
+    if (!getCountryByCode(code)) continue;
+    if (seen.has(code)) continue;
+    seen.add(code);
     const days = Number.parseInt(rawDays ?? '', 10);
     profile.destinations.push({
       countryCode: code,
