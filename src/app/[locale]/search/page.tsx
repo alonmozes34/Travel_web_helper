@@ -11,6 +11,7 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
 import { interpolate } from "@/i18n/interpolate";
 import { buildComparison } from "@/lib/comparison/buildComparison";
+import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { filtersFromParams } from "@/lib/comparison/filter";
 import type { RecommendationKey } from "@/lib/comparison/recommend";
 import { isSortKey } from "@/lib/comparison/sort";
@@ -52,9 +53,14 @@ export default async function SearchPage({
   }
   const sortParam = queryParams.get("sort");
 
+  // One place resolves where plans and rates come from; this page asks for a
+  // catalogue and knows nothing about who supplied it.
+  const catalogue = await getCatalogue();
   const comparison = buildComparison({
     profile,
     currency: await getDisplayCurrency(locale),
+    plans: catalogue.plans,
+    rates: catalogue.rates,
   });
   const { estimate, combination } = comparison;
 

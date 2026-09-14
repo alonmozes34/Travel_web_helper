@@ -11,6 +11,7 @@ import { interpolate } from "@/i18n/interpolate";
 import { siteUrl } from "@/lib/site";
 import { tripProfileFromParams } from "@/lib/types/trip";
 import { buildComparison } from "@/lib/comparison/buildComparison";
+import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { getDisplayCurrency } from "@/lib/currencyServer";
 import { ResultsView } from "@/components/results/ResultsView";
 import { CountryFacts } from "@/components/content/CountryFacts";
@@ -100,6 +101,7 @@ export default async function CountryPage({
   // it on the first paint rather than changing under them after hydration.
   // A country page is a single-destination search; the multi-stop flow lives
   // on /search, which the hero submits to when more than one stop is chosen.
+  const catalogue = await getCatalogue();
   const comparison = buildComparison({
     profile: {
       ...profile,
@@ -108,6 +110,8 @@ export default async function CountryPage({
         : [{ countryCode: country.code }],
     },
     currency: await getDisplayCurrency(locale),
+    plans: catalogue.plans,
+    rates: catalogue.rates,
   });
   const { estimate } = comparison;
 

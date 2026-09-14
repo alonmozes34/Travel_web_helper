@@ -257,7 +257,8 @@ export const en: Dictionary = {
     estimateOnly: 'estimate only',
     conversionNote:
       'The shekel price is an estimate. The provider charges in its own currency, and your card issuer may use a different rate and add a foreign-transaction fee.',
-    conversionRateTemplate: 'Rates used: {rates}. Demo data from {date}.',
+    conversionRateLiveTemplate: 'Exchange rates: {rates} · European Central Bank, {date}',
+    conversionRateFallbackTemplate: 'Exchange rates: {rates} · fallback rates from {date}. Not a live rate.',
     conversionSummary: 'How we worked out the price in your currency',
     maxCompareShort: 'Up to 3 plans',
     chargedHereTemplate: 'charged in {currency}',

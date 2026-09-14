@@ -273,7 +273,8 @@ export const he = {
     estimateOnly: 'הערכה בלבד',
     conversionNote:
       'המחיר בשקלים הוא המרה משוערת. הספק גובה במטבע שלו, וחברת האשראי עשויה להמיר בשער אחר ולהוסיף עמלת מטבע חוץ.',
-    conversionRateTemplate: 'שערי ההמרה: {rates} · נתוני הדגמה מ־{date}',
+    conversionRateLiveTemplate: 'שערי ההמרה: {rates} · הבנק המרכזי האירופי, {date}',
+    conversionRateFallbackTemplate: 'שערי ההמרה: {rates} · שערי גיבוי מ־{date}. לא שער חי.',
     conversionSummary: 'איך חישבנו את המחיר בשקלים',
     maxCompareShort: 'עד 3 חבילות',
     chargedHereTemplate: 'מחויב ב־{currency}',

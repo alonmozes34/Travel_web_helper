@@ -215,6 +215,43 @@ Price is scored as a ratio against the cheapest plan rather than a min–max
 spread, so one expensive unlimited plan cannot flatten the differences beneath
 it. All of the above is covered by `npm run test:unit`.
 
+## Where the data comes from
+
+`getCatalogue()` resolves plans and rates from sources and caches the result;
+the pages ask it for a catalogue and know nothing about who supplied one.
+`buildComparison` stays pure — it is the scoring engine and does no IO — and
+takes what the catalogue returns.
+
+| | Source | Real? |
+| --- | --- | --- |
+| Exchange rates | European Central Bank daily reference feed | **yes** |
+| Plans | the demo catalogue, behind `ProviderSource` | no — waiting on a provider |
+
+**The rates are real.** The ECB feed needs no key, no account and no approval,
+which is why it could be made real while the catalogue is still waiting on a
+partner programme. Rates are EUR-based there, so every pair is crossed through
+the euro and rounded to six places — the raw division produced
+`3.045289855072464`, and the page rendered every digit as if it were
+precision. Each rate carries `asOf` and `source` all the way to the page,
+which now names the ECB and its date instead of calling a central bank's rate
+demo data.
+
+Rate sources are tried in order and the first complete set wins; a partial set
+is refused. One currency converted at today's rate beside another at a
+fallback would be wrong in a way nobody could see.
+
+Plan sources all contribute and one failing does not take the others with it —
+a catalogue missing one provider is still a comparison, and the gap is
+reported in `catalogue.sources` rather than hidden. Records a source refused
+to map arrive in `catalogue.skipped` with the reason, so a source that starts
+silently dropping half its feed is visible instead of merely quieter.
+
+The cache serves stale on a failed refresh: a price an hour old is a
+comparison, none is a broken page. It is in-process, which on a serverless
+host means one warm instance rather than the fleet — enough to stop
+per-request fetching, and honest about what it is. A shared store belongs with
+the first real provider, not before it.
+
 ### What a region in a product name does not tell you
 
 A plan called "Global 10GB" says it is global. It does not say which

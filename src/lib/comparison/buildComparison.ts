@@ -1,5 +1,5 @@
 import type { CurrencyCode } from '@/i18n/config';
-import { getPlansCoveringAll } from '@/data/mockPlans';
+import { mockPlans } from '@/data/mockPlans';
 import { getProvider, mockProviders } from '@/data/mockProviders';
 import { mockFxRates } from '@/data/fxRates';
 import { convertPrice, type DisplayPrice, type FxRate } from '@/lib/pricing/convert';
@@ -64,6 +64,12 @@ export type Comparison = {
  * Scoring happens after conversion so that plans priced in dollars and euros
  * are compared on the same scale.
  */
+/** Every plan that works in all of the given destinations at once. */
+function plansCoveringAll(plans: Plan[], countryCodes: string[]): Plan[] {
+  if (countryCodes.length === 0) return plans;
+  return plans.filter((plan) => countryCodes.every((code) => plan.coverage.countries.includes(code)));
+}
+
 export function buildComparison({
   profile,
   currency,
@@ -72,14 +78,20 @@ export function buildComparison({
 }: {
   profile: TripProfile;
   currency: CurrencyCode;
-  /** Defaults to every plan covering all of the trip's destinations. */
+  /**
+   * The whole catalogue, from whichever sources supplied it. Filtering to the
+   * trip happens here, so a caller hands over everything it has and does not
+   * have to know what "covers this trip" means.
+   *
+   * Defaults to the demo catalogue so the scoring tests stay a page long.
+   */
   plans?: Plan[];
   rates?: FxRate[];
 }): Comparison {
   const countryCodes = destinationCodes(profile);
   // Results are plans that cover the whole trip. Anything less is offered as a
   // combination instead, never mixed into the list as if it were a full answer.
-  const candidates = plans ?? getPlansCoveringAll(countryCodes);
+  const candidates = plansCoveringAll(plans ?? mockPlans, countryCodes);
   const estimate = estimateDataNeed(profile);
 
   const priceByPlanId = new Map<string, number>();
@@ -142,7 +154,10 @@ export function buildComparison({
     isMockData: rows.some((row) => row.plan.source === 'mock'),
     combination: buildCombination({
       profile,
-      plans: getPlansCoveringAll([]),
+      // The whole catalogue, not the filtered set: a combination exists
+      // precisely because no single plan covers the trip, so it has to look at
+      // the plans that were just excluded.
+      plans: plans ?? mockPlans,
       currency,
       rates,
     }),

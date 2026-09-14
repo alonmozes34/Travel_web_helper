@@ -187,16 +187,23 @@ export function ResultsView({
       ...new Set(
         converted.map(
           (row) =>
-            `${row.price.sourceCurrency}→${row.price.currency} ${row.price.fxRate}`,
+            // Trimmed for reading, not for the arithmetic, which used the
+            // full value before this ever reached a string.
+            `${row.price.sourceCurrency}→${row.price.currency} ${Number(row.price.fxRate!.toFixed(4))}`,
         ),
       ),
     ].sort();
     const dates = [
       ...new Set(converted.map((row) => row.price.fxAsOf).filter(Boolean)),
     ];
+    // Every price already carried where its rate came from; nothing used it,
+    // so a real central-bank rate was being labelled demo data — the honesty
+    // problem pointing the other way, but still a false statement.
+    const sources = new Set(converted.map((row) => row.price.fxSource));
     return {
       rates: pairs.join(" · "),
       asOf: dates.length === 1 ? dates[0] : null,
+      isLive: sources.size === 1 && sources.has("api"),
     };
   }, [rows]);
 
@@ -261,10 +268,15 @@ export function ResultsView({
           <p className="mt-2 text-sm text-ink-2">{dict.plan.conversionNote}</p>
           {conversion.asOf ? (
             <p className="mt-2 text-sm text-ink-2">
-              {interpolate(dict.plan.conversionRateTemplate, {
-                rates: conversion.rates,
-                date: conversion.asOf,
-              })}
+              {interpolate(
+                conversion.isLive
+                  ? dict.plan.conversionRateLiveTemplate
+                  : dict.plan.conversionRateFallbackTemplate,
+                {
+                  rates: conversion.rates,
+                  date: conversion.asOf,
+                },
+              )}
             </p>
           ) : null}
         </details>
