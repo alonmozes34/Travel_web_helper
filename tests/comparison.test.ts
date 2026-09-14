@@ -347,7 +347,15 @@ describe('the browsing category breaks ties on price', () => {
       isUnlimited: false,
       dataAmountMb: 10 * MB_PER_GB,
       validityDays: 30,
-      networks: [{ name: 'A', technologies: ['4G', '5G'] as const }] as Plan['networks'],
+      networks: [
+        {
+          countryCode: 'TH',
+          operator: 'AIS',
+          mccMnc: null,
+          technologies: ['4G', '5G'],
+          coverage: null,
+        },
+      ] as Plan['networks'],
       hotspot: true,
     };
     const dearer = plan({ ...facts, id: 'dearer', finalPriceMinor: 9000, originalPriceMinor: 9000 });
