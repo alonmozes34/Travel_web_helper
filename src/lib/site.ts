@@ -6,20 +6,26 @@ import {
 /**
  * Resolves the canonical origin from the environment.
  *
- * Three sources, in order of how much they can be trusted to be what we mean
- * by "this site":
+ * The host wins.
  *
- *  1. `NEXT_PUBLIC_SITE_URL` — set deliberately, so it wins. This is the real
- *     domain once there is one.
- *  2. `VERCEL_PROJECT_PRODUCTION_URL` — the host's own production domain,
- *     injected at build and at runtime. It exists before anyone has bought a
- *     domain, and it becomes the custom domain automatically once one is
- *     attached, so a first deploy needs no manual URL and no second deploy to
- *     correct one. Note it is the *production* domain even on a preview
- *     build, which is what a canonical tag should say — a preview must not
- *     advertise itself as the canonical copy.
- *  3. localhost, which keeps development links honest rather than claiming a
- *     domain the prototype does not own.
+ * That is the opposite of what this function did at first, and the reason is
+ * evidence rather than taste: a deployment went out with
+ * `NEXT_PUBLIC_SITE_URL` naming a domain that had never been bought and had no
+ * DNS at all, while the site served happily from somewhere else. Every
+ * canonical link, every sitemap entry and the Open Graph image addressed the
+ * dead host, and a shared link showed a blank preview. The variable was wrong
+ * for days across two attempts to correct it, because it lives in a dashboard
+ * and nothing in the system could contradict it.
+ *
+ * A host that tells us its production domain cannot be wrong about which
+ * domain answers for this deployment. A variable typed into a settings page
+ * can be, and was. So when both speak and they disagree, the host is believed
+ * and the build says what it did — and the canonical domain is then chosen in
+ * one place (the host's own domain settings) instead of two that can drift.
+ *
+ * `NEXT_PUBLIC_SITE_URL` still carries a deployment that has no such host,
+ * and localhost is the last resort, which keeps development links honest
+ * rather than claiming a domain the prototype does not own.
  *
  * Deliberately not `VERCEL_URL`: that is the per-deployment hostname and
  * changes on every push, which would make every canonical link and every
@@ -29,14 +35,18 @@ export function resolveSiteUrl(env: {
   NEXT_PUBLIC_SITE_URL?: string;
   VERCEL_PROJECT_PRODUCTION_URL?: string;
 }): string {
+  const host = normaliseHost(env.VERCEL_PROJECT_PRODUCTION_URL);
+  if (host) return `https://${host}`;
+
   const explicit = env.NEXT_PUBLIC_SITE_URL?.trim();
   if (explicit) return explicit.replace(/\/+$/, '');
 
-  const host = env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  // The host supplies a bare hostname, never a scheme.
-  if (host) return `https://${host.replace(/^https?:\/\//, '').replace(/\/+$/, '')}`;
-
   return 'http://localhost:3000';
+}
+
+/** The host supplies a bare hostname; tolerate a scheme or a trailing slash anyway. */
+function normaliseHost(value: string | undefined): string {
+  return (value ?? '').trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
 }
 
 /**
@@ -67,8 +77,10 @@ export function siteUrlMismatch(configured: string, hostDomain: string | undefin
   if (configuredHost === host) return null;
   return (
     `NEXT_PUBLIC_SITE_URL is ${configured}, but this deployment is served from ${host}. ` +
-    'Canonical links, the sitemap and the Open Graph image will all point at a domain ' +
-    'this deployment does not answer on — a shared link will show a blank preview.'
+    `Using ${host} — the host cannot be wrong about which domain answers for this ` +
+    'deployment, and a canonical link or share-card URL on a domain that does not ' +
+    'answer produces a blank preview. Change the canonical domain in the host\'s ' +
+    'domain settings, and remove this variable.'
   );
 }
 
@@ -79,7 +91,7 @@ export const siteUrl = resolveSiteUrl({
 });
 
 if (process.env.NEXT_PUBLIC_SITE_URL && typeof window === 'undefined') {
-  const warning = siteUrlMismatch(siteUrl, process.env.VERCEL_PROJECT_PRODUCTION_URL);
+  const warning = siteUrlMismatch(process.env.NEXT_PUBLIC_SITE_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL);
   if (warning) console.warn(`[site] ${warning}`);
 }
 

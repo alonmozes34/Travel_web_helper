@@ -9,18 +9,23 @@ question mark is part of the visible wordmark and never appears in a URL, a
 file name, an environment variable or any other identifier; the technical
 identifier is `yeshklita`.
 
-The domain is never hard-coded. `resolveSiteUrl` in `src/lib/site.ts` takes
-`NEXT_PUBLIC_SITE_URL` when it is set, otherwise the host's own
-`VERCEL_PROJECT_PRODUCTION_URL`, otherwise localhost — so a first deploy needs
-no URL configured and no second deploy to correct one, and attaching a custom
-domain later is picked up on its own.
+The domain is never hard-coded, and **the serving host decides it**.
+`resolveSiteUrl` in `src/lib/site.ts` takes `VERCEL_PROJECT_PRODUCTION_URL`
+when the host supplies one, otherwise `NEXT_PUBLIC_SITE_URL`, otherwise
+localhost. A first deploy needs nothing configured, and attaching a custom
+domain is picked up on its own.
 
-A configured `NEXT_PUBLIC_SITE_URL` that names a different host than the one
-serving the deployment is a misconfiguration, and the build says so by name.
-It has already shipped once: the variable pointed at a domain that was never
-bought, so every canonical link, every sitemap entry and the Open Graph image
-addressed a host with no DNS. The site looked perfect and a shared link showed
-a blank preview.
+That order is the way round it is because of what happened when it was the
+other way. `NEXT_PUBLIC_SITE_URL` was set to a domain that had never been
+bought and had no DNS at all, while the site served from somewhere else: every
+canonical link, every sitemap entry and the Open Graph image addressed the dead
+host, so the site looked perfect and a shared link showed a blank preview. The
+variable stayed wrong across two attempts to correct it, because it lives in a
+dashboard and nothing in the system could contradict it. A host that reports
+its production domain cannot be wrong about which domain answers; a settings
+page can be. So the canonical domain is now chosen in one place — the host's
+domain settings — and a `NEXT_PUBLIC_SITE_URL` that disagrees is named in the
+build log and ignored.
 
 **Redeploy after attaching a domain.** The homepage and the English homepage
 are prerendered, so their canonical link and share-card URL are fixed at build

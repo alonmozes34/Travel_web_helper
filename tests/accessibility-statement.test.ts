@@ -67,13 +67,26 @@ describe('accessibility statement', () => {
 });
 
 describe('canonical origin', () => {
-  test('an explicitly configured URL wins', () => {
+  test('the serving host beats a configured URL that disagrees', () => {
+    // The failure this exists to prevent: a variable naming a domain that was
+    // never bought, against a host that knows what actually answers.
     assert.equal(
       resolveSiteUrl({
         NEXT_PUBLIC_SITE_URL: 'https://yeshklita.co.il',
-        VERCEL_PROJECT_PRODUCTION_URL: 'travel-web-helper.vercel.app',
+        VERCEL_PROJECT_PRODUCTION_URL: 'www.yeshklita.com',
       }),
+      'https://www.yeshklita.com',
+    );
+  });
+
+  test('a configured URL still carries a deployment with no such host', () => {
+    assert.equal(
+      resolveSiteUrl({ NEXT_PUBLIC_SITE_URL: 'https://yeshklita.co.il' }),
       'https://yeshklita.co.il',
+    );
+    assert.equal(
+      resolveSiteUrl({ NEXT_PUBLIC_SITE_URL: 'https://a.test/', VERCEL_PROJECT_PRODUCTION_URL: '  ' }),
+      'https://a.test',
     );
   });
 
@@ -96,6 +109,17 @@ describe('canonical origin', () => {
     assert.equal(resolveSiteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'a.test/' }), 'https://a.test');
     assert.equal(resolveSiteUrl({ VERCEL_PROJECT_PRODUCTION_URL: 'https://a.test' }), 'https://a.test');
   });
+
+  test('the resolved origin is never a host that does not answer', () => {
+    // The whole point, stated as one assertion: whatever else is configured,
+    // the origin the app advertises is the one the host says serves it.
+    const resolved = resolveSiteUrl({
+      NEXT_PUBLIC_SITE_URL: 'https://a-domain-nobody-bought.example',
+      VERCEL_PROJECT_PRODUCTION_URL: 'real.test',
+    });
+    assert.equal(resolved, 'https://real.test');
+    assert.ok(!resolved.includes('nobody-bought'));
+  });
 });
 
 describe('a configured origin that contradicts the host', () => {
@@ -106,6 +130,9 @@ describe('a configured origin that contradicts the host', () => {
     assert.match(warning, /yeshklita\.co\.il/);
     assert.match(warning, /www\.yeshklita\.com/);
     assert.match(warning, /blank preview/);
+    // It must say which one it used, or the reader cannot tell whether the
+    // site is currently broken or merely misconfigured.
+    assert.match(warning, /Using www\.yeshklita\.com/);
   });
 
   test('agreement is silent', () => {
