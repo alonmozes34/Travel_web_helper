@@ -111,6 +111,9 @@ npm run test:unit # unit tests for pricing, estimation and scoring
 npm run test:e2e  # smoke test the core path against a running server
 npm run test:a11y # axe-core audit plus reflow, zoom, keyboard and target-size checks
 
+npm run test:negative # malformed URLs, boundary values, injection payloads
+npm run test:features # every user-facing feature, driven in a browser
+
 npm run generate:countries # regenerate the country list from CLDR
 npm run generate:brand     # regenerate favicon, app icons and share cards
 ```
@@ -211,6 +214,19 @@ needing 10GB:
 Price is scored as a ratio against the cheapest plan rather than a min–max
 spread, so one expensive unlimited plan cannot flatten the differences beneath
 it. All of the above is covered by `npm run test:unit`.
+
+### What a region in a product name does not tell you
+
+A plan called "Global 10GB" says it is global. It does not say which
+destinations, and the difference matters: the impact adapter used to answer
+that question from our own continent table and publish the result as the
+*provider's* claim — a real provider's global plan came out stating 243
+destinations, North Korea, Iran and Cuba among them, none of which the
+provider ever said.
+
+`publishedDestinationCount` is now null unless the provider supplied a figure.
+The number shown to a traveller as "the provider states N destinations" can
+only ever come from the provider.
 
 Coverage ratings are **not** an input. The `Coverage` type exists for a future
 phase, but V1's fourth category is "best for browsing", which uses only facts

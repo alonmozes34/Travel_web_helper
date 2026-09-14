@@ -192,3 +192,33 @@ test('paging follows the next-page link without looping', async () => {
   assert.equal(calls, 2);
   assert.equal(result.plans.length, 4);
 });
+
+const globalItem = {
+  CatalogItemId: 'g1',
+  Name: 'Global 10GB 30 Days',
+  Url: 'https://provider.test/global',
+  CurrentPrice: '39.00',
+  Currency: 'USD',
+  StockAvailability: 'InStock',
+};
+const globalConfig = { catalogId: 'c', providerId: 'airalo' };
+
+test('a region in a product name is not a destination list', () => {
+  // It claimed 243 — the size of our own continent table — presented as the
+  // provider's own published figure, with North Korea, Iran and Cuba in it.
+  const mapped = mapImpactItem(globalItem, globalConfig, '2026-09-14');
+  assert.ok('plan' in mapped);
+  assert.equal(mapped.plan.coverage.publishedDestinationCount, null);
+});
+
+test('the same holds for a named continent', () => {
+  const mapped = mapImpactItem({ ...globalItem, Name: 'Europe 10GB 30 Days' }, globalConfig, '2026-09-14');
+  assert.ok('plan' in mapped);
+  assert.equal(mapped.plan.coverage.publishedDestinationCount, null);
+});
+
+test('a country plan publishes nothing it was not told either', () => {
+  const mapped = mapImpactItem({ ...globalItem, Name: 'Japan 10GB 30 Days' }, globalConfig, '2026-09-14');
+  assert.ok('plan' in mapped);
+  assert.equal(mapped.plan.coverage.publishedDestinationCount, null);
+});

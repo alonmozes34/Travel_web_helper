@@ -161,7 +161,17 @@ function resolveCoverage(
         kind: region.id === 'global' ? 'global' : 'region',
         countries: region.countries,
         regionId: region.id,
-        publishedDestinationCount: region.countries.length,
+        // NOT `region.countries.length`. That number is ours — the size of our
+        // own continent table — and this field is what the interface shows as
+        // "the provider states N destinations". Publishing it attributed a
+        // figure to the provider that the provider never gave: a plan named
+        // "Global 10GB" came out claiming 243 destinations, North Korea, Iran
+        // and Cuba among them, presented as the provider's own claim.
+        //
+        // A word in a product name says a plan is global. It does not say
+        // which destinations, and we do not know until the provider's own
+        // list is read. So nothing is claimed.
+        publishedDestinationCount: null,
       };
     }
   }

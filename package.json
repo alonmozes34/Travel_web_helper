@@ -14,6 +14,8 @@
     "test:unit": "node --import tsx --test tests/*.test.ts",
     "test": "npm run test:unit",
     "test:a11y": "node tests/a11y.mjs && node tests/a11y-manual.mjs",
+    "test:negative": "node tests/negative.mjs",
+    "test:features": "node tests/features.mjs",
     "generate:countries": "tsx scripts/generate-countries.ts",
     "generate:brand": "tsx scripts/generate-brand-assets.ts",
     "fetch:impact": "tsx scripts/fetch-impact.ts"
