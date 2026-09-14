@@ -3,6 +3,7 @@ import { describe, test } from 'node:test';
 
 import {
   accessibilityStatement,
+  hasContactRoute,
   isAccessibilityStatementComplete,
   missingAccessibilityFields,
 } from '@/data/accessibility';
@@ -29,6 +30,18 @@ describe('accessibility statement', () => {
     for (const value of values) {
       if (value == null) continue;
       assert.ok(!suspicious.test(value), `"${value}" looks like a placeholder, not a real detail`);
+    }
+  });
+
+  test('there is a live route for reporting a barrier', () => {
+    // The one thing the statement cannot go without. Israeli law requires the
+    // statement AND somewhere to report a problem; a statement with no route
+    // asks people to speak up and gives them nowhere to do it.
+    assert.ok(hasContactRoute(), 'no contact route is published');
+    const { email, phone } = accessibilityStatement.contact;
+    assert.ok(email || phone);
+    if (email) {
+      assert.match(email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'the contact email is not a usable address');
     }
   });
 

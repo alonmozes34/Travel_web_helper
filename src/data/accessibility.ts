@@ -6,11 +6,11 @@
  * Persons with Disabilities (Service Accessibility Adjustments) Regulations,
  * 5773-2013, with IS 5568 (which adopts WCAG 2.0 AA) as the technical standard.
  *
- * Every field below is deliberately null. A statement is a legal document, and
- * a placeholder name or phone number published as though it were real would be
- * worse than no statement at all — so the page marks each missing field, and
- * `isAccessibilityStatementComplete` gates indexing on the whole thing being
- * filled in.
+ * Nothing here is a placeholder. A statement is a legal document, and a name
+ * or phone number published as though it were real when nobody supplied it
+ * would be worse than no statement at all — so a field nobody has given stays
+ * null, the page marks it, and `isAccessibilityStatementComplete` gates
+ * indexing on the routes that genuinely cannot be missing.
  */
 export type AccessibilityAuditor = {
   /** Licensed service-accessibility consultant (מורשה נגישות שירות). */
@@ -67,7 +67,11 @@ export const accessibilityStatement: AccessibilityStatement = {
   contact: {
     coordinatorName: null,
     phone: null,
-    email: null,
+    // Supplied by the operator. The one thing the statement could not go
+    // without: somewhere for a visitor who hits a barrier to report it. It is
+    // the site's own address, published deliberately, not a personal one
+    // picked up from anywhere.
+    email: 'yeshklita.info@gmail.com',
     postalAddress: null,
     responseWindowDays: null,
   },

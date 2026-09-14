@@ -38,6 +38,28 @@ function NotRequired({ label, reason }: { label: string; reason: string }) {
   );
 }
 
+/**
+ * A route someone can actually use, rather than an address to copy out by
+ * hand. This is the row the whole page exists for — the one a visitor who
+ * hits a barrier follows — so it is a link, and the address is isolated LTR
+ * so it does not come apart inside a right-to-left line.
+ */
+function ContactField({ label, href, value }: { label: string; href: string; value: string }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line-soft py-3 last:border-b-0">
+      <dt className="w-40 shrink-0 text-sm font-semibold text-ink-2">{label}</dt>
+      <dd>
+        <a
+          href={href}
+          className="inline-flex min-h-11 items-center font-medium text-brand underline underline-offset-2"
+        >
+          <Ltr>{value}</Ltr>
+        </a>
+      </dd>
+    </div>
+  );
+}
+
 /** A value that has not been supplied is marked, never filled in with a guess. */
 function Field({ label, value, fallback }: { label: string; value: string | null; fallback: string }) {
   return (
@@ -168,10 +190,18 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
               <NotRequired label={copy.coordinatorLabel} reason={copy.notRequiredCoordinator} />
             )}
             {contact.email ? (
-              <Field label={copy.emailLabel} value={contact.email} fallback={copy.notSet} />
+              <ContactField
+                label={copy.emailLabel}
+                href={`mailto:${contact.email}`}
+                value={contact.email}
+              />
             ) : null}
             {contact.phone ? (
-              <Field label={copy.phoneLabel} value={contact.phone} fallback={copy.notSet} />
+              <ContactField
+                label={copy.phoneLabel}
+                href={`tel:${contact.phone.replace(/[^+\d]/g, '')}`}
+                value={contact.phone}
+              />
             ) : null}
             {contact.postalAddress ? (
               <Field label={copy.addressLabel} value={contact.postalAddress} fallback={copy.notSet} />
