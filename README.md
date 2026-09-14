@@ -235,7 +235,7 @@ it comes from `src/data/accessibility.ts`, where **all fields are currently
 
 | Field | Required? | What goes in it |
 | --- | --- | --- |
-| `legalEntityName` | **yes** | The legal entity operating the site |
+| `operator` | answered | An individual, or a registered entity by name |
 | `lastReviewedAt` | **yes** | ISO date of the technical review |
 | `contact.email` **or** `.phone` | **yes** | Somewhere a barrier can be reported |
 | `auditedBy` | no | A מורשה נגישות שירות is not required to approve a *website* under regulation 35 |
@@ -250,6 +250,17 @@ Demanding all seven put eight "not yet set" markers on a live page, four of
 them inside the section inviting people to report a problem — so it asked for
 reports and offered nobody anywhere to send one. When no contact route is
 configured at all, that section now says so plainly instead.
+
+`operator` is never "missing": a personal project run by one person before any
+company exists is the ordinary way something like this starts, and marking it
+as an unfilled field says something false about the operator while inviting
+them to invent a company name to clear the warning. It is `{ kind:
+'individual' }` or `{ kind: 'entity', name }`, and the page states either
+truthfully in whichever language it is read.
+
+That leaves exactly one thing outstanding: somewhere to report a barrier. The
+banner at the top of the page says so by name rather than calling the whole
+statement a skeleton.
 
 This reading of the regulations is recorded here so it can be checked; it is
 not legal advice.

@@ -412,7 +412,7 @@ export const en: Dictionary = {
       'We treat accessibility as part of the product rather than an addition to it. This page sets out what has been done, against which standard, what is not accessible yet, and how to report a problem.',
     pendingBadge: 'Draft — not yet complete',
     pendingNotice:
-      'This statement is a skeleton. Every field marked "not set" must be filled in before the site goes live, and the statement should not be relied upon until then.',
+      'There is no route here for reporting an accessibility problem, so this statement is not complete. Everything else on this page is accurate and current.',
     notSet: 'Not set',
     standardTitle: 'The standard this site is built against',
     standardTemplate:
@@ -448,6 +448,7 @@ export const en: Dictionary = {
     emailLabel: 'Email',
     addressLabel: 'Postal address',
     responseLabel: 'Response time',
+    operatorIndividual: 'An individual. The site is not operated by a company or a registered business.',
     notRequiredAudit: 'A licensed service-accessibility consultant is not required to approve a website under regulation 35.',
     notRequiredCoordinator: 'An accessibility coordinator is required of an organisation employing 25 people or more.',
     noContactYet:

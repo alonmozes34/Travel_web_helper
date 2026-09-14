@@ -16,7 +16,7 @@ import { allowIndexing, resolveSiteUrl, siteUrlMismatch } from '@/lib/site';
 describe('accessibility statement', () => {
   test('no field is filled with a plausible-looking placeholder', () => {
     const values = [
-      accessibilityStatement.legalEntityName,
+      accessibilityStatement.operator.kind === 'entity' ? accessibilityStatement.operator.name : null,
       accessibilityStatement.lastReviewedAt,
       accessibilityStatement.auditedBy?.name,
       accessibilityStatement.auditedBy?.licenceNumber,

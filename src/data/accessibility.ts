@@ -28,9 +28,25 @@ export type AccessibilityContact = {
   responseWindowDays: number | null;
 };
 
+/**
+ * Who operates the site.
+ *
+ * "No registered business" is an answer, not a blank. A personal project run
+ * by one person before any company exists is the ordinary way something like
+ * this starts, and a statement that marks it as a missing field says
+ * something false about the operator — while inviting them to invent a
+ * company name to make the warning go away.
+ *
+ * Named separately from a registered entity so the page can state either
+ * truthfully, in whichever language it is being read.
+ */
+export type AccessibilityOperator =
+  | { kind: 'individual' }
+  | { kind: 'entity'; name: string };
+
 export type AccessibilityStatement = {
-  /** The legal entity operating the site. */
-  legalEntityName: string | null;
+  /** Who runs the site — an individual, or a registered entity by name. */
+  operator: AccessibilityOperator;
   /** ISO date the accessibility work was last reviewed. */
   lastReviewedAt: string | null;
   /** Who carried out the review, once one has been carried out. */
@@ -39,7 +55,9 @@ export type AccessibilityStatement = {
 };
 
 export const accessibilityStatement: AccessibilityStatement = {
-  legalEntityName: null,
+  // A personal project. No company exists, and inventing one to fill a field
+  // would be the one thing a legal document must never do.
+  operator: { kind: 'individual' },
   // The date the technical review below was last run in full: axe-core across
   // eight states of the site plus twenty-three manual checks, all passing.
   // A date for work that happened — explicitly not a licensed audit, which the
@@ -87,7 +105,8 @@ export function missingAccessibilityFields(
   statement: AccessibilityStatement = accessibilityStatement,
 ): string[] {
   const missing: string[] = [];
-  if (!statement.legalEntityName) missing.push('legalEntityName');
+  // `operator` is always answerable — an individual is an answer — so it is
+  // never missing, only one value or the other.
   if (!statement.lastReviewedAt) missing.push('lastReviewedAt');
   // At least one way to reach a human. Which one is the operator's choice.
   if (!hasContactRoute(statement)) missing.push('contact.email or contact.phone');

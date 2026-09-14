@@ -93,9 +93,16 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
         <p className="mt-2 text-sm text-ink-3">{copy.standardNote}</p>
 
         <dl className="mt-5">
+          {/* An individual is an answer, not a blank. Marking it missing would
+              say something false about the operator, and invite inventing a
+              company to make the warning go away. */}
           <Field
             label={copy.entityTitle}
-            value={accessibilityStatement.legalEntityName}
+            value={
+              accessibilityStatement.operator.kind === 'entity'
+                ? accessibilityStatement.operator.name
+                : copy.operatorIndividual
+            }
             fallback={copy.notSet}
           />
           <Field
