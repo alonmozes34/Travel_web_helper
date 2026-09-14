@@ -101,6 +101,8 @@ export const en: Dictionary = {
     coverageVerifiedAllTemplate: '{count} destinations, all verified',
     noFullCoverage:
       'No single plan covers all of your destinations. The combination below covers them together.',
+    pendingTitle: 'You changed the trip. The results below still show the previous search.',
+    pendingApply: 'Update the results',
     emptyTitle: 'Where are you going?',
     emptyBody:
       'Pick one destination or more to compare plans. Several stops can share one trip — we look for a single plan covering them all and for a cheaper combination.',

@@ -160,3 +160,20 @@ export function tripProfileFromParams(params: {
 
   return profile;
 }
+
+/**
+ * Whether two trips would produce the same results page.
+ *
+ * Used to tell an edited trip from the one currently on screen. Destinations
+ * are compared in order, because the order is what the URL carries and what
+ * the heading reads back; days and usage because both change which plan fits.
+ */
+export function sameTrip(a: TripProfile, b: TripProfile): boolean {
+  if (a.destinations.length !== b.destinations.length) return false;
+  for (const [index, destination] of a.destinations.entries()) {
+    const other = b.destinations[index];
+    if (destination.countryCode !== other.countryCode) return false;
+    if ((destination.days ?? null) !== (other.days ?? null)) return false;
+  }
+  return (a.usage ?? null) === (b.usage ?? null) && (a.requestedGb ?? null) === (b.requestedGb ?? null);
+}

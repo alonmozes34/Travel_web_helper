@@ -195,6 +195,44 @@ try {
   await p.close();
 } catch (e) { check('run', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ editing the trip after results are on screen ═════════════════════════
+// Reported as: "I deleted the country and I still see its plans, its flag and
+// its name." Removing a chip changed local state only, the results are
+// rendered on the server from the URL, and the button that would have applied
+// it lived inside a collapsed panel — so the change was invisible AND
+// unreachable.
+for (const [label, url, expected] of [
+  ['country page', '/esim/thailand?days=14&usage=regular', 'empty'],
+  ['one destination', '/search?to=TH:14&usage=regular', 'empty'],
+  ['one of two', '/search?to=DE:3,US:10&usage=regular', 'remaining'],
+]) {
+  try {
+    const p = await page();
+    await p.goto(B + url, { waitUntil: 'domcontentloaded' });
+    await p.waitForTimeout(1300);
+    const pricesBefore = await priceCount(p);
+    check('edit trip', `${label}: no pending notice at rest`, (await p.getByRole('button', { name: 'עדכון התוצאות' }).count()) === 0);
+
+    await p.getByRole('button', { name: /^הסרת / }).first().click();
+    await p.waitForTimeout(700);
+    const apply = p.getByRole('button', { name: 'עדכון התוצאות' });
+    check('edit trip', `${label}: removing says the results are stale`, (await apply.count()) > 0);
+
+    await apply.first().click();
+    await p.waitForTimeout(2600);
+    const after = await p.locator('body').innerText();
+    const pricesAfter = await priceCount(p);
+    if (expected === 'empty') {
+      check('edit trip', `${label}: clearing the trip lands on the empty search`, p.url().includes('/search') && pricesAfter === 0, `${pricesBefore} -> ${pricesAfter} prices, ${p.url().replace(B, '')}`);
+      check('edit trip', `${label}: and the deleted country is gone`, !after.includes('eSIM לתאילנד'));
+    } else {
+      check('edit trip', `${label}: the remaining destination is what is shown`, after.includes('ארצות הברית') && !after.includes('גרמניה'), p.url().replace(B, ''));
+    }
+    check('edit trip', `${label}: the notice clears once applied`, (await p.getByRole('button', { name: 'עדכון התוצאות' }).count()) === 0);
+    await p.close();
+  } catch (e) { check('edit trip', `${label}: section completed`, false, e.message.split('\n')[0].slice(0, 70)); }
+}
+
 // ══ details & honesty ════════════════════════════════════════════════════
 try {
   const p = await page();

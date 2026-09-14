@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import {
   isTripDescribed,
   missingTripFields,
   parseRequestedGb,
+  sameTrip,
   tripProfileFromParams,
   tripProfileToQuery,
 } from '../src/lib/types/trip';
@@ -111,4 +112,46 @@ test('a nonsense GB figure is rejected rather than trusted', () => {
   assert.equal(parseRequestedGb('abc'), undefined);
   assert.equal(parseRequestedGb(''), undefined);
   assert.equal(parseRequestedGb('999999'), 1000, 'clamped, not accepted as written');
+});
+
+describe('an edited trip against the one on screen', () => {
+  const base = { destinations: [{ countryCode: 'TH', days: 14 }], usage: 'regular' as const };
+
+  test('the same trip is the same trip', () => {
+    assert.equal(sameTrip(base, { ...base, destinations: [...base.destinations] }), true);
+  });
+
+  test('removing a destination is a change', () => {
+    // The bug this exists for: the chip disappeared and the heading, the flag
+    // and the plans all stayed, because nothing compared the two.
+    assert.equal(sameTrip(base, { ...base, destinations: [] }), false);
+  });
+
+  test('removing one of several is a change', () => {
+    const two = { ...base, destinations: [{ countryCode: 'DE', days: 3 }, { countryCode: 'US', days: 10 }] };
+    assert.equal(sameTrip(two, { ...two, destinations: [two.destinations[1]] }), false);
+  });
+
+  test('changing the days or the usage is a change', () => {
+    assert.equal(sameTrip(base, { ...base, destinations: [{ countryCode: 'TH', days: 7 }] }), false);
+    assert.equal(sameTrip(base, { ...base, usage: 'heavy' }), false);
+  });
+
+  test('a stated GB figure counts', () => {
+    assert.equal(sameTrip(base, { ...base, usage: undefined, requestedGb: 20 }), false);
+    assert.equal(
+      sameTrip({ ...base, usage: undefined, requestedGb: 20 }, { ...base, usage: undefined, requestedGb: 20 }),
+      true,
+    );
+  });
+
+  test('order matters, because the URL and the heading carry it', () => {
+    const de = { countryCode: 'DE', days: 3 };
+    const us = { countryCode: 'US', days: 10 };
+    assert.equal(sameTrip({ destinations: [de, us] }, { destinations: [us, de] }), false);
+  });
+
+  test('an unset day and an unset usage are not a change', () => {
+    assert.equal(sameTrip({ destinations: [{ countryCode: 'TH' }] }, { destinations: [{ countryCode: 'TH' }] }), true);
+  });
 });

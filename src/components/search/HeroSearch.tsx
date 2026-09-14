@@ -11,6 +11,7 @@ import { track } from "@/lib/analytics/events";
 import {
   isTripDescribed,
   missingTripFields,
+  sameTrip,
   tripProfileToQuery,
   type TripDestination,
   type TripProfile,
@@ -61,6 +62,29 @@ export function HeroSearch({
   const [error, setError] = useState<string | null>(null);
 
   /**
+   * Adopt the page's trip when the page changes under us.
+   *
+   * Navigating from /search to /search keeps this component mounted, so the
+   * form went on holding the trip the visitor had just cleared — and the empty
+   * search page greeted them with "you changed the trip" and a button that
+   * would have done nothing. Adjusting state during render rather than in an
+   * effect, which is React's own answer to a prop the state derives from, and
+   * avoids a frame of the wrong thing.
+   */
+  const [seededFrom, setSeededFrom] = useState(initialProfile);
+  if (!sameTrip(seededFrom, initialProfile)) {
+    setSeededFrom(initialProfile);
+    setProfile(initialProfile);
+  }
+
+  /**
+   * The trip in this form against the one the page was rendered for. Anything
+   * but equal means the results on screen answer a question the visitor has
+   * already changed.
+   */
+  const hasPendingChanges = !sameTrip(profile, initialProfile);
+
+  /**
    * One stop keeps the shareable, indexable country URL; more than one goes to
    * the multi-stop search, which is the only page that can answer it.
    */
@@ -101,6 +125,16 @@ export function HeroSearch({
   }
 
   function submit() {
+    // Clearing the trip is an instruction, not an incomplete form. Someone who
+    // removes their last destination has said the results no longer answer
+    // anything, and refusing with "choose a destination" left them stranded on
+    // a page still showing the country they had just deleted — the heading,
+    // the flag and every plan. The empty search is where that request lands.
+    if (profile.destinations.length === 0 && initialProfile.destinations.length > 0) {
+      router.push(`${localePath(locale, "/search")}`);
+      return;
+    }
+
     // Say which answer is missing rather than refusing without a reason.
     const missing = missingTripFields(profile);
     if (missing.length > 0) {
@@ -187,6 +221,29 @@ export function HeroSearch({
         dict={dict}
         onChange={setDestinations}
       />
+
+      {/* An edit that produces no visible consequence reads as a broken site,
+          whatever happens later. Removing a destination changed local state
+          only: the heading, the flag and the plans are rendered on the server
+          from the URL, so the page sat there unchanged — and the button that
+          would have applied it lives inside the collapsed panel below, so a
+          visitor who had not opened that panel had no way to apply it at all.
+
+          Everything in this form is edit-then-apply, including the days and
+          the usage, so the fix is not to navigate on one of them: it is to say
+          plainly that there are changes waiting, and to put the button that
+          applies them where the change was made. */}
+      {hasPendingChanges ? (
+        <div
+          role="status"
+          className="mt-3 flex max-w-[640px] flex-wrap items-center gap-x-4 gap-y-2 rounded-sm border-s-[3px] border-s-brand bg-brand-50 px-3 py-2.5"
+        >
+          <p className="text-sm font-semibold text-ink">{dict.search.pendingTitle}</p>
+          <Button type="submit" size="sm" className="ms-auto">
+            {dict.search.pendingApply}
+          </Button>
+        </div>
+      ) : null}
 
       <p aria-live="polite" className="min-h-5 pt-2 text-sm text-warn-ink">
         {error}
