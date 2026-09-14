@@ -442,12 +442,16 @@ export const en: Dictionary = {
     ],
     contactTitle: 'Reporting an accessibility problem',
     contactIntro:
-      'Found something that is not accessible? We want to know. Accessibility reports are answered promptly, and in any case within the window below.',
+      'Found something that is not accessible? We want to know — that report is the one that helps us fix it.',
     coordinatorLabel: 'Accessibility coordinator',
     phoneLabel: 'Phone',
     emailLabel: 'Email',
     addressLabel: 'Postal address',
     responseLabel: 'Response time',
+    notRequiredAudit: 'A licensed service-accessibility consultant is not required to approve a website under regulation 35.',
+    notRequiredCoordinator: 'An accessibility coordinator is required of an organisation employing 25 people or more.',
+    noContactYet:
+      'No route for reporting a problem has been published yet, so this statement is not complete. Until one is, do not rely on this page.',
     responseTemplate: 'Within {days} business days',
     updatedTemplate: 'Last updated: {date}',
   },

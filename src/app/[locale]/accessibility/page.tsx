@@ -6,6 +6,7 @@ import { Ltr } from '@/components/ui/Bdi';
 import {
   accessibilityStandard,
   accessibilityStatement,
+  hasContactRoute,
   isAccessibilityStatementComplete,
 } from '@/data/accessibility';
 import { isLocale } from '@/i18n/config';
@@ -21,6 +22,20 @@ export async function generateMetadata({
   if (!isLocale(locale)) return {};
   const dict = getDictionary(locale);
   return { title: dict.accessibility.title, description: dict.accessibility.intro };
+}
+
+/**
+ * A detail that is absent because it is not required, which is not the same
+ * as one nobody has filled in. Rendered as an explanation rather than a
+ * warning, because a reader cannot tell the two apart from a blank.
+ */
+function NotRequired({ label, reason }: { label: string; reason: string }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line-soft py-3 last:border-b-0">
+      <dt className="w-40 shrink-0 text-sm font-semibold text-ink-2">{label}</dt>
+      <dd className="text-ink-2">{reason}</dd>
+    </div>
+  );
 }
 
 /** A value that has not been supplied is marked, never filled in with a guess. */
@@ -88,18 +103,18 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
             value={accessibilityStatement.lastReviewedAt}
             fallback={copy.notSet}
           />
-          <Field
-            label={copy.auditorTitle}
-            value={
-              accessibilityStatement.auditedBy
-                ? interpolate(copy.auditorTemplate, {
-                    name: accessibilityStatement.auditedBy.name,
-                    licence: accessibilityStatement.auditedBy.licenceNumber,
-                  })
-                : null
-            }
-            fallback={copy.notSet}
-          />
+          {accessibilityStatement.auditedBy ? (
+            <Field
+              label={copy.auditorTitle}
+              value={interpolate(copy.auditorTemplate, {
+                name: accessibilityStatement.auditedBy.name,
+                licence: accessibilityStatement.auditedBy.licenceNumber,
+              })}
+              fallback={copy.notSet}
+            />
+          ) : (
+            <NotRequired label={copy.auditorTitle} reason={copy.notRequiredAudit} />
+          )}
         </dl>
       </section>
 
@@ -134,21 +149,39 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
       <section className="mt-10">
         <h2 className="font-head text-xl font-semibold">{copy.contactTitle}</h2>
         <p className="mt-2 text-ink-2">{copy.contactIntro}</p>
-        <dl className="mt-4">
-          <Field label={copy.coordinatorLabel} value={contact.coordinatorName} fallback={copy.notSet} />
-          <Field label={copy.phoneLabel} value={contact.phone} fallback={copy.notSet} />
-          <Field label={copy.emailLabel} value={contact.email} fallback={copy.notSet} />
-          <Field label={copy.addressLabel} value={contact.postalAddress} fallback={copy.notSet} />
-          <Field
-            label={copy.responseLabel}
-            value={
-              contact.responseWindowDays
-                ? interpolate(copy.responseTemplate, { days: contact.responseWindowDays })
-                : null
-            }
-            fallback={copy.notSet}
-          />
-        </dl>
+        {/* Only routes that exist are listed. A row reading "not yet set" is
+            not a way to reach anybody, and four of them under an invitation to
+            report a problem is worse than saying plainly that there is no
+            route yet — which is what happens when none is configured. */}
+        {hasContactRoute() ? (
+          <dl className="mt-4">
+            {contact.coordinatorName ? (
+              <Field label={copy.coordinatorLabel} value={contact.coordinatorName} fallback={copy.notSet} />
+            ) : (
+              <NotRequired label={copy.coordinatorLabel} reason={copy.notRequiredCoordinator} />
+            )}
+            {contact.email ? (
+              <Field label={copy.emailLabel} value={contact.email} fallback={copy.notSet} />
+            ) : null}
+            {contact.phone ? (
+              <Field label={copy.phoneLabel} value={contact.phone} fallback={copy.notSet} />
+            ) : null}
+            {contact.postalAddress ? (
+              <Field label={copy.addressLabel} value={contact.postalAddress} fallback={copy.notSet} />
+            ) : null}
+            {contact.responseWindowDays ? (
+              <Field
+                label={copy.responseLabel}
+                value={interpolate(copy.responseTemplate, { days: contact.responseWindowDays })}
+                fallback={copy.notSet}
+              />
+            ) : null}
+          </dl>
+        ) : (
+          <p className="mt-4 rounded-sm border-s-[3px] border-s-warn-ink bg-warn-50 px-3 py-2 text-warn-ink">
+            {copy.noContactYet}
+          </p>
+        )}
       </section>
 
       {accessibilityStatement.lastReviewedAt ? (

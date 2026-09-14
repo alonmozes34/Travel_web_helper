@@ -257,14 +257,26 @@ a visible focus indicator on every tabbable element, WCAG 2.2 target sizes and
 it comes from `src/data/accessibility.ts`, where **all fields are currently
 `null`**:
 
-| Field | What goes in it |
-| --- | --- |
-| `legalEntityName` | The legal entity operating the site |
-| `lastReviewedAt` | ISO date of the accessibility review |
-| `auditedBy` | Name and licence number of the מורשה נגישות שירות |
-| `contact.coordinatorName` | The רכז נגישות |
-| `contact.phone` / `.email` / `.postalAddress` | How to reach them |
-| `contact.responseWindowDays` | Business days to answer a report |
+| Field | Required? | What goes in it |
+| --- | --- | --- |
+| `legalEntityName` | **yes** | The legal entity operating the site |
+| `lastReviewedAt` | **yes** | ISO date of the technical review |
+| `contact.email` **or** `.phone` | **yes** | Somewhere a barrier can be reported |
+| `auditedBy` | no | A מורשה נגישות שירות is not required to approve a *website* under regulation 35 |
+| `contact.coordinatorName` | no | A רכז נגישות is required of an organisation with 25+ employees |
+| `contact.postalAddress`, `.responseWindowDays` | no | Published if offered |
+
+The optional rows are rendered as an explanation of *why* they are absent,
+never as a blank or a "not yet set" marker — a reader cannot tell an
+exemption from an omission, and the page has to say which it is.
+
+Demanding all seven put eight "not yet set" markers on a live page, four of
+them inside the section inviting people to report a problem — so it asked for
+reports and offered nobody anywhere to send one. When no contact route is
+configured at all, that section now says so plainly instead.
+
+This reading of the regulations is recorded here so it can be checked; it is
+not legal advice.
 
 While anything is missing the page carries a "draft — not yet complete" notice
 and marks each empty field, rather than reading like a finished legal document

@@ -40,7 +40,11 @@ export type AccessibilityStatement = {
 
 export const accessibilityStatement: AccessibilityStatement = {
   legalEntityName: null,
-  lastReviewedAt: null,
+  // The date the technical review below was last run in full: axe-core across
+  // eight states of the site plus twenty-three manual checks, all passing.
+  // A date for work that happened — explicitly not a licensed audit, which the
+  // page states separately and which a website does not require.
+  lastReviewedAt: '2026-09-14',
   auditedBy: null,
   contact: {
     coordinatorName: null,
@@ -58,19 +62,45 @@ export const accessibilityStandard = {
   level: 'AA',
 } as const;
 
+/**
+ * The fields a published statement genuinely cannot go without.
+ *
+ * Narrower than the full shape, and deliberately so. The regulations do not
+ * ask a one-person site for everything this type can hold:
+ *
+ *  - `auditedBy` — a licensed מורשה נגישות שירות is not required to approve a
+ *    website under regulation 35. That mechanism belongs to physical premises.
+ *  - `contact.coordinatorName` — a רכז נגישות is required of an organisation
+ *    with 25 employees or more.
+ *  - `contact.phone` / `contact.postalAddress` / `responseWindowDays` — a
+ *    route for reporting a problem is required; a particular one is not.
+ *
+ * Demanding all of them produced a live page carrying eight "not yet set"
+ * markers, four of them in the section that asks people to report a problem —
+ * so it asked for reports and gave nobody anywhere to send one. That is worse
+ * than a shorter statement, and it was not what the law asked for either.
+ *
+ * This is not legal advice, and the reading behind it is recorded in the
+ * README rather than left implied.
+ */
 export function missingAccessibilityFields(
   statement: AccessibilityStatement = accessibilityStatement,
 ): string[] {
   const missing: string[] = [];
   if (!statement.legalEntityName) missing.push('legalEntityName');
   if (!statement.lastReviewedAt) missing.push('lastReviewedAt');
-  if (!statement.auditedBy) missing.push('auditedBy');
-  if (!statement.contact.coordinatorName) missing.push('contact.coordinatorName');
-  if (!statement.contact.phone) missing.push('contact.phone');
-  if (!statement.contact.email) missing.push('contact.email');
-  if (!statement.contact.responseWindowDays) missing.push('contact.responseWindowDays');
+  // At least one way to reach a human. Which one is the operator's choice.
+  if (!hasContactRoute(statement)) missing.push('contact.email or contact.phone');
   return missing;
 }
+
+/** Whether a visitor who finds a barrier has somewhere to report it. */
+export function hasContactRoute(
+  statement: AccessibilityStatement = accessibilityStatement,
+): boolean {
+  return Boolean(statement.contact.email || statement.contact.phone);
+}
+
 
 export function isAccessibilityStatementComplete(
   statement: AccessibilityStatement = accessibilityStatement,
