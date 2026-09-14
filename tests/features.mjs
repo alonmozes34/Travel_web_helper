@@ -361,6 +361,60 @@ try {
   await p.close();
 } catch (e) { check('gb button', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ a category has to lead with its own winner ═══════════════════════════
+// Reported on France, 5 days, regular use: "best unlimited" put the expensive
+// plan first, and "best for browsing" seemed to keep the ordinary ones on top.
+// The unlimited order divided price by the plan's own validity, so a 15-day
+// plan at ₪210 beat a 10-day plan at ₪143 on a five-day trip — ranked by days
+// the traveller will never use. Browsing ties fell back to the general value
+// score, so a dearer plan could sit above a cheaper one with an identical
+// browsing case.
+try {
+  const p = await page();
+  await p.goto(B + '/esim/france?to=FR:5&usage=regular', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1600);
+
+  const rows = async () =>
+    (await p.locator('article').evaluateAll((arts) =>
+      arts.map((a) => {
+        const text = a.innerText;
+        const price = (text.match(/₪\s?([\d,]+(?:\.\d+)?)/g) || [])
+          .map((m) => Number(m.replace(/[₪,\s]/g, '')))
+          .filter((n) => n > 1);
+        return { price: price[0] ?? null, badges: /הכי טוב ללא הגבלה|הכי טוב לגלישה|הכי משתלם|הכי זול/.test(text) ? text.match(/הכי [^\n]*/g) : [] };
+      }),
+    ));
+
+  await p.getByRole('button', { name: /הכי טוב ללא הגבלה/ }).first().click();
+  await p.waitForTimeout(1100);
+  const unlimited = await rows();
+  const prices = unlimited.map((r) => r.price).filter((n) => typeof n === 'number');
+  check('categories', 'the unlimited list leads with its own winner', (unlimited[0]?.badges ?? []).some((t) => t.includes('ללא הגבלה')), JSON.stringify(unlimited[0]?.badges ?? []));
+  check('categories', 'and does not put a dearer plan above a cheaper one', prices.every((value, i) => i === 0 || prices[i - 1] <= value), prices.join(' → '));
+
+  await p.getByRole('button', { name: /הכי טוב לגלישה/ }).first().click();
+  await p.waitForTimeout(1100);
+  const browsing = await rows();
+  check('categories', 'the browsing list leads with its own winner', (browsing[0]?.badges ?? []).some((t) => t.includes('לגלישה')), JSON.stringify(browsing[0]?.badges ?? []));
+
+  await p.close();
+} catch (e) { check('categories', 'winner-first: section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+// An order nobody can check makes "our commission does not affect the order"
+// an unverifiable claim.
+try {
+  const p = await page();
+  await p.goto(B + '/esim/france?to=FR:5&usage=regular', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1600);
+  const explainer = p.locator('details').filter({ hasText: 'מומלץ' }).first();
+  check('categories', 'the recommended order says what it ranks by', (await explainer.count()) > 0);
+  await explainer.locator('summary').click();
+  await p.waitForTimeout(300);
+  const text = await explainer.innerText();
+  check('categories', 'and says commission plays no part', text.includes('עמלה'), text.slice(0, 80).replace(/\n/g, ' '));
+  await p.close();
+} catch (e) { check('categories', 'explainer: section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ every recommendation category has to be on the screen ════════════════
 // Reported as "why can't I see the recommended ones". They were a nowrap row
 // with overflow-x:auto and no fade or arrow: on a 390px phone the four chips

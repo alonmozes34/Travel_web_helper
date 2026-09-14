@@ -123,12 +123,23 @@ export function ResultsView({
         : filtered;
 
     if (tab === "bestForBrowsing" && sort === "recommended") {
-      return [...scoped].sort((a, b) => b.browsingScore - a.browsingScore);
-    }
-    if (tab === "bestUnlimited" && sort === "recommended") {
+      // Price breaks the tie. The browsing score is coarse by design — it
+      // counts published facts, and seven plans reaching the same 1.0 is
+      // normal — so without a tie-break the order inside the tie came from
+      // the general value score, and a dearer plan could sit above a cheaper
+      // one with exactly the same browsing case for it.
       return [...scoped].sort(
         (a, b) =>
-          (a.pricePerDayMinor ?? Infinity) - (b.pricePerDayMinor ?? Infinity),
+          b.browsingScore - a.browsingScore ||
+          a.price.amountMinor - b.price.amountMinor,
+      );
+    }
+    if (tab === "bestUnlimited" && sort === "recommended") {
+      // The same figure the badge is chosen by, so the winner of the category
+      // is the first row in it.
+      return [...scoped].sort(
+        (a, b) =>
+          (a.unlimitedCostMinor ?? Infinity) - (b.unlimitedCostMinor ?? Infinity),
       );
     }
     return sortRows(scoped, sort);
@@ -279,6 +290,22 @@ export function ResultsView({
               )}
             </p>
           ) : null}
+        </details>
+      ) : null}
+
+      {/* "Recommended" is the default order and the one thing on the page a
+          traveller cannot check for themselves — which makes "our commission
+          does not affect the order" unverifiable unless the order says what it
+          is. One tap, like the conversion note, rather than four lines above
+          the results. */}
+      {sort === "recommended" ? (
+        <details className="mb-4 rounded-sm border-s-[3px] border-s-line bg-surface-2 px-3 py-2">
+          <summary className="cursor-pointer text-sm text-ink-2 marker:text-ink-3">
+            {dict.filters.recommendedSummary}
+          </summary>
+          <p className="mt-2 max-w-[80ch] text-sm text-ink-2">
+            {dict.filters.recommendedNote}
+          </p>
         </details>
       ) : null}
 

@@ -307,6 +307,9 @@ export const en: Dictionary = {
   },
   filters: {
     categoriesLabel: 'Recommended categories',
+    recommendedSummary: 'What does the "recommended" order rank by?',
+    recommendedNote:
+      'Price carries the most weight (about 52%), then how well the allowance fits the data we estimate for your trip (28%), extra data beyond that need (12%), and extras such as 5G, hotspot and top-up (8%). A plan that expires before the trip ends, or throttles early, is marked down accordingly. What we earn in commission plays no part at any stage.',
     resultsLabel: 'Comparison results',
     trayLabel: 'Plans selected for comparison',
     open: 'Filter and sort',

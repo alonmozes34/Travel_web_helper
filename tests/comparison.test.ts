@@ -267,3 +267,100 @@ describe('mock data is unmistakably mock', () => {
     }
   });
 });
+
+describe('the unlimited category ranks on the trip, not on surplus validity', () => {
+  const trip = { destinations: [{ countryCode: 'TH', days: 5 }], usage: 'regular' as const };
+
+  // The shape reported on France: two unlimited plans, identical fair usage,
+  // both outlasting the trip several times over, one £71 dearer and valid for
+  // longer. Ranking by price per day of validity crowned the dearer one.
+  const cheaperShorter = plan({
+    id: 'cheaper-10d',
+    planName: 'Cheaper, 10 days',
+    isUnlimited: true,
+    dataAmountMb: 0,
+    validityDays: 10,
+    finalPriceMinor: 15228,
+    originalPriceMinor: 15228,
+    fairUsage: { dailyThresholdMb: 5 * MB_PER_GB, throttledToKbps: 512 },
+  });
+  const dearerLonger = plan({
+    id: 'dearer-15d',
+    planName: 'Dearer, 15 days',
+    isUnlimited: true,
+    dataAmountMb: 0,
+    validityDays: 15,
+    finalPriceMinor: 22356,
+    originalPriceMinor: 22356,
+    fairUsage: { dailyThresholdMb: 5 * MB_PER_GB, throttledToKbps: 512 },
+  });
+
+  test('the cheaper plan wins when both outlast the trip', () => {
+    const comparison = buildComparison({
+      profile: trip,
+      currency: 'ILS',
+      plans: [cheaperShorter, dearerLonger],
+      rates: mockFxRates,
+    });
+    assert.equal(comparison.recommendations.bestUnlimited?.planId, 'cheaper-10d');
+  });
+
+  test('a stricter fair-usage policy still counts against a plan', () => {
+    const throttled = plan({
+      ...cheaperShorter,
+      id: 'cheaper-throttled',
+      // Well under the 600MB a day this trip is estimated at.
+      fairUsage: { dailyThresholdMb: 100, throttledToKbps: 256 },
+    });
+    const comparison = buildComparison({
+      profile: trip,
+      currency: 'ILS',
+      plans: [throttled, dearerLonger],
+      rates: mockFxRates,
+    });
+    // 152.28 / 0.667 = 228 against 223.56 at full marks: the dearer plan wins
+    // on the data it actually delivers, which is the one adjustment left.
+    assert.equal(comparison.recommendations.bestUnlimited?.planId, 'dearer-15d');
+  });
+
+  test('the ranking figure is on the row, so the tab and the badge agree', () => {
+    const comparison = buildComparison({
+      profile: trip,
+      currency: 'ILS',
+      plans: [dearerLonger, cheaperShorter],
+      rates: mockFxRates,
+    });
+    const byCost = [...comparison.rows].sort(
+      (a, b) => (a.unlimitedCostMinor ?? Infinity) - (b.unlimitedCostMinor ?? Infinity),
+    );
+    assert.equal(byCost[0].plan.id, comparison.recommendations.bestUnlimited?.planId);
+    assert.equal(
+      comparison.rows.find((row) => !row.plan.isUnlimited)?.unlimitedCostMinor ?? null,
+      null,
+    );
+  });
+});
+
+describe('the browsing category breaks ties on price', () => {
+  test('two plans with the same published facts are ordered by what they cost', () => {
+    const facts = {
+      isUnlimited: false,
+      dataAmountMb: 10 * MB_PER_GB,
+      validityDays: 30,
+      networks: [{ name: 'A', technologies: ['4G', '5G'] as const }] as Plan['networks'],
+      hotspot: true,
+    };
+    const dearer = plan({ ...facts, id: 'dearer', finalPriceMinor: 9000, originalPriceMinor: 9000 });
+    const cheaper = plan({ ...facts, id: 'cheaper', finalPriceMinor: 5000, originalPriceMinor: 5000 });
+
+    const comparison = buildComparison({
+      profile: { destinations: [{ countryCode: 'TH', days: 5 }], usage: 'regular' },
+      currency: 'ILS',
+      plans: [dearer, cheaper],
+      rates: mockFxRates,
+    });
+    const scores = comparison.rows.map((row) => row.browsingScore);
+    assert.equal(scores[0], scores[1], 'the two plans should tie on browsing');
+    assert.equal(comparison.recommendations.bestForBrowsing?.planId, 'cheaper');
+  });
+});

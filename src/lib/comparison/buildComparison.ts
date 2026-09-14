@@ -9,7 +9,12 @@ import type { Provider } from '@/lib/types/provider';
 import { destinationCodes, type TripProfile } from '@/lib/types/trip';
 import { buildCombination, type Combination } from './buildCombination';
 import { estimateDataNeed, type DataNeedEstimate } from './estimateDataNeed';
-import { recommend, type Recommendation, type RecommendationKey } from './recommend';
+import {
+  recommend,
+  unlimitedCost,
+  type Recommendation,
+  type RecommendationKey,
+} from './recommend';
 import { browsingScore, scorePlans, type ScoreBreakdown } from './scorePlan';
 
 export type ComparisonRow = {
@@ -24,6 +29,12 @@ export type ComparisonRow = {
   score: number;
   /** Published-facts score behind the "best for browsing" category. */
   browsingScore: number;
+  /**
+   * Ranking figure behind the "best unlimited" category — lower is better,
+   * null for a plan that is not unlimited. Carried on the row so the category
+   * tab and the badge cannot drift apart: they are the same number.
+   */
+  unlimitedCostMinor: number | null;
   breakdown: ScoreBreakdown;
   isBelowEstimatedNeed: boolean;
   coversTrip: boolean;
@@ -132,6 +143,9 @@ export function buildComparison({
       pricePerDayMinor: pricePerDayMinor(price.amountMinor, entry.plan.validityDays),
       score: entry.score,
       browsingScore: browsingScore(entry.plan, estimate),
+      unlimitedCostMinor: entry.plan.isUnlimited
+        ? unlimitedCost(entry.plan, estimate, price.amountMinor)
+        : null,
       breakdown: entry.breakdown,
       isBelowEstimatedNeed: entry.isBelowEstimatedNeed,
       coversTrip: entry.coversTrip,

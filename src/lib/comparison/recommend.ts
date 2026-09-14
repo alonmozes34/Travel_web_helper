@@ -62,21 +62,45 @@ export function recommend(
 
   if (scored.length > 1) {
     const forBrowsing = [...scored].sort(
-      (a, b) => browsingScore(b.plan, estimate) - browsingScore(a.plan, estimate),
+      (a, b) =>
+        browsingScore(b.plan, estimate) - browsingScore(a.plan, estimate) ||
+        priceOf(a.plan) - priceOf(b.plan),
     )[0];
     if (forBrowsing) result.bestForBrowsing = entryFor('bestForBrowsing', forBrowsing);
   }
 
-  // Among unlimited plans, cost per day adjusted for how strict the fair-usage
-  // policy is: an "unlimited" plan that throttles at 1GB a day is not the equal
-  // of one that throttles at 5GB.
   const unlimited = scored.filter((entry) => entry.plan.isUnlimited && entry.coversTrip);
-  const bestUnlimited = [...unlimited].sort((a, b) => {
-    const costPerDay = (entry: ScoredPlan) =>
-      priceOf(entry.plan) / Math.max(1, entry.plan.validityDays) / fairUsageFactor(entry.plan, estimate);
-    return costPerDay(a) - costPerDay(b);
-  })[0];
+  const bestUnlimited = [...unlimited].sort(
+    (a, b) =>
+      unlimitedCost(a.plan, estimate, priceOf(a.plan)) -
+      unlimitedCost(b.plan, estimate, priceOf(b.plan)),
+  )[0];
   if (bestUnlimited) result.bestUnlimited = entryFor('bestUnlimited', bestUnlimited);
 
   return result;
+}
+
+/**
+ * What an unlimited plan costs this traveller, for ranking the unlimited
+ * category. Lower is better.
+ *
+ * Price, adjusted only for how strict the fair-usage policy is: an
+ * "unlimited" plan throttled to 1GB a day is not the equal of one throttled
+ * at 5GB, and the adjustment is the one difference that is really about the
+ * data rather than about the sticker.
+ *
+ * It deliberately does NOT divide by the plan's validity. Every candidate has
+ * already passed `coversTrip`, so its validity outlasts the trip; dividing by
+ * it ranks plans by how many days the traveller will never use. On a 5-day
+ * trip to France that put a 15-day plan at ₪223.56 above a 10-day plan at
+ * ₪152.28 — the same unlimited data, both covering the trip twice over — and
+ * called the dearer one the best. What is being bought is one trip, and one
+ * trip is what it is compared on.
+ */
+export function unlimitedCost(
+  plan: Plan,
+  estimate: DataNeedEstimate,
+  priceMinor: number,
+): number {
+  return priceMinor / fairUsageFactor(plan, estimate);
 }
