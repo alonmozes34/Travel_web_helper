@@ -353,6 +353,7 @@ export const he = {
     note: 'שתי רכישות נפרדות אצל שני ספקים, כל אחת בהתקנה משלה.',
     total: 'סך הכול',
     legTemplate: 'עבור {countries}',
+    legChargedTemplate: 'הספק גובה {amount}',
     cheaperTemplate: 'זול ב־{amount} מהחבילה הזולה ביותר שמכסה את הכול',
     dearerTemplate: 'יקר ב־{amount} מהחבילה הזולה ביותר שמכסה את הכול',
     onlyOption: 'זו הדרך היחידה לכסות את כל היעדים שבחרתם',

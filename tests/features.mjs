@@ -201,6 +201,11 @@ try {
 // rendered on the server from the URL, and the button that would have applied
 // it lived inside a collapsed panel — so the change was invisible AND
 // unreachable.
+//
+// Then reported again, about the fix: deleting every country put up "update
+// the results" — asking for confirmation of a deletion already made — and
+// pressing it wiped the usage answer along with the map. Clearing now happens
+// at once, and carries the answers that were not about the map.
 for (const [label, url, expected] of [
   ['country page', '/esim/thailand?days=14&usage=regular', 'empty'],
   ['one destination', '/search?to=TH:14&usage=regular', 'empty'],
@@ -214,24 +219,105 @@ for (const [label, url, expected] of [
     check('edit trip', `${label}: no pending notice at rest`, (await p.getByRole('button', { name: 'עדכון התוצאות' }).count()) === 0);
 
     await p.getByRole('button', { name: /^הסרת / }).first().click();
-    await p.waitForTimeout(700);
-    const apply = p.getByRole('button', { name: 'עדכון התוצאות' });
-    check('edit trip', `${label}: removing says the results are stale`, (await apply.count()) > 0);
+    await p.waitForTimeout(expected === 'empty' ? 2600 : 700);
 
-    await apply.first().click();
-    await p.waitForTimeout(2600);
-    const after = await p.locator('body').innerText();
-    const pricesAfter = await priceCount(p);
     if (expected === 'empty') {
-      check('edit trip', `${label}: clearing the trip lands on the empty search`, p.url().includes('/search') && pricesAfter === 0, `${pricesBefore} -> ${pricesAfter} prices, ${p.url().replace(B, '')}`);
+      // Nothing to confirm: the last stop is gone, so the results are gone.
+      const after = await p.locator('body').innerText();
+      const pricesAfter = await priceCount(p);
+      check('edit trip', `${label}: removing the last stop clears the results itself`, p.url().includes('/search') && pricesAfter === 0, `${pricesBefore} -> ${pricesAfter} prices, ${p.url().replace(B, '')}`);
+      check('edit trip', `${label}: without asking to confirm the deletion`, (await p.getByRole('button', { name: 'עדכון התוצאות' }).count()) === 0);
       check('edit trip', `${label}: and the deleted country is gone`, !after.includes('eSIM לתאילנד'));
+      // The days belonged to the stops. How the connection will be used did not.
+      check('edit trip', `${label}: the usage answer survives the clear`, p.url().includes('usage=regular'), p.url().replace(B, ''));
     } else {
+      const apply = p.getByRole('button', { name: 'עדכון התוצאות' });
+      check('edit trip', `${label}: removing says the results are stale`, (await apply.count()) > 0);
+      await apply.first().click();
+      await p.waitForTimeout(2600);
+      const after = await p.locator('body').innerText();
       check('edit trip', `${label}: the remaining destination is what is shown`, after.includes('ארצות הברית') && !after.includes('גרמניה'), p.url().replace(B, ''));
+      check('edit trip', `${label}: the notice clears once applied`, (await p.getByRole('button', { name: 'עדכון התוצאות' }).count()) === 0);
     }
-    check('edit trip', `${label}: the notice clears once applied`, (await p.getByRole('button', { name: 'עדכון התוצאות' }).count()) === 0);
     await p.close();
   } catch (e) { check('edit trip', `${label}: section completed`, false, e.message.split('\n')[0].slice(0, 70)); }
 }
+
+// "The results below still show the previous search" needs results below it.
+try {
+  const p = await page({ width: 390, height: 900 });
+  await p.goto(B + '/', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(900);
+  const input = p.getByRole('combobox', { name: 'יעד הטיול' });
+  await input.click(); await input.type('יוון', { delay: 30 });
+  await p.waitForSelector('[role="option"]');
+  await p.locator('[role="option"]').first().click();
+  await p.waitForTimeout(600);
+  check('edit trip', 'the home page does not claim stale results it never had', (await p.getByRole('button', { name: 'עדכון התוצאות' }).count()) === 0);
+  await p.close();
+} catch (e) { check('edit trip', 'home page pending notice: section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+// A GB figure typed into a field with no button under it is a form that looks
+// unfinished — the only way on was above the panel, off-screen on a phone.
+//
+// Scoped to the GB field by its own label on purpose: `input[type=number]`
+// first matches the days field at the top of the page, and an earlier version
+// of this check compared the button against that instead and passed for the
+// wrong reason.
+try {
+  const p = await page({ width: 390, height: 780 });
+  await p.goto(B + '/', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(900);
+  const input = p.getByRole('combobox', { name: 'יעד הטיול' });
+  await input.click(); await input.type('יוון', { delay: 30 });
+  await p.waitForSelector('[role="option"]');
+  await p.locator('[role="option"]').first().click();
+  await p.waitForTimeout(600);
+
+  await p.getByRole('spinbutton', { name: /^ימים ב/ }).first().fill('8');
+  const gb = p.getByRole('spinbutton', { name: 'כמה GB לכל הטיול?' });
+  check('gb button', 'the GB field is on the page', (await gb.count()) > 0);
+  await gb.first().fill('20');
+  await p.waitForTimeout(400);
+
+  const go = p.getByRole('button', { name: 'הצגת החבילות המתאימות' });
+  check('gb button', 'the trip panel carries its own search button', (await go.count()) > 0);
+
+  const box = await go.first().boundingBox();
+  const field = await gb.first().boundingBox();
+  check('gb button', 'and it sits below the GB field, not above the panel', Boolean(box && field && box.y > field.y), box && field ? `GB field y=${Math.round(field.y)}, button y=${Math.round(box.y)}` : 'not found');
+
+  await go.first().click();
+  await p.waitForTimeout(2600);
+  check('gb button', 'pressing it runs the search with the figure given', p.url().includes('gb=20'), p.url().replace(B, ''));
+  const priced = await priceCount(p);
+  check('gb button', 'and lands on results, not a still form', priced > 0, `${priced} prices`);
+  await p.close();
+} catch (e) { check('gb button', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+// ══ a combination's legs must add up to its total ════════════════════════
+// Reported as "check Greece 3 days + Japan 5 days". The legs were printed in
+// the provider's currency and the total in shekels, so the one card whose
+// whole argument is "these two add up to less" was the one card where the
+// arithmetic did not visibly work.
+try {
+  const p = await page();
+  await p.goto(B + '/search?to=GR:3,JP:5&usage=regular', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1400);
+  const card = p.locator('article').filter({ hasText: 'צירוף של' }).first();
+  check('combination', 'the combination is offered for Greece + Japan', (await card.count()) > 0);
+
+  const text = await card.innerText();
+  const shekels = [...text.matchAll(/₪\s*([\d,]+(?:\.\d+)?)/g)].map((m) => Number(m[1].replace(/,/g, '')));
+  // Legs, then the total, then the difference against the cheapest single plan.
+  const legs = shekels.slice(0, 2);
+  const total = shekels[2];
+  check('combination', 'every leg is priced in the same currency as the total', legs.length === 2 && Number.isFinite(total), text.replace(/\n/g, ' / ').slice(0, 120));
+  check('combination', 'the legs add up to the total', Math.abs(legs[0] + legs[1] - total) < 0.02, `${legs.join(' + ')} vs ${total}`);
+  check('combination', 'and the charged amount is still shown, labelled', text.includes('הספק גובה'));
+  check('combination', 'a converted total says it is a conversion', text.includes('המרה משוערת'));
+  await p.close();
+} catch (e) { check('combination', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
 // ══ details & honesty ════════════════════════════════════════════════════
 try {

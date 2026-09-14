@@ -78,11 +78,29 @@ export function HeroSearch({
   }
 
   /**
+   * Removing the last stop is not an edit waiting to be applied. It says the
+   * results answer nothing any more, and offering "update the results" for it
+   * asks the visitor to confirm a deletion they have already made — so this
+   * case clears the page itself, in `setDestinations`, and never raises the
+   * bar below.
+   */
+  const isClearingTrip =
+    profile.destinations.length === 0 && initialProfile.destinations.length > 0;
+
+  /**
    * The trip in this form against the one the page was rendered for. Anything
    * but equal means the results on screen answer a question the visitor has
    * already changed.
+   *
+   * Only where there are results to be stale. On the home page nothing has
+   * been searched for yet, so "the results below still show the previous
+   * search" described a list that does not exist, and put a third submit
+   * button on a form that already had two.
    */
-  const hasPendingChanges = !sameTrip(profile, initialProfile);
+  const hasPendingChanges =
+    initialProfile.destinations.length > 0 &&
+    !isClearingTrip &&
+    !sameTrip(profile, initialProfile);
 
   /**
    * One stop keeps the shareable, indexable country URL; more than one goes to
@@ -121,7 +139,19 @@ export function HeroSearch({
   }
 
   function setDestinations(destinations: TripDestination[]) {
-    setProfile((current) => ({ ...current, destinations }));
+    const next = { ...profile, destinations };
+    setProfile(next);
+
+    // The empty search is where "I no longer want these results" lands, and it
+    // goes there at once rather than behind a button. What the traveller told
+    // us about the trip goes with it: the days belonged to the stops and are
+    // gone with them, but how the connection will be used, or the GB figure
+    // they typed, is still their answer — dropping it would make clearing the
+    // map silently reset the questionnaire too.
+    if (destinations.length === 0 && initialProfile.destinations.length > 0) {
+      setError(null);
+      router.push(`${localePath(locale, "/search")}${tripProfileToQuery(next)}`);
+    }
   }
 
   function submit() {
@@ -131,7 +161,7 @@ export function HeroSearch({
     // a page still showing the country they had just deleted — the heading,
     // the flag and every plan. The empty search is where that request lands.
     if (profile.destinations.length === 0 && initialProfile.destinations.length > 0) {
-      router.push(`${localePath(locale, "/search")}`);
+      router.push(`${localePath(locale, "/search")}${tripProfileToQuery(profile)}`);
       return;
     }
 
@@ -286,15 +316,16 @@ export function HeroSearch({
             }}
           />
 
-          {/* The compact variant hides the search box, and the submit button
-              lived inside it — so on a destination page every answer given
-              here was silently discarded: the results are rendered on the
-              server from the URL, and nothing was updating the URL. */}
-          {showSearch ? null : (
-            <Button type="submit" className="mt-3 w-full sm:w-auto">
-              {dict.personalization.submit}
-            </Button>
-          )}
+          {/* The last answer in this panel is a number typed into a field,
+              and a typed number with no button under it is a form that looks
+              unfinished — the only way on was a button above the panel, out of
+              sight once the panel is open on a phone. So the panel carries its
+              own, on every variant: on the compact one it is the only submit
+              there is, and on the hero it is the one that sits where the
+              answering happens. */}
+          <Button type="submit" className="mt-3 w-full sm:w-auto">
+            {dict.personalization.submit}
+          </Button>
         </div>
       ) : null}
 

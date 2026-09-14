@@ -337,6 +337,7 @@ export const en: Dictionary = {
     note: 'Two separate purchases from two providers, each with its own installation.',
     total: 'Total',
     legTemplate: 'for {countries}',
+    legChargedTemplate: 'provider charges {amount}',
     cheaperTemplate: '{amount} cheaper than the cheapest single plan covering everything',
     dearerTemplate: '{amount} dearer than the cheapest single plan covering everything',
     onlyOption: 'This is the only way to cover all of your destinations',

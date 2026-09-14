@@ -39,6 +39,7 @@ export function CombinationCard({
 }) {
   const [noted, setNoted] = useState(false);
   const difference = cheapestSingleMinor === null ? null : cheapestSingleMinor - combination.totalMinor;
+  const isConverted = combination.legs.some((leg) => leg.sourceCurrency !== combination.currency);
 
   return (
     <article className="rounded-lg border border-teal bg-teal-50/40 p-4 sm:p-5">
@@ -74,9 +75,23 @@ export function CombinationCard({
                 {' · '}
                 {leg.plan.isUnlimited ? dict.units.unlimited : formatData(leg.plan.dataAmountMb, locale)}
               </span>
-              <Ltr className="tnum ms-auto font-head font-semibold">
-                {formatPrice(leg.sourcePriceMinor, leg.sourceCurrency, locale)}
-              </Ltr>
+              {/* The total below is in shekels, so the legs must be too, or
+                  the one card whose whole argument is "these two add up to
+                  less" is the one card where the arithmetic does not visibly
+                  work. The charged figure stays, underneath and labelled, the
+                  same way every plan card states it. */}
+              <span className="ms-auto text-end">
+                <Ltr className="tnum block font-head font-semibold">
+                  {formatPrice(leg.priceMinor, combination.currency, locale)}
+                </Ltr>
+                {leg.sourceCurrency === combination.currency ? null : (
+                  <span className="block text-xs text-ink-3">
+                    {interpolate(dict.combination.legChargedTemplate, {
+                      amount: formatPrice(leg.sourcePriceMinor, leg.sourceCurrency, locale),
+                    })}
+                  </span>
+                )}
+              </span>
               {/* Each leg is a separate purchase, so each one needs its own way out. */}
               <Button
                 size="sm"
@@ -115,6 +130,14 @@ export function CombinationCard({
       <p className="mt-2 text-sm text-ink-3" aria-live="polite">
         {noted ? dict.plan.prototypeLink : dict.combination.note}
       </p>
+
+      {/* When no single plan covers the trip this card is the whole page, and
+          the conversion explanation that lives under the results list is not
+          rendered at all. A converted price without it is a number nobody can
+          check. */}
+      {isConverted ? (
+        <p className="mt-1 text-sm text-ink-3">{dict.plan.conversionNote}</p>
+      ) : null}
     </article>
   );
 }
