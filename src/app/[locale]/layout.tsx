@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { MetaHTMLAttributes } from 'react';
-import { impactSiteVerification } from '@/lib/siteVerification';
+import { impactSiteVerificationTokens } from '@/lib/siteVerification';
 import { Assistant, Rubik } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '../globals.css';
@@ -79,10 +79,10 @@ export async function generateMetadata({
     },
     // Mock prices must never reach a search result.
     robots: allowIndexing ? undefined : { index: false, follow: false },
-    // The standard spelling of the impact.com tag. Their own `value=` form is
-    // rendered beside it in the layout — see src/lib/siteVerification.ts.
+    // The standard spelling of the impact.com tags. Their own `value=` form is
+    // rendered beside them in the layout — see src/lib/siteVerification.ts.
     verification: {
-      other: { 'impact-site-verification': impactSiteVerification },
+      other: { 'impact-site-verification': [...impactSiteVerificationTokens] },
     },
   };
 }
@@ -101,17 +101,20 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
       className={`${rubik.variable} ${assistant.variable} h-full`}
       suppressHydrationWarning
     >
-      {/* Exactly the tag impact.com issued, `value` attribute and all. React
-          hoists it into <head>, which is where their checker looks. The cast
+      {/* Exactly the tags impact.com issued, `value` attribute and all. React
+          hoists them into <head>, which is where their checker looks. The cast
           is the point rather than a workaround: `value` is not a valid `meta`
           attribute, TypeScript is right to say so, and the tag is emitted
           anyway because their checker was handed that spelling. */}
-      <meta
-        {...({
-          name: 'impact-site-verification',
-          value: impactSiteVerification,
-        } as MetaHTMLAttributes<HTMLMetaElement>)}
-      />
+      {impactSiteVerificationTokens.map((token) => (
+        <meta
+          key={token}
+          {...({
+            name: 'impact-site-verification',
+            value: token,
+          } as MetaHTMLAttributes<HTMLMetaElement>)}
+        />
+      ))}
       <body className="flex min-h-full flex-col">
         <CurrencyProvider defaultCurrency={defaultCurrency}>
           <a

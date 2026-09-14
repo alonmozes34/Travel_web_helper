@@ -184,17 +184,21 @@ for (const [label, path, expect] of [
 // only checked when someone clicks "Add Website" — so a page that quietly
 // lost it would not be noticed until an application failed.
 {
-  const token = 'd5ba34ba-7ca1-49fb-b386-c8a19431adb7';
+  // Every token ever issued, because the platform mints a new one each time
+  // the dialog is opened and the older ones must keep working.
+  const tokens = ['d5ba34ba-7ca1-49fb-b386-c8a19431adb7', '425e3bf5-065d-4c1d-86c7-eb675f47b795'];
   const missing = [];
   for (const path of ['/', '/en', '/esim/thailand', '/search?to=TH:5&usage=regular', '/accessibility', '/disclosure']) {
     const html = await (await fetch(B + path)).text();
     const head = html.slice(0, html.indexOf('</head>'));
-    // Their own spelling uses `value`; the standard one uses `content`.
-    const hasValue = head.includes(`name="impact-site-verification" value="${token}"`);
-    const hasContent = head.includes(`name="impact-site-verification" content="${token}"`);
-    if (!hasValue || !hasContent) missing.push(`${path}${hasValue ? '' : ' [no value=]'}${hasContent ? '' : ' [no content=]'}`);
+    for (const token of tokens) {
+      // Their own spelling uses `value`; the standard one uses `content`.
+      const hasValue = head.includes(`name="impact-site-verification" value="${token}"`);
+      const hasContent = head.includes(`name="impact-site-verification" content="${token}"`);
+      if (!hasValue || !hasContent) missing.push(`${path} ${token.slice(0, 8)}${hasValue ? '' : ' [no value=]'}${hasContent ? '' : ' [no content=]'}`);
+    }
   }
-  check('verification', 'the impact.com tag is in <head> in both spellings', missing.length === 0, missing.join(' ; ') || '6 pages');
+  check('verification', 'every impact.com token is in <head>, both spellings', missing.length === 0, missing.join(' ; ') || `6 pages x ${tokens.length} tokens`);
 }
 
 console.log(out.join('\n'));
