@@ -15,6 +15,13 @@ const icons: Record<RecommendationKey, string> = {
  * The four categories, as ordering presets rather than badges alone. Only
  * categories that actually have a winner are offered — a tab that would lead
  * nowhere is not rendered.
+ *
+ * They wrap rather than scroll sideways. As one nowrap row on a 390px phone
+ * the four chips measured 561px in a 350px box, so "best for browsing" was cut
+ * off and "best unlimited" was entirely off-screen — with no fade, arrow or
+ * any other sign that the row went further. Two of the four recommendations
+ * simply did not exist for anyone on a phone. A second line costs 44px and
+ * shows all of them.
  */
 export function RecommendationTabs({
   available,
@@ -34,7 +41,7 @@ export function RecommendationTabs({
     <div
       role="group"
       aria-label={dict.filters.categoriesLabel}
-      className="flex gap-2 overflow-x-auto pb-1"
+      className="flex flex-wrap gap-2 pb-1"
     >
       {tabs.map((key) => (
         <button
