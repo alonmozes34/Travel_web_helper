@@ -3,19 +3,31 @@ import type { Provider } from '@/lib/types/provider';
 /**
  * Provider records for the prototype.
  *
- * Names are real companies in this market; `brandColor` is a placeholder used
- * for the logo tile until real marks are licensed, and no capability here is
+ * The names are deliberately not real companies.
+ *
+ * They used to be — Airalo, Nomad, Saily and five others — and that is what
+ * forced the whole site behind a password: a public page stating what Airalo
+ * charges, where the number was invented, is a false claim about somebody
+ * else's commercial terms, and a demo banner does not cure it.
+ *
+ * Naming the providers honestly costs the demo nothing. The engine still
+ * demonstrates everything it is meant to — ranking, coverage, price per GB,
+ * the shekel conversion — and nobody is misrepresented, so the site needs no
+ * password to be publishable. The real names come back with real data, from a
+ * provider source, and not before.
+ *
+ * `brandColor` is a placeholder for the logo tile, and no capability here is
  * presented to travellers as a verified fact.
  */
 export const mockProviders: Provider[] = [
-  { id: 'airalo', name: 'Airalo', slug: 'airalo', brandColor: '#E4572E', activation: 'both' },
-  { id: 'saily', name: 'Saily', slug: 'saily', brandColor: '#1F6FEB', activation: 'app' },
-  { id: 'holafly', name: 'Holafly', slug: 'holafly', brandColor: '#111827', activation: 'qr' },
-  { id: 'nomad', name: 'Nomad', slug: 'nomad', brandColor: '#1E7F5C', activation: 'both' },
-  { id: 'ubigi', name: 'Ubigi', slug: 'ubigi', brandColor: '#0F172A', activation: 'both' },
-  { id: 'yesim', name: 'Yesim', slug: 'yesim', brandColor: '#7A3BE8', activation: 'app' },
-  { id: 'alosim', name: 'aloSIM', slug: 'alosim', brandColor: '#0EA5A5', activation: 'both' },
-  { id: 'maya', name: 'Maya Mobile', slug: 'maya-mobile', brandColor: '#B4451F', activation: 'qr' },
+  { id: 'demo-alpha', name: 'Demo Alpha', slug: 'demo-alpha', brandColor: '#E4572E', activation: 'both' },
+  { id: 'demo-beta', name: 'Demo Beta', slug: 'demo-beta', brandColor: '#1F6FEB', activation: 'app' },
+  { id: 'demo-gamma', name: 'Demo Gamma', slug: 'demo-gamma', brandColor: '#111827', activation: 'qr' },
+  { id: 'demo-delta', name: 'Demo Delta', slug: 'demo-delta', brandColor: '#1E7F5C', activation: 'both' },
+  { id: 'demo-epsilon', name: 'Demo Epsilon', slug: 'demo-epsilon', brandColor: '#0F172A', activation: 'both' },
+  { id: 'demo-zeta', name: 'Demo Zeta', slug: 'demo-zeta', brandColor: '#7A3BE8', activation: 'app' },
+  { id: 'demo-eta', name: 'Demo Eta', slug: 'demo-eta', brandColor: '#0EA5A5', activation: 'both' },
+  { id: 'demo-theta', name: 'Demo Theta', slug: 'demo-theta', brandColor: '#B4451F', activation: 'qr' },
 ];
 
 const byId = new Map(mockProviders.map((provider) => [provider.id, provider]));

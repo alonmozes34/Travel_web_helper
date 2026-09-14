@@ -35,62 +35,41 @@ until the next build.
 We compare. The traveller buys from the provider — this site never sells or
 issues an eSIM, and the copy says so on every page that shows a price.
 
-## The preview gate
+## Demo providers, and the gate that is no longer needed
 
-Every price in `src/data/mockPlans.ts` is invented, and each one is attached to
-a **real, named company** — Airalo, Nomad, Saily, Ubigi and four others. A
-public page stating what Airalo charges, when the number was made up, is a
-misstatement about somebody else's commercial terms. A warning banner does not
-cure that, and `noindex` does not make a page private.
+Every price in `src/data/mockPlans.ts` is invented. They used to be attached
+to **real, named companies** — Airalo, Nomad, Saily and five others, with
+their actual product names ("Discover Thailand", "Eurolink", "Mamma Mia") —
+and that is a false claim about somebody else's commercial terms, which a
+warning banner does not cure. So the priced routes sat behind a password.
 
-So the pages that carry those prices need a shared password, checked in
-`src/proxy.ts` before any routing.
+The providers are now plainly demo providers. Nobody is misrepresented, the
+banner still says the data is not real, and the site is public — which is the
+point, because a comparison tool nobody can open demonstrates nothing. The
+real names come back with real data, from a provider source, and not before.
 
-**Only those pages.** Gating the whole site was the first attempt and it was
-the wrong trade: the reason to deploy at all is that a partner programme wants
-to see a working product before it hands over the credentials that would make
-the data real, and a reviewer who opens the link and meets a password box
-learns nothing. The split is measured, not assumed:
+The gate machinery stays, because the need recurs. `PREVIEW_GATE=on` together
+with `SITE_PASSWORD` closes `/esim/*` and `/search` again, redirecting to
+`/unlock`:
 
-| Route | Prices | Providers named |
+| `PREVIEW_GATE` | `SITE_PASSWORD` | Priced routes |
 | --- | --- | --- |
-| `/`, `/en`, `/accessibility` | 0 | none |
-| `/esim/<country>` | 17 | 7 |
-| `/search` | 13 | 5 |
+| unset | anything | **public** |
+| `on` | set | redirect to `/unlock` |
+| `on` | unset | 503 — a half-configured gate fails safe |
 
-`GATED_SEGMENTS` in `src/lib/previewGate.ts` lists what is closed — `esim` and
-`search`. It is an allow-nothing list on purpose: a new route that shows
-prices has to be added there deliberately, which fails safe in the direction
-that matters.
-
-| Environment | Behaviour on a gated route |
-| --- | --- |
-| `next dev` | open — not reachable from the internet |
-| production, `SITE_PASSWORD` set | redirect to `/unlock` |
-| production, `ALLOW_UNPROTECTED_MOCK=true` | open — for local runs and the test suites |
-| production, neither set | **503** |
-
-The last row is the point: forgetting to set the password on a deploy must not
-silently publish invented prices, so the gate is default closed.
+Both are required on purpose: a password left behind in a dashboard cannot
+quietly shut the site. `GATED_SEGMENTS` in `src/lib/previewGate.ts` lists what
+closes — `esim` and `search`. It is an allow-nothing list, so a new route that
+shows prices has to be added there deliberately.
 
 `/unlock` is a real page, not the browser's credential dialog. A dialog cannot
 be reached by client-side navigation — pressing "השוו חבילות" fetched the next
 route, got a 401 it could not prompt for, and left the visitor exactly where
-they were with nothing having happened. A redirect is something the router
-follows. Unlocking sets an httpOnly cookie holding the password; the `next`
-parameter is validated by `safeNextPath` so it cannot become an open redirect.
-An `Authorization: Basic` header is still accepted, so `curl` and a deploy
-check can reach a gated page without a browser session:
-
-```
-curl -s -o /dev/null -w "%{http_code}\n" https://<host>/esim/thailand
-# 307 -> /unlock
-
-curl -s -o /dev/null -w "%{http_code}\n" -u "x:<password>" https://<host>/esim/thailand
-# 200
-```
-
-Remove the gate when the catalogue carries real provider data, not before.
+they were with nothing having happened. Unlocking sets an httpOnly cookie; the
+`next` parameter is validated by `safeNextPath` so it cannot become an open
+redirect. An `Authorization: Basic` header is also accepted, so `curl` and a
+deploy check need no browser session.
 
 ## Brand assets
 
@@ -140,12 +119,9 @@ npm run generate:brand     # regenerate favicon, app icons and share cards
 server you have already started:
 
 ```bash
-npm run build && ALLOW_UNPROTECTED_MOCK=true npm run start &
+npm run build && npm run start &
 BASE_URL=http://localhost:3000 npm run test:e2e
 ```
-
-`ALLOW_UNPROTECTED_MOCK=true` is needed because a production-mode server is
-password-gated by default — see [The preview gate](#the-preview-gate).
 
 ## Locale routing
 

@@ -1,28 +1,22 @@
 /**
- * The preview gate.
+ * The preview gate. Off unless asked for.
  *
- * Every price in this catalogue is invented, and each one is attached to a
- * real, named company. A public page saying what Airalo charges, when the
- * number was made up, is a misstatement about somebody else's commercial
- * terms — a warning banner does not cure that, and `noindex` does not make a
- * page private.
+ * It existed because the catalogue attached invented prices to real, named
+ * companies, and a public page stating what Airalo charges — where the number
+ * was made up — is a false claim about somebody else's commercial terms. A
+ * warning banner does not cure that, so the pages carrying those prices needed
+ * a password.
  *
- * But gating the *whole* site turned out to be the wrong trade. The point of
- * deploying at all is that a partner programme wants to see a working
- * product before it hands over the credentials that would make the data real,
- * and a reviewer who opens the link and meets a password box learns nothing.
+ * The catalogue no longer names anyone: the demo providers are plainly demo
+ * providers. Nobody is misrepresented, so nothing needs hiding, and the site
+ * is public — which is the point, since a comparison tool nobody can open is
+ * not much of a demonstration.
  *
- * So the gate is scoped to the pages that actually carry fabricated prices.
- * Measured, not assumed: the homepage, the English homepage and the
- * accessibility statement render zero prices and name zero providers, while
- * a country page renders seventeen prices across seven real companies. The
- * public half is a real site that says exactly what this is; the half that
- * would misrepresent somebody else stays behind the password, whose holder
- * gets the whole thing.
- *
- * It is deliberately default-closed. Forgetting to set the password in a
- * deployment must not silently publish those pages: with neither a password
- * nor an explicit opt-out, the gated paths return 503 rather than contents.
+ * The machinery stays because the need recurs: set `PREVIEW_GATE=on` together
+ * with `SITE_PASSWORD` and the priced routes close again. Both are required,
+ * so a password left behind in a dashboard cannot quietly shut the site.
+ * Within that opt-in the gate is still default-closed: asking for it without
+ * supplying a password serves nothing rather than serving everything.
  */
 export type GateDecision =
   | { kind: 'open' }
@@ -30,23 +24,21 @@ export type GateDecision =
   | { kind: 'challenge' };
 
 export type GateEnv = {
+  /** Must be exactly "on". Anything else, including unset, leaves the site public. */
+  gate?: string;
   /** The shared password. Never NEXT_PUBLIC_ — that would ship it to the browser. */
   password?: string;
-  /** Explicit opt-out, for local development and the test suites. */
-  allowUnprotected?: string;
-  nodeEnv?: string;
 };
 
 /**
  * What to do with a request, before its credentials are looked at.
  *
- * Development is always open: `next dev` is not reachable from the internet,
- * and making a contributor set an environment variable to see their own work
- * buys nothing.
+ * Turning the gate on is an explicit act, so there is no environment to
+ * special-case: development and production behave the same, and the test
+ * suites need no opt-out to see the site.
  */
 export function gateMode(env: GateEnv): GateDecision {
-  if (env.nodeEnv !== 'production') return { kind: 'open' };
-  if (env.allowUnprotected === 'true') return { kind: 'open' };
+  if (env.gate !== 'on') return { kind: 'open' };
   if (!env.password) return { kind: 'unconfigured' };
   return { kind: 'challenge' };
 }

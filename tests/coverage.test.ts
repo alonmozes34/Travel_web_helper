@@ -40,9 +40,15 @@ describe('coverage', () => {
   test('a European plan does not cover the United States', () => {
     const europe = getRegion('europe')!;
     assert.ok(!europe.countries.includes('US'));
-    const eurolink = mockPlans.find((plan) => plan.planName === 'Eurolink 10GB')!;
-    assert.equal(coversAll(eurolink.coverage, ['DE', 'US']), false);
-    assert.equal(coversAll(eurolink.coverage, ['DE', 'FR']), true);
+    // Found by what it is, not by what it is called: a plan name is product
+    // copy and changes, while "a regional plan scoped to Europe" is the thing
+    // this test is actually about.
+    const regional = mockPlans.find(
+      (plan) => plan.coverage.kind === 'region' && plan.coverage.regionId === 'europe',
+    );
+    assert.ok(regional, 'the catalogue must hold a Europe-wide plan for this to mean anything');
+    assert.equal(coversAll(regional.coverage, ['DE', 'US']), false);
+    assert.equal(coversAll(regional.coverage, ['DE', 'FR']), true);
   });
 
   test('only plans covering every stop appear in the results', () => {

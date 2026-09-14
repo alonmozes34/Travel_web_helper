@@ -15,31 +15,28 @@ import { locales } from '@/i18n/config';
  * price is invented and every one of them carries a real company's name.
  */
 describe('preview gate', () => {
-  test('development is open without configuration', () => {
-    assert.deepEqual(gateMode({ nodeEnv: 'development' }), { kind: 'open' });
+  test('the site is public unless the gate is explicitly asked for', () => {
+    // The catalogue names no real company, so there is nothing to hide and a
+    // comparison tool nobody can open is not much of a demonstration.
+    assert.deepEqual(gateMode({}), { kind: 'open' });
+    assert.deepEqual(gateMode({ password: 'x' }), { kind: 'open' });
   });
 
-  test('production with no password and no opt-out serves nothing', () => {
-    // The failure that matters. Forgetting the password on a deploy must not
-    // publish the site.
-    assert.deepEqual(gateMode({ nodeEnv: 'production' }), { kind: 'unconfigured' });
+  test('a password left behind in a dashboard cannot shut the site on its own', () => {
+    // Both are required, because a stale variable is exactly how this project
+    // has already lost days twice.
+    assert.deepEqual(gateMode({ password: 'x' }), { kind: 'open' });
+    assert.deepEqual(gateMode({ gate: 'on', password: 'x' }), { kind: 'challenge' });
   });
 
-  test('production with a password challenges', () => {
-    assert.deepEqual(gateMode({ nodeEnv: 'production', password: 'x' }), { kind: 'challenge' });
+  test('asking for the gate without a password serves nothing', () => {
+    // A half-configured gate fails the safe way.
+    assert.deepEqual(gateMode({ gate: 'on' }), { kind: 'unconfigured' });
   });
 
-  test('the opt-out is explicit, and only the exact string opts out', () => {
-    assert.deepEqual(
-      gateMode({ nodeEnv: 'production', allowUnprotected: 'true' }),
-      { kind: 'open' },
-    );
-    for (const value of ['TRUE', '1', 'yes', '']) {
-      assert.notDeepEqual(
-        gateMode({ nodeEnv: 'production', allowUnprotected: value }),
-        { kind: 'open' },
-        `"${value}" must not open the gate`,
-      );
+  test('only the exact string turns it on', () => {
+    for (const value of ['ON', 'true', '1', 'yes', '']) {
+      assert.deepEqual(gateMode({ gate: value, password: 'x' }), { kind: 'open' }, `"${value}"`);
     }
   });
 

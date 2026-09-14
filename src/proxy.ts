@@ -57,20 +57,15 @@ export function proxy(request: NextRequest) {
 function guard(request: NextRequest): NextResponse | null {
   if (!isGatedPath(request.nextUrl.pathname, locales)) return null;
 
-  const mode = gateMode({
-    password: process.env.SITE_PASSWORD,
-    allowUnprotected: process.env.ALLOW_UNPROTECTED_MOCK,
-    nodeEnv: process.env.NODE_ENV,
-  });
+  const mode = gateMode({ gate: process.env.PREVIEW_GATE, password: process.env.SITE_PASSWORD });
 
   if (mode.kind === 'open') return null;
 
-  // Default closed: a deployment that set neither the password nor the
-  // opt-out serves no prices at all, rather than quietly publishing invented
-  // ones under real companies' names.
+  // Asking for the gate without supplying a password serves nothing rather
+  // than serving everything: a half-configured gate must fail the safe way.
   if (mode.kind === 'unconfigured') {
     return new NextResponse(
-      'This preview is not configured. Set SITE_PASSWORD, or ALLOW_UNPROTECTED_MOCK=true to run it open.',
+      'PREVIEW_GATE is on but SITE_PASSWORD is not set, so nothing is served. Set the password, or unset PREVIEW_GATE to make the site public.',
       { status: 503, headers: { 'Cache-Control': 'no-store' } },
     );
   }
