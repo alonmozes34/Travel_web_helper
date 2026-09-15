@@ -82,7 +82,7 @@ export const en: Dictionary = {
     short: 'The prices here are not real.',
     more: 'What does that mean?',
     notice:
-      'Prices and plan data on this site are demo data created for development. They are not real offers from any provider, and must not be relied on for a purchase.',
+      'Prices and plan data on this site are demo data, and are not real offers from any provider. The site is pre-launch, and real prices arrive as provider catalogues are connected. Do not rely on the current figures for a purchase.',
   },
   common: {
     loading: 'Loading…',
