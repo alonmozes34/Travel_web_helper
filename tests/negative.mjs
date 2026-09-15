@@ -186,7 +186,11 @@ for (const [label, path, expect] of [
 {
   // Every token ever issued, because the platform mints a new one each time
   // the dialog is opened and the older ones must keep working.
-  const tokens = ['d5ba34ba-7ca1-49fb-b386-c8a19431adb7', '425e3bf5-065d-4c1d-86c7-eb675f47b795'];
+  const tokens = [
+    'd5ba34ba-7ca1-49fb-b386-c8a19431adb7',
+    '425e3bf5-065d-4c1d-86c7-eb675f47b795',
+    '41734050-b592-4c9b-be4c-ad4b6a459efa',
+  ];
   const missing = [];
   for (const path of ['/', '/en', '/esim/thailand', '/search?to=TH:5&usage=regular', '/accessibility', '/disclosure']) {
     const html = await (await fetch(B + path)).text();
