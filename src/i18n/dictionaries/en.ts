@@ -80,6 +80,9 @@ export const en: Dictionary = {
   mockData: {
     badge: 'Demo data',
     short: 'The prices here are not real — the site is pre-launch.',
+    mixedShort: 'Some prices on this page are not real.',
+    mixedNotice:
+      'Some plans on this page are demo data and are marked as such. The rest come from the provider. Do not rely on the marked figures for a purchase.',
     more: 'What does that mean?',
     notice:
       'Prices and plan data on this site are demo data, and are not real offers from any provider. The site is pre-launch, and real prices arrive as provider catalogues are connected. Do not rely on the current figures for a purchase.',

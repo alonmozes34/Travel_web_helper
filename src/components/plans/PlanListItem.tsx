@@ -35,6 +35,7 @@ export function PlanListItem({
   tripDays,
   countryCodes = [],
   demoDataEnabled,
+  demoDataMixed = false,
   isSelected,
   canSelect,
   onSelect,
@@ -45,6 +46,8 @@ export function PlanListItem({
   tripDays: number;
   countryCodes?: string[];
   demoDataEnabled: boolean;
+  /** True while real and demo plans share the page — see PlanBadges. */
+  demoDataMixed?: boolean;
   isSelected: boolean;
   canSelect: boolean;
   onSelect: (selected: boolean) => void;
@@ -75,7 +78,11 @@ export function PlanListItem({
       <div className="flex items-start gap-3 md:col-start-1 md:row-start-1 lg:col-auto lg:row-auto">
         <div className="min-w-0 flex-1">
           <ProviderCell row={row} />
-          <PlanBadges badges={row.badges} dict={dict} />
+          <PlanBadges
+            badges={row.badges}
+            dict={dict}
+            isDemo={demoDataMixed && row.plan.source === 'mock'}
+          />
           <CoverageNote coverage={row.plan.coverage} locale={locale} dict={dict} />
           <FairUsageNote row={row} dict={dict} />
         </div>

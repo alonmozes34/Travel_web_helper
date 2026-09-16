@@ -61,6 +61,18 @@ export type Comparison = {
   /** True while any row still comes from mock data. */
   isMockData: boolean;
   /**
+   * True when EVERY row is mock data, which is the only state in which a
+   * page-wide "the prices here are not real" is a true sentence.
+   *
+   * The two flags exist separately because the interesting case is between
+   * them: one real provider connected alongside the demo catalogue. A banner
+   * that says all prices are invented then says it about a real one too —
+   * wrong in the safe direction, but still wrong, and it throws away the
+   * credibility of the first real figure on the site. When they disagree, the
+   * rows carry the marker and the banner says "some".
+   */
+  allMockData: boolean;
+  /**
    * The best set of plans covering a multi-stop trip, when one exists and no
    * single plan does the job better. Null for single-destination searches.
    */
@@ -166,6 +178,7 @@ export function buildComparison({
     planCount: rows.length,
     providerCount: new Set(rows.map((row) => row.plan.providerId)).size,
     isMockData: rows.some((row) => row.plan.source === 'mock'),
+    allMockData: rows.length > 0 && rows.every((row) => row.plan.source === 'mock'),
     combination: buildCombination({
       profile,
       // The whole catalogue, not the filtered set: a combination exists

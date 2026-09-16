@@ -49,6 +49,7 @@ export function ResultsView({
   tripDays,
   countryCodes,
   demoDataEnabled,
+  demoDataMixed,
   availableRecommendations,
   initialFilters,
   initialSort,
@@ -60,6 +61,8 @@ export function ResultsView({
   tripDays: number;
   countryCodes: string[];
   demoDataEnabled: boolean;
+  /** Real and demo plans share this page, so each demo row is marked. */
+  demoDataMixed: boolean;
   availableRecommendations: RecommendationKey[];
   /** Parsed on the server from the URL, so a shared filtered link renders
       the same markup on both sides and needs no post-hydration correction. */
@@ -225,6 +228,7 @@ export function ResultsView({
     tripDays,
     countryCodes,
     demoDataEnabled,
+    demoDataMixed,
     isSelected: selectedIds.includes(row.plan.id),
     canSelect: selectedIds.length < MAX_COMPARE,
     onSelect: (isSelected: boolean) => toggleSelected(row.plan.id, isSelected),

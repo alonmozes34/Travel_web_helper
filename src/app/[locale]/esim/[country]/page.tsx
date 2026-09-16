@@ -174,7 +174,11 @@ export default async function CountryPage({
                 false — and a warning that cries wolf is how a real one stops
                 being read. */}
         {comparison.isMockData ? (
-          <MockDataNotice dict={dict} className="max-w-[80ch]" />
+          <MockDataNotice
+            dict={dict}
+            mixed={!comparison.allMockData}
+            className="max-w-[80ch]"
+          />
         ) : null}
 
         {coverageKind !== "full" && (
@@ -225,6 +229,7 @@ export default async function CountryPage({
               tripDays={estimate.days}
               countryCodes={comparison.countryCodes}
               demoDataEnabled={comparison.isMockData}
+                demoDataMixed={comparison.isMockData && !comparison.allMockData}
               availableRecommendations={
                 Object.keys(comparison.recommendations) as RecommendationKey[]
               }

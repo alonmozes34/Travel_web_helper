@@ -125,7 +125,11 @@ export default async function SearchPage({
                 false — and a warning that cries wolf is how a real one stops
                 being read. */}
             {comparison.isMockData ? (
-              <MockDataNotice dict={dict} className="max-w-[80ch]" />
+              <MockDataNotice
+            dict={dict}
+            mixed={!comparison.allMockData}
+            className="max-w-[80ch]"
+          />
             ) : null}
 
             {uncovered.length > 0 ? (
@@ -223,6 +227,7 @@ export default async function SearchPage({
                 tripDays={estimate.days}
                 countryCodes={comparison.countryCodes}
                 demoDataEnabled={comparison.isMockData}
+                demoDataMixed={comparison.isMockData && !comparison.allMockData}
                 availableRecommendations={
                   Object.keys(comparison.recommendations) as RecommendationKey[]
                 }

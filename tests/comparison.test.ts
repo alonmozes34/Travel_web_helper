@@ -372,3 +372,46 @@ describe('the browsing category breaks ties on price', () => {
     assert.equal(comparison.recommendations.bestForBrowsing?.planId, 'cheaper');
   });
 });
+
+describe('a page that mixes a real provider with the demo catalogue', () => {
+  const trip = { destinations: [{ countryCode: 'TH', days: 5 }], usage: 'regular' as const };
+  const demo = plan({ id: 'demo', planName: 'Demo plan', source: 'mock' });
+  const real = plan({ id: 'real', planName: 'Real plan', source: 'api', finalPriceMinor: 7000 });
+
+  const build = (plans: Plan[]) =>
+    buildComparison({ profile: trip, currency: 'ILS', plans, rates: mockFxRates });
+
+  test('everything demo: the page may say so about every price', () => {
+    const c = build([demo]);
+    assert.equal(c.isMockData, true);
+    assert.equal(c.allMockData, true);
+  });
+
+  test('mixed: the warning still shows, but not as a claim about every price', () => {
+    // The case this exists for. "The prices here are not real" would be false
+    // about the real one, and would throw away the first real figure we get.
+    const c = build([demo, real]);
+    assert.equal(c.isMockData, true);
+    assert.equal(c.allMockData, false);
+  });
+
+  test('all real: no warning at all', () => {
+    const c = build([real]);
+    assert.equal(c.isMockData, false);
+    assert.equal(c.allMockData, false);
+  });
+
+  test('an empty page is not described as fully demo', () => {
+    // `every` on an empty array is true, which would have claimed a page with
+    // no plans on it was entirely invented.
+    const c = build([]);
+    assert.equal(c.isMockData, false);
+    assert.equal(c.allMockData, false);
+  });
+
+  test('the row carries its own source, so the marker can be per row', () => {
+    const c = build([demo, real]);
+    const sources = Object.fromEntries(c.rows.map((row) => [row.plan.id, row.plan.source]));
+    assert.deepEqual(sources, { demo: 'mock', real: 'api' });
+  });
+});
