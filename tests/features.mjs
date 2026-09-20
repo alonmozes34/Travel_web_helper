@@ -461,6 +461,55 @@ try {
   await p.close();
 } catch (e) { check('combination', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ device compatibility ═════════════════════════════════════════════════
+try {
+  const p = await page();
+  await p.goto(B + '/devices', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(700);
+  const body = await p.locator('body').innerText();
+
+  // The on-device check has to come before the lists: a list is wrong for
+  // exactly the reader whose regional variant shipped without the chip.
+  const checkAt = body.indexOf('הבדיקה הבטוחה ביותר');
+  const listAt = body.indexOf('רשימת הדגמים');
+  check('devices', 'the on-device check is above the model lists', checkAt > -1 && listAt > checkAt, `${checkAt} vs ${listAt}`);
+
+  check('devices', 'all three menu walkthroughs are present', ['אייפון ואייפד', 'סמסונג גלקסי', 'גוגל פיקסל'].every((t) => body.includes(t)));
+  check('devices', 'the settings path names the real menu items', body.includes('Set Up Cellular') && body.includes('SIM manager') && body.includes('Network & internet'));
+  check('devices', 'the carrier-lock blocker is called out', body.includes('No SIM Restrictions'));
+  check('devices', 'the lists say when they were last checked', /נבדק/.test(body) && /20\d\d-\d\d-\d\d/.test(body));
+
+  const search = p.getByLabel('חיפוש דגם');
+  const status = p.locator('[role="status"]').first();
+  const all = (await status.innerText()).trim();
+
+  await search.fill('אייפון 13');
+  await p.waitForTimeout(300);
+  const hebrew = await p.locator('section ul li bdi').allInnerTexts();
+  check('devices', 'a Hebrew model name finds the Latin models', hebrew.length === 4 && hebrew.every((m) => m.startsWith('iPhone 13')), hebrew.join(' / '));
+  check('devices', 'the result count is announced', (await status.innerText()).trim() !== all);
+
+  await search.fill('iPhone 8');
+  await p.waitForTimeout(300);
+  const unsupported = await p.locator('body').innerText();
+  check('devices', 'an unsupported model gets an explicit no, not silence', unsupported.includes('לא תומך'));
+
+  await search.fill('Xiaomi 14');
+  await p.waitForTimeout(300);
+  const none = await p.locator('body').innerText();
+  check('devices', 'a brand we do not list is not answered with a verdict', none.includes('לא נמצא דגם') && none.includes('זה לא אומר שהמכשיר לא תומך'));
+
+  // The page must never turn into a plan page: it carries no prices, which is
+  // what lets it be useful while the catalogue is still demo data.
+  check('devices', 'the page shows no prices', (await priceCount(p)) === 0);
+
+  await p.goto(B + '/en/devices', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(600);
+  const enBody = await p.locator('body').innerText();
+  check('devices', 'the English page is translated, not a Hebrew fallback', enBody.includes('The reliable check is on the device itself') && !enBody.includes('הבדיקה הבטוחה'));
+  await p.close();
+} catch (e) { check('devices', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ details & honesty ════════════════════════════════════════════════════
 try {
   const p = await page();

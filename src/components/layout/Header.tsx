@@ -16,7 +16,13 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
       <Container className="flex items-center gap-5 py-3">
         <Brand locale={locale} dict={dict} />
 
-        <nav aria-label={dict.nav.label} className="hidden md:block">
+        {/*
+          The inline nav appears at lg, not md. A fourth item ("device
+          compatibility") made every label wrap onto two lines between 768px
+          and 900px, which pushed the header to 53px rows of broken Hebrew.
+          Below lg the same links are in the menu button beside it.
+        */}
+        <nav aria-label={dict.nav.label} className="hidden lg:block">
           <ul className="flex items-center gap-6">
             {links.map((link) => (
               <li key={link.href}>

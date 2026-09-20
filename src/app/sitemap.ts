@@ -9,10 +9,15 @@ import { siteUrl } from '@/lib/site';
  * locales so the Hebrew and English versions are understood as the same page
  * rather than as competitors.
  */
+/** Pages that exist for trust and law rather than for search traffic. */
+const LOW_PRIORITY = ['/accessibility', '/disclosure'];
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     '/',
     '/accessibility',
+    '/disclosure',
+    '/devices',
     // A destination page with no plans behind it still exists and answers
     // honestly, but it is not worth asking a search engine to index.
     ...countries
@@ -24,7 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     locales.map((locale) => ({
       url: `${siteUrl}${localePath(locale, path)}`,
       changeFrequency: 'weekly' as const,
-      priority: path === '/' ? 1 : path === '/accessibility' ? 0.3 : 0.8,
+      priority: path === '/' ? 1 : LOW_PRIORITY.includes(path) ? 0.3 : 0.8,
       alternates: {
         languages: Object.fromEntries(
           locales.map((code) => [localeConfig[code].htmlLang, `${siteUrl}${localePath(code, path)}`]),

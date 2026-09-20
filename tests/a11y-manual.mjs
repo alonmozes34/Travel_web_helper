@@ -11,7 +11,7 @@ const ok = (label, pass, extra = '') => out.push(`${pass ? 'PASS' : 'FAIL'}  ${l
 const browser = await chromium.launch();
 
 // 1.4.10 Reflow: usable at 320 CSS px with no horizontal scrolling.
-for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14']) {
+for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14', '/devices']) {
   const page = await browser.newPage({ viewport: { width: 320, height: 700 } });
   await page.goto(BASE + path, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
@@ -124,7 +124,7 @@ await thumb.close();
 // 1.3.1 Info and relationships: exactly one H1 per page, and no level skipped
 // for visual weight. A screen-reader user navigates by heading; a jump from
 // H1 to H3 makes them guess whether they missed a section.
-for (const path of ['/', '/esim/thailand?days=14&usage=regular', '/search?to=DE:1,US:14&usage=regular', '/accessibility', '/disclosure', '/en']) {
+for (const path of ['/', '/esim/thailand?days=14&usage=regular', '/search?to=DE:1,US:14&usage=regular', '/accessibility', '/disclosure', '/devices', '/en/devices', '/en']) {
   const h = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await h.goto(BASE + path, { waitUntil: 'domcontentloaded' });
   await h.waitForTimeout(500);

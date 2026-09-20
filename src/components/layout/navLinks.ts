@@ -13,5 +13,6 @@ export function mainNavLinks(locale: Locale, dict: Dictionary): NavLink[] {
     { href: home, label: dict.nav.compare },
     { href: `${home === '/' ? '' : home}/#how-it-works`, label: dict.nav.howItWorks },
     { href: `${home === '/' ? '' : home}/#faq`, label: dict.nav.faq },
+    { href: localePath(locale, '/devices'), label: dict.nav.devices },
   ];
 }

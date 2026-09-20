@@ -24,6 +24,7 @@ export const en: Dictionary = {
     compare: 'Compare eSIMs',
     howItWorks: 'How it works',
     faq: 'FAQ',
+    devices: 'Device compatibility',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
     menuTitle: 'Menu',
@@ -507,6 +508,159 @@ export const en: Dictionary = {
     back: 'Back to the homepage',
     publicHint: 'The rest of the site is open and explains what the tool does.',
   },
+  devicesPage: {
+    navLabel: 'Device compatibility',
+    title: 'Does your device support eSIM?',
+    intro:
+      'A travel eSIM installs onto a chip built into the device. If that chip is not there, the plan cannot be installed — and refunds are rarely simple. Check before you buy, not after.',
+    updatedTemplate: "The lists here are copied from the manufacturers' own support pages, last checked on {date}.",
+    staleNote:
+      'A model released after that date will not appear here yet. When that happens, the check on the device itself is the answer that counts.',
+    check: {
+      title: 'The reliable check is on the device itself',
+      intro:
+        'A model list can mislead: the same model bought in a different country sometimes ships without an eSIM chip. Samsung says so outright. The menu on your own device cannot be wrong.',
+      supportTitle: 'How to check for support',
+      installTitle: 'How to install a plan you bought',
+      guides: [
+        {
+          id: 'ios',
+          title: 'iPhone and iPad',
+          supportSteps: [
+            'Open the Settings app.',
+            'Tap General, then tap About.',
+            'Scroll down and look for a line labelled EID. That is the identifier of the eSIM chip: if the line is there, the device has an eSIM. If it is not, it does not.',
+          ],
+          installSteps: [
+            'Open Settings and tap Cellular.',
+            'Tap Set Up Cellular or Add eSIM.',
+            'Choose the method your provider gave you: scan a QR code, follow an install link, or enter the details manually.',
+            'Installing needs a Wi-Fi connection, so set the plan up at home before you fly rather than at an airport abroad.',
+          ],
+        },
+        {
+          id: 'samsung',
+          title: 'Samsung Galaxy',
+          supportSteps: [
+            'Open Settings.',
+            'Tap Connections, then tap SIM manager.',
+            'If Add eSIM appears there, the device supports it. If the menu offers only a physical SIM, this model as sold in the country it was bought in does not.',
+          ],
+          installSteps: [
+            'Go to Settings, then Connections, then SIM manager.',
+            'Tap Add eSIM.',
+            'Scan the QR code your provider sent, or enter the details manually.',
+            'This also needs Wi-Fi — do it before you travel.',
+          ],
+        },
+        {
+          id: 'pixel',
+          title: 'Google Pixel',
+          supportSteps: [
+            'Open Settings.',
+            'Tap Network & internet, then tap SIMs.',
+            'If Add SIM appears, and inside it Set up an eSIM, the device supports it.',
+          ],
+          installSteps: [
+            'Go to Settings, then Network & internet, then SIMs.',
+            'Tap Add SIM, then Set up an eSIM.',
+            'Choose your provider and follow the instructions on screen.',
+            'Wi-Fi is needed here too. Install before you fly.',
+          ],
+        },
+      ],
+    },
+    other: {
+      title: 'Another brand — Xiaomi, Motorola, OnePlus, Honor',
+      body: [
+        'There is no single official list covering every manufacturer, and we do not publish a list we could not verify against the manufacturer itself.',
+        'The check that works on almost any Android device: Settings → Network & internet → SIMs. If there is an option to add an eSIM, the device supports it.',
+        'A quicker route: dial *#06# on the keypad. The screen shows the device identifiers, and if an EID is among them, the device has an eSIM chip.',
+      ],
+    },
+    lock: {
+      title: 'One more blocker worth checking: a carrier-locked phone',
+      body: [
+        'A device bought on a carrier plan may be locked to that carrier. If it is, another provider’s plan will not work even when the eSIM chip is present and healthy.',
+        'On iPhone: Settings → General → About, and look for the Carrier Lock line. If it reads No SIM Restrictions, the device is unlocked.',
+        'Android has no single place to check this, so ask the carrier the device was bought from.',
+      ],
+    },
+    list: {
+      title: 'The model lists',
+      intro:
+        "These cover Apple, Samsung and Google, copied from their support pages. Search by model name — “iPhone 13”, “Galaxy S21”, “Pixel 8”.",
+      searchLabel: 'Search for a model',
+      searchPlaceholder: 'iPhone 13, Galaxy S21, Pixel 8…',
+      clear: 'Clear search',
+      resultsTemplate: '{count} models listed',
+      oneResult: '1 model listed',
+      noResults: 'No model by that name.',
+      noResultsHint:
+        'That does not mean the device is unsupported — these lists cover only Apple, Samsung and Google. Check the menu on the device using the steps above.',
+      sourceTemplate: 'Source: {source}, checked {date}',
+      sourceLabels: {
+        appleIphone: 'Apple — eSIM on iPhone',
+        appleIpad: 'Apple — eSIM on iPad',
+        appleModels: 'Apple — identify your iPhone model',
+        samsung: 'Samsung — Galaxy eSIM',
+        pixel: 'Google — dual SIM on Pixel',
+      },
+      opensInNewTab: '(opens in a new tab, on the manufacturer’s site)',
+    },
+    support: {
+      yes: 'Supported',
+      regional: 'Depends where it was bought',
+      no: 'Not supported',
+    },
+    supportHint: {
+      yes: 'The manufacturer lists these models as supporting eSIM.',
+      regional:
+        'The manufacturer lists these as supported in some markets only. Check the device itself before buying.',
+      no: 'These models fall outside the support the manufacturer publishes. An eSIM plan will not work on them.',
+    },
+    brands: {
+      apple: 'Apple',
+      samsung: 'Samsung',
+      google: 'Google',
+    },
+    kinds: {
+      phone: 'Phones',
+      tablet: 'Tablets',
+    },
+    groupTitles: {
+      'apple-iphone-supported': 'iPhone — eSIM supported',
+      'apple-iphone-unsupported': 'iPhone — no eSIM',
+      'apple-ipad-supported': 'iPad — Wi-Fi + Cellular models',
+      'samsung-galaxy-s': 'Galaxy S',
+      'samsung-galaxy-z': 'Galaxy Z — foldables',
+      'samsung-galaxy-a': 'Galaxy A',
+      'samsung-xcover': 'Galaxy XCover',
+      'samsung-tab': 'Galaxy Tab',
+      'pixel-supported': 'Pixel — eSIM supported',
+      'pixel-outside-rule': 'Pixel — earlier generations',
+    },
+    notes: {
+      chinaMainland:
+        'A device bought in mainland China is a separate case: Apple states that only iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17e and iPhone Air support eSIM there.',
+      hongKongMacao:
+        'In Hong Kong and Macao some iPhone models ship with two physical nano-SIM slots instead of an eSIM.',
+      samsungOrigin:
+        'Samsung states it plainly: depending on the country of origin, eSIM may not be supported even on a model that appears in the list.',
+      samsungARegion:
+        'On the A series, support is limited to certain markets — Europe, North America and Korea (and, for the A54, Japan).',
+      pixelDualEsim:
+        'On Pixel 7 and later you can hold two eSIM profiles active at once, if your carrier allows it.',
+      pixelOutsideRule:
+        "Google's guidance covers Pixel 3a and later. Earlier generations fall outside it, and we do not state a conclusion we have not verified.",
+    },
+    cta: {
+      title: 'Device supported? Compare plans',
+      body: 'Pick a destination and a number of days to see which plans fit the trip.',
+      link: 'Compare plans',
+    },
+  },
+
   units: {
     perGb: '/GB',
     perDay: '/day',

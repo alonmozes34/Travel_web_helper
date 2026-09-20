@@ -24,7 +24,7 @@ export function MobileMenu({
         type="button"
         onClick={() => setOpen(true)}
         aria-expanded={open}
-        className="inline-flex size-11 items-center justify-center rounded-sm border border-line bg-surface md:hidden"
+        className="inline-flex size-11 items-center justify-center rounded-sm border border-line bg-surface lg:hidden"
       >
         <span aria-hidden="true" className="flex flex-col gap-[3px]">
           <span className="block h-0.5 w-[17px] rounded-sm bg-ink-2" />

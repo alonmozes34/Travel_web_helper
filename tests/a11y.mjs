@@ -22,6 +22,8 @@ const PAGES = [
   ['empty search', '/search'],
   ['accessibility statement', '/accessibility'],
   ['affiliate disclosure', '/disclosure'],
+  ['device compatibility', '/devices'],
+  ['device compatibility, english', '/en/devices'],
   ['english homepage', '/en'],
   ['preview unlock', '/unlock'],
   ['preview unlock, after a wrong password', '/unlock?next=%2Fesim%2Fthailand&error=1'],
@@ -69,6 +71,22 @@ const menu = await audit(page, 'mobile menu open');
 console.log(`mobile menu open: ${menu.violations.length} violation types`);
 
 await page.keyboard.press('Escape');
+
+// The model list after typing: a filtered list, and then the no-match block
+// that replaces it — the state a reader reaches by typing a brand we do not
+// list, which must not read as a verdict.
+const devices = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
+await devices.goto(`${BASE}/devices`, { waitUntil: 'domcontentloaded' });
+await devices.waitForTimeout(600);
+await devices.getByLabel('חיפוש דגם').fill('אייפון 13');
+await devices.waitForTimeout(300);
+const filtered = await audit(devices, 'device list, filtered');
+console.log(`device list, filtered: ${filtered.violations.length} violation types`);
+await devices.getByLabel('חיפוש דגם').fill('Xiaomi 14');
+await devices.waitForTimeout(300);
+const empty = await audit(devices, 'device list, no match');
+console.log(`device list, no match: ${empty.violations.length} violation types`);
+await devices.close();
 
 // The destination list as it opens before anything is typed: recent searches
 // and popular destinations, which is `listbox > group > option` rather than
