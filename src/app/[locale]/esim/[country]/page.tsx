@@ -14,6 +14,8 @@ import { buildComparison } from "@/lib/comparison/buildComparison";
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { getDisplayCurrency } from "@/lib/currencyServer";
 import { ResultsView } from "@/components/results/ResultsView";
+import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
+import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
 import { CountryFacts } from "@/components/content/CountryFacts";
 import { CoverageNotice } from "@/components/content/CoverageNotice";
 import { Faq } from "@/components/content/Faq";
@@ -221,21 +223,31 @@ export default async function CountryPage({
               )}
             </p>
 
-            <ResultsView
-              rows={comparison.rows}
+            {/* The cross-sell hangs off a chosen plan, so it lives beside the
+                results rather than inside them — and above the list, never in
+                front of it. */}
+            <TripExtrasProvider
               locale={locale}
-              dict={dict}
-              currency={comparison.currency}
+              countryCode={comparison.countryCodes[0]}
               tripDays={estimate.days}
-              countryCodes={comparison.countryCodes}
-              demoDataEnabled={comparison.isMockData}
+            >
+              <TripExtrasSlot dict={dict} />
+              <ResultsView
+                rows={comparison.rows}
+                locale={locale}
+                dict={dict}
+                currency={comparison.currency}
+                tripDays={estimate.days}
+                countryCodes={comparison.countryCodes}
+                demoDataEnabled={comparison.isMockData}
                 demoDataMixed={comparison.isMockData && !comparison.allMockData}
-              availableRecommendations={
-                Object.keys(comparison.recommendations) as RecommendationKey[]
-              }
-              initialFilters={initialFilters}
-              initialSort={initialSort}
-            />
+                availableRecommendations={
+                  Object.keys(comparison.recommendations) as RecommendationKey[]
+                }
+                initialFilters={initialFilters}
+                initialSort={initialSort}
+              />
+            </TripExtrasProvider>
           </>
         )}
 

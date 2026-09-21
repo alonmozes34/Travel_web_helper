@@ -510,6 +510,98 @@ try {
   await p.close();
 } catch (e) { check('devices', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ car rental cross-sell ════════════════════════════════════════════════
+try {
+  const OFFER = 'עוד דבר אחד לטיול';
+  const ctx = await b.newContext({ viewport: { width: 1400, height: 1000 } });
+  const p = await ctx.newPage();
+  await p.goto(B + '/esim/france?to=FR:5&usage=regular', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1000);
+  const offers = () => p.locator('section').filter({ hasText: OFFER }).count();
+
+  check('extras', 'no offer before a plan is chosen', (await offers()) === 0);
+
+  const urlBefore = p.url();
+  await p.locator('article').first().getByRole('button', { name: /מעבר לאתר/ }).first().click();
+  await p.waitForTimeout(400);
+
+  check('extras', 'the offer appears after the eSIM click', (await offers()) === 1);
+  check('extras', 'the eSIM page is not navigated away from', p.url() === urlBefore);
+
+  const body = await p.locator('body').innerText();
+  check('extras', 'the offer names the destination', body.includes('רכב שכור בצרפת'));
+  check('extras', 'the offer says the link opens elsewhere', body.includes('נפתח בלשונית חדשה'));
+
+  // A second plan must not stack a second offer.
+  await p.locator('article').nth(1).getByRole('button', { name: /מעבר לאתר/ }).first().click();
+  await p.waitForTimeout(300);
+  check('extras', 'a second eSIM click does not stack a second offer', (await offers()) === 1);
+
+  const href = await p.getByRole('link', { name: /השוואת רכבים/ }).getAttribute('href');
+  const params = new URL('http://x' + href).searchParams;
+  const gap = (new Date(params.get('until') + 'T00:00:00Z') - new Date(params.get('from') + 'T00:00:00Z')) / 86400000;
+  check('extras', 'the country carries into the rental search', params.get('country') === 'FR', href);
+  check('extras', 'the trip length carries into the rental dates', gap === 5, `${gap} days`);
+
+  // Declining is remembered, so a traveller comparing four plans is asked once.
+  await p.getByRole('button', { name: 'לא תודה' }).click();
+  await p.waitForTimeout(300);
+  check('extras', '"no thanks" hides the offer', (await offers()) === 0);
+  await p.locator('article').first().getByRole('button', { name: /מעבר לאתר/ }).first().click();
+  await p.waitForTimeout(400);
+  check('extras', 'and it stays hidden for the rest of the session', (await offers()) === 0);
+
+  // The multi-stop path: a leg of the combination is a chosen plan too.
+  const multi = await ctx.newPage();
+  await multi.goto(B + '/search?to=FR:4,IT:6&usage=regular', { waitUntil: 'domcontentloaded' });
+  await multi.waitForTimeout(1100);
+  await multi.getByRole('button', { name: /להצגה|מעבר לאתר|הצגה/ }).first().click();
+  await multi.waitForTimeout(400);
+  check('extras', 'a combination leg raises the offer too',
+    (await multi.locator('section').filter({ hasText: OFFER }).count()) === 1);
+  await ctx.close();
+} catch (e) { check('extras', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+// ══ car rental page ══════════════════════════════════════════════════════
+try {
+  const p = await page();
+  await p.goto(B + '/car-rental?country=FR', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(700);
+  const empty = await p.locator('body').innerText();
+  check('rental', 'the country is prefilled from the eSIM search',
+    (await p.locator('#rental-country').inputValue()) === 'FR');
+  check('rental', 'it asks for the city instead of guessing one', empty.includes('לא את העיר'));
+  check('rental', 'no results until there is something to search with', empty.includes('מלאו את הפרטים'));
+  check('rental', 'the site does not present itself as a rental company', empty.includes('לא משכירים רכב'));
+
+  await p.locator('#rental-pickup').fill('Paris CDG');
+  await p.getByRole('button', { name: 'חיפוש רכבים' }).click();
+  await p.waitForLoadState('domcontentloaded');
+  await p.waitForTimeout(700);
+  const rows = p.locator('li').filter({ hasText: 'סה״כ לתקופה' });
+  const text = await p.locator('body').innerText();
+  check('rental', 'the search returns offers', (await rows.count()) > 0, `${await rows.count()} rows`);
+  check('rental', 'the search lives in the URL, so it can be shared', p.url().includes('pickup=Paris'));
+  check('rental', 'demo offers are called demo', text.includes('ההצעות כאן אינן אמיתיות'));
+  check('rental', 'a demo row leads nowhere rather than somewhere fake', text.includes('אין עדיין קישור להזמנה'));
+  check('rental', 'a model is offered as an example, not promised', text.includes('או דומה'));
+  check('rental', 'a row with no model says the category is the promise', text.includes('מתחייבת לקטגוריה'));
+  check('rental', 'a converted price says it is converted', text.includes('המרה משוערת') && text.includes('חברת ההשכרה גובה'));
+
+  // Cheapest first, and never by which network supplied the row.
+  const prices = (text.match(/₪([\d,]+\.\d\d)/g) ?? []).map((v) => Number(v.slice(1).replace(/,/g, '')));
+  const totals = prices.filter((_, i) => i % 2 === 0);
+  check('rental', 'offers are ordered cheapest first',
+    totals.every((value, i) => i === 0 || value >= totals[i - 1]), totals.join(' '));
+
+  await p.goto(B + '/en/car-rental?country=FR&pickup=Paris', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(600);
+  const en = await p.locator('body').innerText();
+  check('rental', 'the English page is translated, not a Hebrew fallback',
+    en.includes('Compare rental car prices') && !en.includes('השוואת מחירי'));
+  await p.close();
+} catch (e) { check('rental', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ details & honesty ════════════════════════════════════════════════════
 try {
   const p = await page();

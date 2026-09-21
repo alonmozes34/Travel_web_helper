@@ -39,6 +39,7 @@ export function PlanListItem({
   isSelected,
   canSelect,
   onSelect,
+  onChosen,
 }: {
   row: ComparisonRow;
   locale: Locale;
@@ -51,6 +52,8 @@ export function PlanListItem({
   isSelected: boolean;
   canSelect: boolean;
   onSelect: (selected: boolean) => void;
+  /** Raised when this row's outbound link is followed. */
+  onChosen?: () => void;
 }) {
   const isBestValue = row.badges.includes('bestValue');
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -122,6 +125,7 @@ export function PlanListItem({
           dict={dict}
           detailsOpen={detailsOpen}
           onToggleDetails={() => setDetailsOpen((open) => !open)}
+          onChosen={onChosen}
         />
         <CompareToggle
           checked={isSelected}

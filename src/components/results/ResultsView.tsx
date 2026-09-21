@@ -31,6 +31,7 @@ import {
 } from "@/lib/comparison/filter";
 import type { RecommendationKey } from "@/lib/comparison/recommend";
 import { sortRows, sortKeys, type SortKey } from "@/lib/comparison/sort";
+import { useTripExtras } from "@/components/extras/TripExtrasProvider";
 import { RecommendationTabs } from "./RecommendationTabs";
 
 /** Each category is an ordering preset; unlimited also narrows the list. */
@@ -221,6 +222,9 @@ export function ResultsView({
     };
   }, [rows]);
 
+  /** Shared with the multi-stop combination card, so one page shows one offer. */
+  const tripExtras = useTripExtras();
+
   const planRowProps = (row: ComparisonRow) => ({
     row,
     locale,
@@ -232,6 +236,7 @@ export function ResultsView({
     isSelected: selectedIds.includes(row.plan.id),
     canSelect: selectedIds.length < MAX_COMPARE,
     onSelect: (isSelected: boolean) => toggleSelected(row.plan.id, isSelected),
+    onChosen: () => tripExtras?.choose(row.plan.id),
   });
 
   return (

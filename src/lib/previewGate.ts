@@ -87,7 +87,7 @@ function constantTimeEquals(a: string, b: string): boolean {
  * everything except a public list — fails the other way, and would have
  * silently exposed prices the first time a route was renamed.
  */
-const GATED_SEGMENTS = ['esim', 'search'] as const;
+const GATED_SEGMENTS = ['esim', 'search', 'car-rental'] as const;
 
 /**
  * Whether a path shows fabricated prices and therefore needs the password.

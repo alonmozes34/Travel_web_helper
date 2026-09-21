@@ -23,6 +23,7 @@ export function PlanCta({
   size = "sm",
   detailsOpen,
   onToggleDetails,
+  onChosen,
 }: {
   row: ComparisonRow;
   dict: Dictionary;
@@ -30,6 +31,13 @@ export function PlanCta({
   /** The desktop list states this once beneath the rows instead. */
   detailsOpen: boolean;
   onToggleDetails: () => void;
+  /**
+   * Called when the traveller leaves for the provider. This site has no
+   * checkout, so an outbound click is the only "chose a plan" event there is
+   * — and because the link opens in a new tab, the page raising it is still
+   * on screen. That is what the trip-extras offer hangs off.
+   */
+  onChosen?: () => void;
 }) {
   const [noted, setNoted] = useState(false);
   const link = outboundLink(row.plan);
@@ -43,6 +51,7 @@ export function PlanCta({
       planId: row.plan.id,
       providerId: row.plan.providerId,
     });
+    onChosen?.();
   }
 
   return (

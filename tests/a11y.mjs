@@ -23,6 +23,9 @@ const PAGES = [
   ['accessibility statement', '/accessibility'],
   ['affiliate disclosure', '/disclosure'],
   ['device compatibility', '/devices'],
+  ['car rental, before a search', '/car-rental?country=FR'],
+  ['car rental, with results', '/car-rental?country=FR&pickup=Paris%20CDG'],
+  ['car rental, english', '/en/car-rental?country=FR&pickup=Paris%20CDG'],
   ['device compatibility, english', '/en/devices'],
   ['english homepage', '/en'],
   ['preview unlock', '/unlock'],
@@ -71,6 +74,17 @@ const menu = await audit(page, 'mobile menu open');
 console.log(`mobile menu open: ${menu.violations.length} violation types`);
 
 await page.keyboard.press('Escape');
+
+// The cross-sell card, which only exists after an eSIM has been chosen and is
+// therefore invisible to a static load of the same URL.
+const extras = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
+await extras.goto(`${BASE}/esim/france?to=FR:5&usage=regular`, { waitUntil: 'domcontentloaded' });
+await extras.waitForTimeout(900);
+await extras.locator('article').first().getByRole('button', { name: /מעבר לאתר/ }).first().click();
+await extras.waitForTimeout(400);
+const crossSell = await audit(extras, 'trip extra offer shown');
+console.log(`trip extra offer shown: ${crossSell.violations.length} violation types`);
+await extras.close();
 
 // The model list after typing: a filtered list, and then the no-match block
 // that replaces it — the state a reader reaches by typing a brand we do not

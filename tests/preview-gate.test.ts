@@ -80,6 +80,9 @@ describe('preview gate', () => {
       '/en/esim/thailand',
       '/en/search',
       '/esim/thailand/',
+      // Car rental shows prices too, so it closes with the rest.
+      '/car-rental',
+      '/en/car-rental',
     ];
     for (const path of gated) {
       test(`gated: ${path}`, () => assert.ok(isGatedPath(path, locales), path));
@@ -92,6 +95,8 @@ describe('preview gate', () => {
       '/accessibility',
       '/en/accessibility',
       '/disclosure',
+      '/devices',
+      '/en/devices',
       '/privacy',
       '/terms',
     ];

@@ -4,6 +4,8 @@ import { Container } from "@/components/ui/Container";
 import { HeroSearch } from "@/components/search/HeroSearch";
 import { ResultsView } from "@/components/results/ResultsView";
 import { CombinationCard } from "@/components/comparison/CombinationCard";
+import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
+import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
 import { AffiliateDisclosure } from "@/components/content/AffiliateDisclosure";
 import { MockDataNotice } from "@/components/content/MockDataNotice";
 import { countries } from "@/data/countries";
@@ -207,36 +209,47 @@ export default async function SearchPage({
               </p>
             ) : null}
 
-            {combination ? (
-              <div className="mb-8">
-                <CombinationCard
-                  combination={combination}
-                  cheapestSingleMinor={cheapestSingleMinor}
+            {/* One provider around both selection paths: a leg of the
+                combination and a row in the list are the same act, and a
+                traveller who clicks both must still see one offer. */}
+            <TripExtrasProvider
+              locale={locale}
+              countryCode={comparison.countryCodes[0]}
+              tripDays={estimate.days}
+            >
+              {combination ? (
+                <div className="mb-8">
+                  <CombinationCard
+                    combination={combination}
+                    cheapestSingleMinor={cheapestSingleMinor}
+                    locale={locale}
+                    dict={dict}
+                  />
+                </div>
+              ) : null}
+
+              <TripExtrasSlot dict={dict} />
+
+              {comparison.rows.length > 0 ? (
+                <ResultsView
+                  rows={comparison.rows}
                   locale={locale}
                   dict={dict}
+                  currency={comparison.currency}
+                  tripDays={estimate.days}
+                  countryCodes={comparison.countryCodes}
+                  demoDataEnabled={comparison.isMockData}
+                  demoDataMixed={comparison.isMockData && !comparison.allMockData}
+                  availableRecommendations={
+                    Object.keys(comparison.recommendations) as RecommendationKey[]
+                  }
+                  initialFilters={filtersFromParams(queryParams)}
+                  initialSort={
+                    sortParam && isSortKey(sortParam) ? sortParam : "recommended"
+                  }
                 />
-              </div>
-            ) : null}
-
-            {comparison.rows.length > 0 ? (
-              <ResultsView
-                rows={comparison.rows}
-                locale={locale}
-                dict={dict}
-                currency={comparison.currency}
-                tripDays={estimate.days}
-                countryCodes={comparison.countryCodes}
-                demoDataEnabled={comparison.isMockData}
-                demoDataMixed={comparison.isMockData && !comparison.allMockData}
-                availableRecommendations={
-                  Object.keys(comparison.recommendations) as RecommendationKey[]
-                }
-                initialFilters={filtersFromParams(queryParams)}
-                initialSort={
-                  sortParam && isSortKey(sortParam) ? sortParam : "recommended"
-                }
-              />
-            ) : null}
+              ) : null}
+            </TripExtrasProvider>
 
             <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
           </>

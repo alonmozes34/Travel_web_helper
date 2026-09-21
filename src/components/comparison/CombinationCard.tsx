@@ -11,6 +11,7 @@ import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { Combination } from '@/lib/comparison/buildCombination';
 import { track } from '@/lib/analytics/events';
+import { useTripExtras } from '@/components/extras/TripExtrasProvider';
 import { formatData } from '@/lib/formatters/data';
 import { formatPrice } from '@/lib/formatters/price';
 
@@ -38,6 +39,7 @@ export function CombinationCard({
   dict: Dictionary;
 }) {
   const [noted, setNoted] = useState(false);
+  const tripExtras = useTripExtras();
   const difference = cheapestSingleMinor === null ? null : cheapestSingleMinor - combination.totalMinor;
   const isConverted = combination.legs.some((leg) => leg.sourceCurrency !== combination.currency);
 
@@ -102,6 +104,8 @@ export function CombinationCard({
                     planId: leg.plan.id,
                     providerId: leg.plan.providerId,
                   });
+                  // A leg of a combination is a chosen plan like any other.
+                  tripExtras?.choose(leg.plan.id);
                   setNoted(true);
                 }}
               >

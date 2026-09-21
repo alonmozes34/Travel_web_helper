@@ -684,6 +684,136 @@ export const he = {
     },
   },
 
+  /**
+   * Trip extras. Car rental is the first and, for now, the only one.
+   *
+   * The wording is a question, not a pitch: the offer appears after the
+   * traveller has already left for the provider, so its job is to be useful
+   * on the way back, not to interrupt anything.
+   */
+  tripExtras: {
+    heading: 'עוד דבר אחד לטיול',
+    esimChosen: 'נבחרה חבילת eSIM',
+    carRental: {
+      questionTemplate: 'צריכים גם רכב שכור ב{country}?',
+      questionGeneric: 'צריכים גם רכב שכור לנסיעה?',
+      body: 'השוו מחירי השכרת רכב ביעד שלכם.',
+      accept: 'השוואת רכבים',
+      decline: 'לא תודה',
+      opensInNewTab: '(נפתח בלשונית חדשה, החיפוש שלכם נשאר פתוח כאן)',
+      dismiss: 'סגירת ההצעה',
+    },
+  },
+  carRentalPage: {
+    navLabel: 'השכרת רכב',
+    title: 'השוואת מחירי השכרת רכב',
+    intro:
+      'אנחנו לא משכירים רכב ולא מוכרים ביטוח. זו השוואה בלבד, וההזמנה מתבצעת תמיד ישירות אצל חברת ההשכרה או אצל המתווך.',
+    countryKnownTemplate: 'היעד שהזנתם: {country}.',
+    needPickup:
+      'את המדינה אנחנו יודעים מהחיפוש שלכם, אבל לא את העיר — לכן צריך לבחור מאיפה אוספים את הרכב.',
+    form: {
+      title: 'פרטי ההשכרה',
+      country: 'מדינה',
+      countryPlaceholder: 'בחרו מדינה',
+      pickupLocation: 'מקום איסוף',
+      pickupPlaceholder: 'עיר, שדה תעופה או כתובת',
+      pickupKind: 'סוג מקום האיסוף',
+      sameDropoff: 'מחזירים את הרכב באותו מקום',
+      dropoffLocation: 'מקום החזרה',
+      dropoffPlaceholder: 'עיר, שדה תעופה או כתובת',
+      pickupDate: 'תאריך איסוף',
+      pickupTime: 'שעת איסוף',
+      dropoffDate: 'תאריך החזרה',
+      dropoffTime: 'שעת החזרה',
+      driverAge: 'גיל הנהג',
+      driverAgeHint: 'נהגים מתחת לגיל 25 משלמים לרוב תוספת.',
+      submit: 'חיפוש רכבים',
+      datesHint: 'התאריכים הם ברירת מחדל — שנו אותם לתאריכי הטיול שלכם.',
+    },
+    pickupKinds: {
+      airport: 'שדה תעופה',
+      city: 'מרכז העיר',
+      train: 'תחנת רכבת',
+      other: 'מיקום אחר',
+    },
+    errors: {
+      country: 'בחרו מדינה.',
+      pickup: 'הזינו מאיפה אוספים את הרכב.',
+      dropoff: 'הזינו מאיפה מחזירים את הרכב, או סמנו החזרה באותו מקום.',
+      dates: 'בחרו תאריך איסוף ותאריך החזרה.',
+      dateOrder: 'תאריך ההחזרה חייב להיות אחרי תאריך האיסוף.',
+      age: 'הזינו גיל בין 18 ל‑99.',
+    },
+    results: {
+      titleTemplate: 'רכבים ב{location}',
+      countTemplate: '{count} הצעות',
+      oneResult: 'הצעה אחת',
+      daysTemplate: 'ל‑{days} ימים',
+      none: 'לא נמצאו הצעות לחיפוש הזה.',
+      noneHint: 'נסו עיר אחרת, תאריכים אחרים, או מקום איסוף אחר.',
+      notSearched: 'מלאו את הפרטים למעלה כדי לראות הצעות.',
+      total: 'סה״כ לתקופה',
+      chargedTemplate: 'חברת ההשכרה גובה {amount}',
+      convertedNote: 'המחירים בשקלים הם המרה משוערת. החיוב בפועל נעשה במטבע של חברת ההשכרה.',
+      perDayTemplate: '{price} ליום',
+      orSimilarTemplate: '{model} או דומה',
+      categoryOnly: 'חברת ההשכרה מתחייבת לקטגוריה, לא לדגם מסוים.',
+      seatsTemplate: '{count} מושבים',
+      bagsTemplate: '{count} מזוודות',
+      viewDeal: 'לפרטים',
+      noLink: 'אב־טיפוס — אין עדיין קישור להזמנה',
+      ratingTemplate: 'דירוג {score} מתוך {outOf}',
+      ratingCountTemplate: '{count} חוות דעת',
+      noRating: 'לא התקבל דירוג',
+      pickupLabel: 'איסוף',
+      insuranceLabel: 'ביטוח',
+      fuelLabel: 'דלק',
+      mileageLabel: 'קילומטראז׳',
+      cancellationLabel: 'ביטול',
+    },
+    categories: {
+      mini: 'מיני',
+      economy: 'חסכונית',
+      compact: 'קומפקטית',
+      intermediate: 'בינונית',
+      suv: 'רכב שטח',
+      van: 'ואן',
+      luxury: 'יוקרה',
+    },
+    transmission: {
+      automatic: 'אוטומט',
+      manual: 'ידני',
+    },
+    fuel: {
+      'full-to-full': 'מקבלים מלא, מחזירים מלא',
+      'full-to-empty': 'משלמים על מיכל מלא מראש',
+      'same-to-same': 'מחזירים באותה רמת דלק',
+      unknown: 'מדיניות הדלק לא נמסרה',
+    },
+    mileage: {
+      unlimited: 'קילומטראז׳ ללא הגבלה',
+      limited: 'קילומטראז׳ מוגבל',
+      unknown: 'מדיניות הקילומטראז׳ לא נמסרה',
+    },
+    cancellation: {
+      free: 'ביטול חינם',
+      paid: 'ביטול בתשלום',
+      none: 'ללא אפשרות ביטול',
+      unknown: 'מדיניות הביטול לא נמסרה',
+    },
+    insurance: {
+      'excess-applies': 'יש השתתפות עצמית. בדקו את הסכום מול חברת ההשכרה.',
+      'basic-included': 'ביטוח בסיסי כלול. ההיקף המדויק נקבע על ידי חברת ההשכרה.',
+      unknown: 'פרטי הביטוח לא נמסרו לנו. בדקו אותם לפני ההזמנה.',
+    },
+    demo: {
+      title: 'ההצעות כאן אינן אמיתיות',
+      body: 'עדיין לא חיברנו ספק השכרת רכב אמיתי. השמות והמחירים כאן נוצרו לצורך פיתוח, הם אינם הצעות של אף חברה, ואי אפשר להזמין דרכם.',
+      rowLabel: 'נתוני הדגמה',
+    },
+  },
+
   units: {
     perGb: 'ל‑GB',
     perDay: 'ליום',
