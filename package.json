@@ -18,7 +18,8 @@
     "test:features": "node tests/features.mjs",
     "generate:countries": "tsx scripts/generate-countries.ts",
     "generate:brand": "tsx scripts/generate-brand-assets.ts",
-    "fetch:impact": "tsx scripts/fetch-impact.ts"
+    "fetch:impact": "tsx scripts/fetch-impact.ts",
+    "import:alosim": "tsx scripts/import-alosim-links.ts"
   },
   "dependencies": {
     "next": "16.3.4",
