@@ -25,6 +25,7 @@ export const en: Dictionary = {
     howItWorks: 'How it works',
     faq: 'FAQ',
     devices: 'Device compatibility',
+    destinations: 'All destinations',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
     menuTitle: 'Menu',
@@ -782,6 +783,24 @@ export const en: Dictionary = {
       body: 'No car rental provider is connected yet. The names and prices here were created for development, they are not any company’s offer, and nothing can be booked through them.',
       rowLabel: 'Demo data',
     },
+  },
+
+  destinationIndex: {
+    navLabel: 'All destinations',
+    title: 'eSIM for every destination',
+    intro:
+      'Pick a destination to see which eSIM plans fit it, what they cost, and which local network they run on.',
+    statusTemplate: 'We have plans for {covered} of the {total} destinations you can search here.',
+    demoNote: 'Prices on the destination pages are still demo data — the site is pre-launch.',
+    popularTitle: 'Most searched',
+    allTitle: 'Every destination, by continent',
+    coveredLabel: 'Plans available',
+    notCoveredLabel: 'Nothing yet',
+    countTemplate: '{count} destinations',
+  },
+  relatedDestinations: {
+    title: 'Other destinations nearby',
+    body: 'If the trip has another stop, compare that too — one regional plan is sometimes cheaper than two country plans.',
   },
 
   units: {

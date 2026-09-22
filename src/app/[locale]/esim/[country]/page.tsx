@@ -11,12 +11,14 @@ import { interpolate } from "@/i18n/interpolate";
 import { siteUrl } from "@/lib/site";
 import { tripProfileFromParams } from "@/lib/types/trip";
 import { buildComparison } from "@/lib/comparison/buildComparison";
+import { relatedDestinations } from "@/lib/comparison/relatedDestinations";
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { getDisplayCurrency } from "@/lib/currencyServer";
 import { ResultsView } from "@/components/results/ResultsView";
 import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
 import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
 import { CountryFacts } from "@/components/content/CountryFacts";
+import { RelatedDestinations } from "@/components/content/RelatedDestinations";
 import { CoverageNotice } from "@/components/content/CoverageNotice";
 import { Faq } from "@/components/content/Faq";
 import { buildCountryFacts } from "@/lib/comparison/countryFacts";
@@ -255,6 +257,13 @@ export default async function CountryPage({
       </Container>
 
       {coverageKind !== "none" && <CountryFacts facts={facts} dict={dict} />}
+      {/* Every destination page used to be an island: reachable from the
+          sitemap and from a search, and from nothing else. */}
+      <RelatedDestinations
+        destinations={relatedDestinations(country.code, locale)}
+        locale={locale}
+        dict={dict}
+      />
       <Faq dict={dict} structuredData={false} />
     </>
   );

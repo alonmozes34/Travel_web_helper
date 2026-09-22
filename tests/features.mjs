@@ -602,6 +602,44 @@ try {
   await p.close();
 } catch (e) { check('rental', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ destination index & interlinking ═════════════════════════════════════
+try {
+  const p = await page();
+  await p.goto(B + '/esim', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(700);
+  const body = await p.locator('body').innerText();
+  const links = await p.locator('a[href^="/esim/"]').count();
+
+  check('index', 'every destination has a crawlable link', links > 200, `${links} links`);
+  check('index', 'the index says how much of the world it can answer for', /יעדים מתוך/.test(body));
+  check('index', 'and that the prices behind it are demo', body.includes('לפני השקה'));
+  check('index', 'destinations with nothing behind them are labelled, not hidden', body.includes('עדיין אין'));
+  check('index', 'the index carries no prices itself', (await priceCount(p)) === 0);
+
+  // The block that stops every country page being an island.
+  await p.goto(B + '/esim/greece?to=GR:5&usage=regular', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(900);
+  const related = p.locator('section').filter({ hasText: 'יעדים נוספים באזור' });
+  check('index', 'a country page suggests other destinations', (await related.count()) === 1);
+  const hrefs = await related.locator('a').evaluateAll((all) => all.map((a) => a.getAttribute('href')));
+  check('index', 'it never links to itself', !hrefs.some((href) => href.endsWith('/esim/greece')), hrefs.join(' '));
+  check('index', 'the suggestions are places people go, not alphabetical accidents',
+    hrefs.some((href) => href.endsWith('/esim/italy')) && hrefs.some((href) => href.endsWith('/esim/spain')),
+    hrefs.join(' '));
+
+  // Every suggestion has to resolve — a dead internal link is worse than none.
+  let broken = 0;
+  for (const href of hrefs) {
+    const response = await p.request.get(B + href);
+    if (!response.ok()) broken += 1;
+  }
+  check('index', 'every suggested destination resolves', broken === 0, `${broken} broken`);
+
+  const nav = await p.locator('header nav[aria-label], footer nav').allInnerTexts();
+  check('index', 'the index is reachable from the site navigation', nav.join(' ').includes('כל היעדים'));
+  await p.close();
+} catch (e) { check('index', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ details & honesty ════════════════════════════════════════════════════
 try {
   const p = await page();

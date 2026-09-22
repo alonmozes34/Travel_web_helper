@@ -27,6 +27,7 @@ export const he = {
     howItWorks: 'איך זה עובד',
     faq: 'שאלות נפוצות',
     devices: 'תאימות מכשירים',
+    destinations: 'כל היעדים',
     openMenu: 'פתיחת תפריט',
     closeMenu: 'סגירת תפריט',
     menuTitle: 'תפריט',
@@ -812,6 +813,30 @@ export const he = {
       body: 'עדיין לא חיברנו ספק השכרת רכב אמיתי. השמות והמחירים כאן נוצרו לצורך פיתוח, הם אינם הצעות של אף חברה, ואי אפשר להזמין דרכם.',
       rowLabel: 'נתוני הדגמה',
     },
+  },
+
+  /**
+   * The destination index and the related-destination block.
+   *
+   * Both exist because 250 country pages with no links between them are 250
+   * pages nobody can reach except by searching again.
+   */
+  destinationIndex: {
+    navLabel: 'כל היעדים',
+    title: 'eSIM לכל יעד',
+    intro:
+      'בוחרים יעד ורואים אילו חבילות eSIM מתאימות לו, כמה הן עולות ועל איזו רשת מקומית הן פועלות.',
+    statusTemplate: 'יש לנו חבילות ל‑{covered} יעדים מתוך {total} שאפשר לחפש כאן.',
+    demoNote: 'המחירים בעמודי היעד הם עדיין נתוני הדגמה — האתר לפני השקה.',
+    popularTitle: 'היעדים המבוקשים',
+    allTitle: 'כל היעדים, לפי יבשת',
+    coveredLabel: 'יש חבילות',
+    notCoveredLabel: 'עדיין אין',
+    countTemplate: '{count} יעדים',
+  },
+  relatedDestinations: {
+    title: 'יעדים נוספים באזור',
+    body: 'אם הטיול כולל עוד עצירה, כדאי להשוות גם אותה — לפעמים חבילה אזורית אחת זולה משתי חבילות מדינה.',
   },
 
   units: {

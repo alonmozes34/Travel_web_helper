@@ -22,6 +22,8 @@ const PAGES = [
   ['empty search', '/search'],
   ['accessibility statement', '/accessibility'],
   ['affiliate disclosure', '/disclosure'],
+  ['destination index', '/esim'],
+  ['destination index, english', '/en/esim'],
   ['device compatibility', '/devices'],
   ['car rental, before a search', '/car-rental?country=FR'],
   ['car rental, with results', '/car-rental?country=FR&pickup=Paris%20CDG'],

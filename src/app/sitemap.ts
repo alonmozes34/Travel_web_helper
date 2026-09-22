@@ -18,6 +18,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/accessibility',
     '/disclosure',
     '/devices',
+    // The hub every destination page hangs off.
+    '/esim',
     // A destination page with no plans behind it still exists and answers
     // honestly, but it is not worth asking a search engine to index.
     ...countries

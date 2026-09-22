@@ -13,7 +13,16 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line-soft bg-surface">
-      <Container className="flex items-center gap-5 py-3">
+      {/*
+        Wraps rather than overflows. A fifth navigation item pushed the
+        currency switcher 124px off the edge at 200% text on a 1280px
+        viewport, which fails WCAG 1.4.4 — and a viewport breakpoint cannot
+        fix that, because at 200% the text is twice the size the breakpoint
+        assumed. Letting the row wrap is size-independent: at ordinary text
+        nothing moves, and at large text the header becomes two lines instead
+        of scrolling sideways.
+      */}
+      <Container className="flex flex-wrap items-center gap-x-5 gap-y-2 py-3">
         <Brand locale={locale} dict={dict} />
 
         {/*
@@ -22,7 +31,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           and 900px, which pushed the header to 53px rows of broken Hebrew.
           Below lg the same links are in the menu button beside it.
         */}
-        <nav aria-label={dict.nav.label} className="hidden lg:block">
+        <nav aria-label={dict.nav.label} className="hidden min-w-0 lg:block">
           <ul className="flex items-center gap-6">
             {links.map((link) => (
               <li key={link.href}>
