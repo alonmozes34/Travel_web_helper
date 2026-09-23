@@ -69,6 +69,8 @@ const ECB_SAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
 <gesmes:Envelope><Cube><Cube time='2026-09-11'>
 <Cube currency='USD' rate='1.1592'/><Cube currency='GBP' rate='0.85815'/>
 <Cube currency='ILS' rate='3.5301'/><Cube currency='JPY' rate='178.56'/>
+<Cube currency='AUD' rate='1.7684'/><Cube currency='CAD' rate='1.6012'/>
+<Cube currency='CHF' rate='0.9331'/><Cube currency='NZD' rate='1.9455'/>
 </Cube></Cube></gesmes:Envelope>`;
 
 test('every pair the app can be asked for is derived from the feed', () => {

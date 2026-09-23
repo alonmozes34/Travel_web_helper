@@ -34,6 +34,52 @@ export function findRate(rates: FxRate[], from: CurrencyCode, to: CurrencyCode):
 }
 
 /**
+ * The currency every rate is published against, and crossed through.
+ *
+ * The European Central Bank publishes one reference rate per currency against
+ * the euro, once a day. Every pair the application needs is derived from
+ * those — A to B is (EUR to B) divided by (EUR to A) — so a feed of N rates
+ * covers all N x (N-1) pairs. At eight currencies a hand-kept table of pairs
+ * would be fifty-six numbers that have to stay consistent with each other;
+ * as seven euro rates, an inconsistency is not expressible.
+ */
+export const RATE_BASE: CurrencyCode = 'EUR';
+
+/**
+ * Expands one rate per currency against the euro into every pair.
+ *
+ * Shared by the live feed and the mock table so the two cannot drift into
+ * different arithmetic, and rounded on the way out: the division comes back
+ * as 3.045289855072464, which is float noise that would be rendered as if it
+ * were precision. Six places is more than any price needs.
+ */
+export function crossThroughBase(
+  perBase: ReadonlyMap<CurrencyCode, number>,
+  all: readonly CurrencyCode[],
+  asOf: string,
+  source: FxRateSource,
+): FxRate[] {
+  const rates: FxRate[] = [];
+  for (const from of all) {
+    for (const to of all) {
+      if (from === to) continue;
+      const fromRate = perBase.get(from);
+      const toRate = perBase.get(to);
+      if (!fromRate || !toRate) continue;
+      rates.push({
+        from,
+        to,
+        rate: Math.round((toRate / fromRate) * 1e6) / 1e6,
+        asOf,
+        source,
+      });
+    }
+  }
+  return rates;
+}
+
+
+/**
  * Convert a price into the display currency. Conversion is a separate layer on
  * purpose: components that render prices never convert, and a converted price
  * always carries its rate and timestamp so it can be labelled honestly.

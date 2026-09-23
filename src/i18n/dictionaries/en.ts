@@ -812,7 +812,7 @@ export const en: Dictionary = {
     operator: {
       heading: 'Who runs this site',
       body: [
-        'The site is run by a private individual in Israel. There is no company behind it and no registered commercial entity.',
+        'The site is run by one person, not a company. There is no registered commercial entity behind it.',
         'For anything to do with privacy — including asking what is stored or asking for it to be removed — write to the address at the foot of this page.',
       ],
     },

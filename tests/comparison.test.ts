@@ -171,7 +171,13 @@ describe('currency conversion', () => {
     assert.equal(price.currency, 'ILS');
     assert.equal(price.sourceCurrency, 'USD');
     assert.equal(price.sourceAmountMinor, 1820);
-    assert.equal(price.amountMinor, Math.round(1820 * 3.24));
+    // Taken from the table rather than hard-coded: the mock rates are now
+    // crossed through the euro by the same function the live feed uses, so a
+    // magic number here would be a second copy of the arithmetic.
+    const usdIls = mockFxRates.find((rate) => rate.from === 'USD' && rate.to === 'ILS');
+    assert.ok(usdIls, 'the mock table no longer carries USD to ILS');
+    assert.equal(price.amountMinor, Math.round(1820 * usdIls.rate));
+    assert.ok(Math.abs(usdIls.rate - 3.24) < 0.05, `USD to ILS looks wrong: ${usdIls.rate}`);
     assert.ok(price.fxAsOf);
     assert.equal(price.fxSource, 'mock');
   });

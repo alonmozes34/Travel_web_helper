@@ -1,5 +1,5 @@
 import { currencies, type CurrencyCode } from '@/i18n/config';
-import type { FxRate } from '@/lib/pricing/convert';
+import { crossThroughBase, RATE_BASE, type FxRate } from '@/lib/pricing/convert';
 import type { RateResult, RateSource } from '../RateSource';
 
 /**
@@ -54,8 +54,8 @@ export function parseEcbDaily(xml: string): FxRate[] {
   const asOf = /time=['"](\d{4}-\d{2}-\d{2})['"]/.exec(xml)?.[1];
   if (!asOf) throw new Error('ECB feed carried no date');
 
-  // EUR is the base and is not listed as a rate against itself.
-  const perEuro = new Map<CurrencyCode, number>([['EUR', 1]]);
+  // The base is not listed as a rate against itself.
+  const perEuro = new Map<CurrencyCode, number>([[RATE_BASE, 1]]);
   for (const match of xml.matchAll(/currency=['"]([A-Z]{3})['"]\s+rate=['"]([0-9.]+)['"]/g)) {
     const code = match[1];
     if (!(currencies as readonly string[]).includes(code)) continue;
@@ -67,19 +67,7 @@ export function parseEcbDaily(xml: string): FxRate[] {
   const missing = currencies.filter((code) => !perEuro.has(code));
   if (missing.length > 0) throw new Error(`ECB feed is missing ${missing.join(', ')}`);
 
-  const rates: FxRate[] = [];
-  for (const from of currencies) {
-    for (const to of currencies) {
-      if (from === to) continue;
-      // Crossed through the euro, which is the only base the feed publishes,
-      // and rounded: a derived cross-rate comes out of the division as
-      // 3.045289855072464, which is float noise rendered on the page as if it
-      // were precision. Six places is more than any price needs.
-      const rate = Math.round((perEuro.get(to)! / perEuro.get(from)!) * 1e6) / 1e6;
-      rates.push({ from, to, rate, asOf, source: 'api' });
-    }
-  }
-  return rates;
+  return crossThroughBase(perEuro, currencies, asOf, 'api');
 }
 
 async function defaultFetchText(url: string): Promise<string> {

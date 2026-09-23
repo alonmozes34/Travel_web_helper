@@ -1,5 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { defaultLocale, locales } from '@/i18n/config';
+import {
+  CURRENCY_COOKIE,
+  CURRENCY_PARAM,
+  defaultLocale,
+  isCurrency,
+  locales,
+} from '@/i18n/config';
 import {
   gateMode,
   isAuthorised,
@@ -23,6 +29,9 @@ export function proxy(request: NextRequest) {
   const gate = guard(request);
   if (gate) return gate;
 
+  const currency = chooseCurrency(request);
+  if (currency) return currency;
+
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith(`/${defaultLocale}/`) || pathname === `/${defaultLocale}`) {
@@ -39,6 +48,41 @@ export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   url.pathname = `/${defaultLocale}${pathname === '/' ? '' : pathname}`;
   return NextResponse.rewrite(url);
+}
+
+/**
+ * A link that lands somebody in their own currency.
+ *
+ * `?currency=EUR` on any URL — alongside the locale prefix, so
+ * `/en/esim/france?currency=EUR` is English in euros — sets the preference
+ * and then redirects to the same page without the parameter.
+ *
+ * The redirect is the point rather than an inconvenience. The display
+ * currency is read from a cookie on the server so prices are right in the
+ * first paint; a request that only carries the parameter has no such cookie
+ * yet, so rendering it straight away would show the old currency and change
+ * it under the reader on the next click. One hop, and the page that arrives
+ * is already correct.
+ *
+ * An unrecognised value is ignored rather than corrected: somebody linking to
+ * `?currency=XYZ` gets the ordinary page, not a redirect loop.
+ */
+function chooseCurrency(request: NextRequest) {
+  const requested = request.nextUrl.searchParams.get(CURRENCY_PARAM);
+  if (!requested) return null;
+
+  const code = requested.toUpperCase();
+  if (!isCurrency(code)) return null;
+
+  const url = request.nextUrl.clone();
+  url.searchParams.delete(CURRENCY_PARAM);
+  const response = NextResponse.redirect(url);
+  response.cookies.set(CURRENCY_COOKIE, code, {
+    path: '/',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  return response;
 }
 
 /**

@@ -205,6 +205,40 @@ for (const [label, path, expect] of [
   check('verification', 'every impact.com token is in <head>, both spellings', missing.length === 0, missing.join(' ; ') || `6 pages x ${tokens.length} tokens`);
 }
 
+// ── currency in a URL ────────────────────────────────────────────────────
+{
+  // A link that lands somebody in their own language and currency at once.
+  // The parameter is attacker-reachable like any other, so nonsense must be
+  // ignored rather than corrected into a redirect loop.
+  const cases = [
+    ['EUR', 'EUR'],
+    ['usd', 'USD'],
+    ['AUD', 'AUD'],
+  ];
+  for (const [given, expected] of cases) {
+    const response = await fetch(`${B}/esim/france?currency=${given}`, { redirect: 'manual' });
+    const cookie = response.headers.get('set-cookie') ?? '';
+    const location = response.headers.get('location') ?? '';
+    check(
+      'currency',
+      `?currency=${given} sets ${expected} and drops the parameter`,
+      response.status === 307 && cookie.includes(`yeshklita_currency=${expected}`) && !location.includes('currency='),
+      `${response.status} ${location}`,
+    );
+  }
+
+  for (const junk of ['XYZ', '', '../../etc', 'EUR%00']) {
+    const response = await fetch(`${B}/esim/france?currency=${encodeURIComponent(junk)}`, { redirect: 'manual' });
+    check('currency', `nonsense currency is ignored: ${JSON.stringify(junk)}`, response.status === 200, String(response.status));
+  }
+
+  // The trip survives the hop, and the page really does render in it.
+  const landing = await fetch(`${B}/en/esim/france?to=FR:5&usage=regular&currency=AUD`, { redirect: 'manual' });
+  const next = landing.headers.get('location') ?? '';
+  check('currency', 'the trip survives the currency redirect', next.includes('to=FR') && next.includes('usage=regular'), next);
+}
+
+
 console.log(out.join('\n'));
 
 console.log(`\n  ${pass} pass, ${fail} fail`);

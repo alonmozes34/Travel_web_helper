@@ -56,7 +56,27 @@ export function isCurrency(value: string): value is CurrencyCode {
  */
 export const CURRENCY_COOKIE = 'yeshklita_currency';
 
-export const currencies = ['ILS', 'USD', 'EUR', 'GBP'] as const;
+/**
+ * Display currencies.
+ *
+ * Every one of these is published daily by the European Central Bank, which
+ * is where the real rates come from, and every one of them has two decimal
+ * places. That second condition is load-bearing rather than tidy: prices are
+ * stored in minor units and `toMajorUnits` divides by a hundred, so a
+ * zero-decimal currency — the yen, the won — would render a hundred times its
+ * real value. Adding one means teaching the pricing layer about minor-unit
+ * exponents first, not adding a line here.
+ */
+export const currencies = [
+  'ILS',
+  'USD',
+  'EUR',
+  'GBP',
+  'AUD',
+  'CAD',
+  'CHF',
+  'NZD',
+] as const;
 export type CurrencyCode = (typeof currencies)[number];
 
 export const currencyConfig: Record<CurrencyCode, { symbol: string; label: string }> = {
@@ -64,7 +84,22 @@ export const currencyConfig: Record<CurrencyCode, { symbol: string; label: strin
   USD: { symbol: '$', label: 'USD' },
   EUR: { symbol: '€', label: 'EUR' },
   GBP: { symbol: '£', label: 'GBP' },
+  AUD: { symbol: 'A$', label: 'AUD' },
+  CAD: { symbol: 'C$', label: 'CAD' },
+  CHF: { symbol: 'CHF', label: 'CHF' },
+  NZD: { symbol: 'NZ$', label: 'NZD' },
 };
+
+/**
+ * The currency a visitor is shown before they choose one.
+ *
+ * Only the two locales have a default of their own; everything else is
+ * reached by asking for it, either in the switcher or with `?currency=` on
+ * any URL. There is deliberately no guessing from an IP address: a shekel
+ * price shown to somebody in Berlin because a geolocation database placed
+ * them in Tel Aviv is worse than a dollar price they can change in one tap.
+ */
+export const CURRENCY_PARAM = 'currency';
 
 /**
  * Build a href for a locale. The default locale keeps clean, unprefixed URLs.
