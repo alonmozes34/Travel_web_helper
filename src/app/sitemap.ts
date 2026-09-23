@@ -10,13 +10,15 @@ import { siteUrl } from '@/lib/site';
  * rather than as competitors.
  */
 /** Pages that exist for trust and law rather than for search traffic. */
-const LOW_PRIORITY = ['/accessibility', '/disclosure'];
+const LOW_PRIORITY = ['/accessibility', '/disclosure', '/privacy', '/terms'];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     '/',
     '/accessibility',
     '/disclosure',
+    '/privacy',
+    '/terms',
     '/devices',
     // The hub every destination page hangs off.
     '/esim',

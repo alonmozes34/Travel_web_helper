@@ -803,6 +803,142 @@ export const en: Dictionary = {
     body: 'If the trip has another stop, compare that too — one regional plan is sometimes cheaper than two country plans.',
   },
 
+  privacyPage: {
+    navLabel: 'Privacy',
+    title: 'Privacy notice',
+    intro:
+      'This site asks you for nothing. There is no sign-up, no form, no payment, and no way for us to know who you are. What is kept on your own device is listed here in full.',
+    reviewedTemplate: 'Checked against the code on {date}.',
+    operator: {
+      heading: 'Who runs this site',
+      body: [
+        'The site is run by a private individual in Israel. There is no company behind it and no registered commercial entity.',
+        'For anything to do with privacy — including asking what is stored or asking for it to be removed — write to the address at the foot of this page.',
+      ],
+    },
+    notCollected: {
+      heading: 'What we do not do',
+      intro: 'None of the following exists on this site, and that is checkable in the code:',
+      items: [
+        'No user accounts and no sign-up.',
+        'Not one form that collects personal details.',
+        'No payments and no card details. Buying always happens on the provider’s own site.',
+        'No analytics tool. The module that names events on this site sends them nowhere.',
+        'No ad networks, no tracking pixels, no profiling.',
+      ],
+    },
+    storage: {
+      heading: 'What is kept on your device',
+      intro:
+        'Four items, all of them in your own browser. None of them is sent to us or to anyone else:',
+      keyLabel: 'Name',
+      kindLabel: 'Type',
+      purposeLabel: 'Why',
+      kinds: {
+        cookie: 'Cookie',
+        local: 'Local storage',
+        session: 'Tab storage',
+      },
+      purposes: {
+        currency: 'The currency you chose for prices, so you do not have to choose it on every visit.',
+        preview: 'A preview password, and only while the preview gate is closed. It is open, so this cookie is not written.',
+        recentDestinations: 'The country codes you searched for recently, to offer them in the search field. Country codes only.',
+        tripExtras: 'That you dismissed the car rental offer, so it is not offered again in the same tab.',
+      },
+      conditionalNote: 'Only written when that feature is switched on.',
+      clearing:
+        'All of these are removed when you clear site data in your browser. Tab storage also goes when you close the tab.',
+    },
+    logs: {
+      heading: 'Server logs',
+      body: [
+        'The site is hosted on Vercel, and hosting services keep technical request logs — including IP address, browser type and the page requested. Every site on the internet does this.',
+        'We do not read those logs to identify anyone, do not combine them with anything, and do not build profiles from them. They exist to run and secure the server.',
+      ],
+    },
+    outbound: {
+      heading: 'Links to providers',
+      body: [
+        'When you follow a button through to a provider, you leave this site. From that point the provider’s privacy policy applies, not ours.',
+        'The link carries an affiliate identifier telling the provider the click came from us. It says nothing about you — not a name, not an email, not what you searched for.',
+        'The provider may set cookies of their own on their site. We have no control over those and no access to them.',
+      ],
+    },
+    rights: {
+      heading: 'Your rights',
+      body: [
+        'Because we hold nothing that identifies you, there is no record for you to ask to see, correct or delete.',
+        'What is stored sits in your browser and is entirely under your control — clearing site data removes all of it.',
+        'If you have a privacy question or concern anyway, write to us and you will get a straight answer.',
+      ],
+    },
+    changes: {
+      heading: 'Changes',
+      body: [
+        'If this page changes, the date above changes with it. It is checked against the code rather than written once and forgotten.',
+      ],
+    },
+    contactHeading: 'Contact',
+  },
+  termsPage: {
+    navLabel: 'Terms of use',
+    title: 'Terms of use',
+    intro:
+      'Yesh Klita is a comparison and information site. We do not sell eSIM plans, we do not issue them, and we are not a party to anything between you and a provider.',
+    updatedTemplate: 'Last updated {date}.',
+    sections: [
+      {
+        heading: 'What this site is',
+        body: [
+          'We gather eSIM plans from different providers, rank them against the trip details you give us, and send you to the provider’s own site.',
+          'Buying, paying, activating, support and cancellations all happen with the provider. We are not part of that transaction.',
+        ],
+      },
+      {
+        heading: 'About the prices and the data',
+        body: [
+          'Prices and plan details come from provider sources and are shown with the date they were checked. They change, and promotions end.',
+          'The binding price is the one on the provider’s site at the moment of purchase. It is always worth checking there before you pay.',
+          'We do not invent prices, ratings or capabilities. A figure we could not verify is marked as such or is not shown at all.',
+        ],
+      },
+      {
+        heading: 'This is not personal advice',
+        body: [
+          'The ranking is calculated from plan data and the trip details you entered. It does not account for your handset, your home carrier or anything else about your circumstances.',
+          'What to buy is your decision. We provide a tool for comparing, not advice.',
+        ],
+      },
+      {
+        heading: 'Our commercial relationship',
+        body: [
+          'Some links to providers are affiliate links, and we may earn a commission on a purchase made through them — at no extra cost to you.',
+          'Commission does not affect the ranking. The full explanation is on the affiliate disclosure page.',
+        ],
+      },
+      {
+        heading: 'Third-party sites',
+        body: [
+          'A link to a provider is not an endorsement of their terms, their privacy policy or the service you will receive.',
+          'We are not responsible for content on external sites, for undertakings given there, or for any contract formed between you and them.',
+        ],
+      },
+      {
+        heading: 'Availability and liability',
+        body: [
+          'The site is provided as it is. We do not undertake that it will be continuously available, free of faults, or accurate at every moment.',
+          'So far as the law allows, we are not liable for indirect loss arising from use of the site or from reliance on information on it. If you find an error, tell us and we will correct it.',
+        ],
+      },
+      {
+        heading: 'Governing law',
+        body: ['These terms are governed by the laws of the State of Israel.'],
+      },
+    ],
+    contactHeading: 'Contact',
+    contactBody: 'For questions about these terms, or to report an error on the site:',
+  },
+
   units: {
     perGb: '/GB',
     perDay: '/day',

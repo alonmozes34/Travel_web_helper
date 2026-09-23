@@ -19,7 +19,9 @@
  * taking the field down with it.
  */
 
-const KEY = 'yk.recentDestinations';
+/** Exported so the privacy page is built from what the code actually stores. */
+export const RECENT_DESTINATIONS_KEY = 'yk.recentDestinations';
+const KEY = RECENT_DESTINATIONS_KEY;
 export const MAX_RECENT = 5;
 
 function isCode(value: unknown): value is string {

@@ -12,7 +12,9 @@
  * simply gets asked again, which is the harmless failure.
  */
 
-const KEY = 'yk.tripExtras.declined';
+/** Exported so the privacy page is built from what the code actually stores. */
+export const TRIP_EXTRAS_KEY = 'yk.tripExtras.declined';
+const KEY = TRIP_EXTRAS_KEY;
 
 export type TripExtraKey = 'carRental';
 
