@@ -190,6 +190,7 @@ for (const [label, path, expect] of [
     'd5ba34ba-7ca1-49fb-b386-c8a19431adb7',
     '425e3bf5-065d-4c1d-86c7-eb675f47b795',
     '41734050-b592-4c9b-be4c-ad4b6a459efa',
+    '4e7ce5f5-af45-4489-946e-4e9bc79dd979',
   ];
   const missing = [];
   for (const path of ['/', '/en', '/esim/thailand', '/search?to=TH:5&usage=regular', '/accessibility', '/disclosure']) {
