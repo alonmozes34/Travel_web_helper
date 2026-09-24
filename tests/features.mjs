@@ -589,8 +589,14 @@ try {
   check('rental', 'a converted price says it is converted', text.includes('המרה משוערת') && text.includes('חברת ההשכרה גובה'));
 
   // Cheapest first, and never by which network supplied the row.
-  const prices = (text.match(/₪([\d,]+\.\d\d)/g) ?? []).map((v) => Number(v.slice(1).replace(/,/g, '')));
-  const totals = prices.filter((_, i) => i % 2 === 0);
+  // Read per row: the first shekel figure in a row is its total. Scraping
+  // every figure off the page and taking alternate ones broke the day a
+  // per-day price came out whole (₪179) and printed without decimals.
+  const totals = [];
+  for (let i = 0; i < (await rows.count()); i++) {
+    const figure = (await rows.nth(i).innerText()).match(/₪([\d,]+(?:\.\d\d)?)/);
+    if (figure) totals.push(Number(figure[1].replace(/,/g, '')));
+  }
   check('rental', 'offers are ordered cheapest first',
     totals.every((value, i) => i === 0 || value >= totals[i - 1]), totals.join(' '));
 

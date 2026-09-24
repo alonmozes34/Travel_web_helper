@@ -40,7 +40,12 @@ Rules that follow from that, and hold for every change:
    so it can be checked, and it is not legal advice. It also expires: the
    obligation attaches when a business is registered and turnover grows.
 
-5. **The one gap that is still open** is a contact route on `/accessibility` —
-   an address a person who finds a barrier can write to. Until it exists the
-   statement is incomplete, the page says so, and indexing stays gated on it
-   in `src/lib/site.ts`. Raise it; do not quietly route around it.
+5. **The contact route is in place, and it is only a route if someone reads
+   it.** The owner supplied `yeshklita.info@gmail.com` on 14 September 2026
+   (commit `ccd877a`), and `/accessibility` links to it. The gate in
+   `src/lib/site.ts` still checks the statement on every build, so if the
+   address is ever removed indexing closes again by itself. Check
+   `missingAccessibilityFields()` before describing the statement as
+   incomplete — an earlier session did so from this file after the gap had
+   closed. Phone, postal address and response window stay empty and marked
+   until the owner supplies them; do not fill them.
