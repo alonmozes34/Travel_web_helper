@@ -29,6 +29,19 @@ const zoomOverflow = await zoomed.evaluate(() => document.documentElement.scroll
 ok('text at 200% does not force horizontal scrolling', zoomOverflow <= 1, `${zoomOverflow}px`);
 await zoomed.close();
 
+// 1.4.4 on a phone: the desktop check above has room to spare, and missed the
+// usage options, the related-destination links and the home wordmark, which
+// all pushed a 390px screen sideways at 200% text.
+for (const path of ['/', '/esim/thailand', '/en/esim/thailand', '/search?to=TH:10']) {
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await phone.goto(BASE + path, { waitUntil: 'domcontentloaded' });
+  await phone.evaluate(() => { document.documentElement.style.fontSize = '32px'; });
+  await phone.waitForTimeout(400);
+  const phoneOverflow = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  ok(`text at 200% on a 390px phone: ${path}`, phoneOverflow <= 1, `${phoneOverflow}px overflow`);
+  await phone.close();
+}
+
 // 2.1.1 / 2.1.2 Keyboard: complete the core journey with the keyboard alone.
 const kb = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
 await kb.goto(BASE + '/', { waitUntil: 'domcontentloaded' });

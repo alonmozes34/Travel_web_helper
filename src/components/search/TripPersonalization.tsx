@@ -88,12 +88,15 @@ export function TripPersonalization({
       <p className="font-head text-lg font-semibold">{dict.personalization.title}</p>
       <p className="mt-1 text-sm text-ink-2">{dict.personalization.note}</p>
 
-      <fieldset className="mt-4">
+      {/* min-w-0: a fieldset's minimum width is its content's by default, so
+          at 200% text on a phone the options pushed the page sideways instead
+          of wrapping. */}
+      <fieldset className="mt-4 min-w-0">
         <legend className="mb-2 text-sm font-semibold text-ink-2">
           {dict.personalization.usageLabel}
         </legend>
 
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {usageLevels.map((level: UsageLevel) => {
             const isActive = !exactChosen && profile.usage === level;
             return (
@@ -175,7 +178,7 @@ export function TripPersonalization({
                   onFocus={() => setExactPicked(true)}
                   onChange={(event) => chooseExact(event.target.value)}
                   className={cn(
-                    'tnum h-12 w-28 rounded-sm border-2 bg-surface px-2 text-center font-head text-lg font-semibold text-ink',
+                    'tnum h-12 w-28 max-w-full rounded-sm border-2 bg-surface px-2 text-center font-head text-lg font-semibold text-ink',
                     exactChosen ? 'border-brand' : 'border-line',
                   )}
                 />

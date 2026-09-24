@@ -51,13 +51,13 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
               descriptor into an H2 would have made the site's own purpose a
               subsection of its name. */}
           <h1 className="tracking-tight">
-            {/* The wordmark never breaks. A `ch`-based cap measures the digit
-                zero, which in a display face is far narrower than Hebrew
-                letters at 48px, and it split the brand across two lines. */}
-            <BrandName
-              name={dict.home.heroTitle}
-              className="block text-4xl font-bold whitespace-nowrap md:text-5xl"
-            />
+            {/* No width cap on the wordmark: a `ch`-based cap measures the
+                digit zero, which in a display face is far narrower than Hebrew
+                letters at 48px, and it split the brand across two lines. It is
+                not held on one line either — at 200% text on a phone it does
+                not fit, and wrapping between its two words is better than a
+                page that scrolls sideways. At normal sizes it fits whole. */}
+            <BrandName name={dict.home.heroTitle} className="block text-4xl font-bold md:text-5xl" />
             <span className="mt-2 block max-w-[24ch] text-2xl font-semibold text-balance text-ink-2 md:text-3xl">
               {dict.home.heroDescriptor}
             </span>

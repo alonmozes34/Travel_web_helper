@@ -31,12 +31,15 @@ export function RelatedDestinations({
         <h2 className="font-head text-2xl font-semibold">{dict.relatedDestinations.title}</h2>
         <p className="mt-1 max-w-[70ch] text-ink-2">{dict.relatedDestinations.body}</p>
 
+        {/* Each link may wrap inside itself: at 200% text on a phone a name
+            and its status do not fit on one line, and held there they pushed
+            the page sideways. */}
         <ul className="mt-5 flex flex-wrap gap-2">
           {destinations.map(({ country, covered }) => (
-            <li key={country.code}>
+            <li key={country.code} className="max-w-full">
               <Link
                 href={localePath(locale, `/esim/${country.slug}`)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-md border border-line bg-surface px-4 text-base hover:border-brand hover:text-brand"
+                className="inline-flex min-h-11 max-w-full flex-wrap items-center gap-x-2 rounded-md border border-line bg-surface px-4 py-1 text-base hover:border-brand hover:text-brand"
               >
                 <span aria-hidden="true">{country.flag}</span>
                 <span className="font-semibold">{country.names[locale]}</span>
