@@ -71,6 +71,14 @@ export const en: Dictionary = {
         ],
       },
       {
+        heading: 'Discount codes',
+        body: [
+          'When a provider gives us a discount code for visitors to this site, the code is tracked to us just like an affiliate link, and a purchase with it may earn us a commission.',
+          'When the code is open to everyone, the price shown and ranked is the price after the discount, with the original beside it. When it is only for the provider’s new customers, the price and the ranking stay on the regular price, and the code is shown next to it.',
+          'A code gives a provider no advantage beyond the discount itself, and every code is shown the same way. A code that expires leaves the site on the day it expires.',
+        ],
+      },
+      {
         heading: 'What we do not do',
         body: [
           'We do not take payment for placement, sell positions at the top of a list, or hide a provider who does not work with us.',
@@ -311,6 +319,11 @@ export const en: Dictionary = {
     compareLabel: 'Tick to compare',
     comparingLabel: 'Selected to compare',
     demoCoupon: 'Demo code',
+    sitePromoTemplate: '{percent} off for visitors of this site',
+    firstPurchasePromoTemplate: '{percent} off your first purchase',
+    promoCodeTemplate: 'code {code}',
+    promoInLink: 'already applied by the link',
+    promoSavingTemplate: 'saves {amount}',
   },
   details: {
     title: 'Plan details',

@@ -73,6 +73,14 @@ export const he = {
         ],
       },
       {
+        heading: 'קודי הנחה',
+        body: [
+          'אם ספק נותן לנו קוד הנחה לגולשי האתר, גם הקוד משויך אלינו, כמו קישורי השותפים, ורכישה איתו יכולה לזכות אותנו בעמלה.',
+          'כשהקוד פתוח לכל אחד, המחיר שמוצג ומדורג הוא המחיר אחרי ההנחה, והמחיר המקורי מופיע לידו. כשהקוד מיועד רק ללקוחות חדשים של הספק, המחיר והדירוג נשארים לפי המחיר הרגיל, והקוד מופיע לצדו.',
+          'קוד לא נותן לספק שום עדיפות מעבר להנחה עצמה, וכל קוד מוצג באותה צורה. קוד שפג תוקפו יורד מהאתר ביום שהוא פג.',
+        ],
+      },
+      {
         heading: 'מה אנחנו לא עושים',
         body: [
           'איננו מקדמים ספק בתשלום, לא מוכרים מקומות בראש הרשימה, ולא מסתירים ספק שלא עובד איתנו.',
@@ -327,6 +335,13 @@ export const he = {
     compareLabel: 'סמנו להשוואה',
     comparingLabel: 'נבחר להשוואה',
     demoCoupon: 'קוד הדגמה',
+    // A code a provider issued for this site's visitors. {percent} is "15%",
+    // {code} the code itself, {amount} what it saves on this plan.
+    sitePromoTemplate: '{percent} הנחה לגולשי האתר',
+    firstPurchasePromoTemplate: '{percent} הנחה ברכישה ראשונה',
+    promoCodeTemplate: 'קוד {code}',
+    promoInLink: 'ההנחה כבר כלולה בקישור',
+    promoSavingTemplate: 'חיסכון {amount}',
   },
   details: {
     title: 'פרטי החבילה',

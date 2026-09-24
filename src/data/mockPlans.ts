@@ -107,7 +107,7 @@ function buildPlan(seed: PlanSeed, index: number): Plan {
     finalPriceMinor,
     discount:
       seed.code && seed.percent
-        ? { code: seed.code, percent: seed.percent, source: 'mock' }
+        ? { code: seed.code, percent: seed.percent, source: 'mock', audience: 'everyone', appliedByLink: false }
         : null,
     networks:
       coverage.kind === 'country'

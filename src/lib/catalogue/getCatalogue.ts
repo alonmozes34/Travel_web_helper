@@ -1,4 +1,6 @@
+import { promotions as confirmedPromotions, type Promotion } from '@/data/promotions';
 import type { FxRate } from '@/lib/pricing/convert';
+import { applyPromotions } from '@/lib/pricing/promotions';
 import type { Plan } from '@/lib/types/plan';
 import { mergeResults, type ProviderSource, type SkippedRecord } from '@/lib/sources/ProviderSource';
 import type { RateSource } from '@/lib/sources/RateSource';
@@ -104,7 +106,11 @@ async function loadPlans(sources: ProviderSource[]) {
   return { merged: mergeResults(results), status };
 }
 
-export function catalogueLoader(sources: CatalogueSources = defaultSources(), now = () => Date.now()) {
+export function catalogueLoader(
+  sources: CatalogueSources = defaultSources(),
+  now = () => Date.now(),
+  promotions: readonly Promotion[] = confirmedPromotions,
+) {
   const plans = cached({ load: () => loadPlans(sources.plans), ttlMs: PLAN_TTL_MS, now });
   const rates = cached({ load: () => loadRates(sources.rates), ttlMs: RATE_TTL_MS, now });
 
@@ -112,7 +118,9 @@ export function catalogueLoader(sources: CatalogueSources = defaultSources(), no
     async get(): Promise<Catalogue> {
       const [p, r] = await Promise.all([plans.get(), rates.get()]);
       return {
-        plans: p.value.merged.plans,
+        // Applied on every read rather than when the plans were fetched, so a
+        // code stops the day it expires even if the cache is older than that.
+        plans: applyPromotions(p.value.merged.plans, promotions, new Date(now()).toISOString().slice(0, 10)),
         rates: r.value.rates,
         sources: [...p.value.status, ...r.value.status],
         skipped: p.value.merged.skipped,
