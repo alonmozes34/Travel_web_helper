@@ -10,6 +10,7 @@ import { planPrice } from '@/lib/pricing/convert';
 import { mockFxRates } from '@/data/fxRates';
 import { dailyFullSpeedMb } from '@/lib/types/plan';
 import {
+  LINK_TO_PLAN,
   alosimCredentialsFromEnv,
   alosimLinkFor,
   alosimSource,
@@ -121,6 +122,21 @@ describe('mapping an aloSIM plan', () => {
 });
 
 describe('the buy link', () => {
+  // The registered-page fallback, for the tests that describe it.
+  const viaPages = (item: AlosimPlan) => {
+    const mapped = mapAlosimPlan(item, 'T', (i, codes) => alosimLinkFor(i, codes, { toPlan: false }));
+    assert.ok('plan' in mapped);
+    return mapped.plan;
+  };
+
+  test('by default every plan goes straight to its own page, Hebrew for a Hebrew reader', () => {
+    assert.equal(LINK_TO_PLAN, true, 'confirmed by a test click in Everflow on 25 September 2026');
+    const plan = planOf(thai5gb);
+    assert.equal(plan.affiliateLandsOn, 'plan');
+    assert.match(plan.affiliateUrl!, /^https:\/\/alosim\.com\/thailand-esim\?plan_id=/);
+    assert.match(plan.affiliateUrlByLocale!.he!, /^https:\/\/alosim\.com\/he\/thailand-esim\?plan_id=/);
+  });
+
   // A plan whose page has no main-site tracking link, only a store-app one —
   // true of about one plan in six; Qatar is one.
   const qatar: AlosimPlan = {
@@ -132,7 +148,7 @@ describe('the buy link', () => {
   };
 
   test('goes through the tracking link aloSIM issued for the main-site page, straight to the plan', () => {
-    const plan = planOf(thai5gb);
+    const plan = viaPages(thai5gb);
     const url = new URL(plan.affiliateUrl!);
     assert.equal(url.origin + url.pathname, 'https://alosim.com/thailand-esim/');
     assert.equal(url.searchParams.get('uid'), '612', 'the tracking page id Everflow issued');
@@ -144,7 +160,7 @@ describe('the buy link', () => {
   });
 
   test('bundles too, where their main-site page has a tracking link', () => {
-    const url = new URL(planOf(europe).affiliateUrl!);
+    const url = new URL(viaPages(europe).affiliateUrl!);
     assert.equal(url.origin + url.pathname, 'https://alosim.com/europe-esim/');
     assert.ok(url.searchParams.get('uid'));
     assert.ok(url.searchParams.get('plan_id'));
@@ -152,7 +168,7 @@ describe('the buy link', () => {
   });
 
   test('without one, the store-app link for the destination, and the button says what to pick', () => {
-    const link = alosimLinkFor(qatar, ['QA'])!;
+    const link = alosimLinkFor(qatar, ['QA'], { toPlan: false })!;
     assert.equal(link.landsOn, 'destination');
     const url = new URL(link.href);
     assert.equal(url.origin + url.pathname, new URL(alosimLink('QA')!).origin + new URL(alosimLink('QA')!).pathname);

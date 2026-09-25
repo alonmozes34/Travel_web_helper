@@ -135,14 +135,19 @@ const trackingByCountry = new Map(
  * API itself returns when asked for Hebrew; checked for all 2,148 plans on 25
  * September 2026, same page and same price).
  *
- * This is what the owner asked for: one click, onto the plan the visitor
+  * This is what the owner asked for: one click, onto the plan the visitor
  * chose, in a language they read — no page of other plans to wander through
- * and change their mind on. It stays off until a click through such a link is
- * confirmed to reach our Everflow reports, because those links are not the
- * pages aloSIM registered for us there, and a link that does not credit us
- * is a sale lost. Flipping this is the whole change; the tests cover both.
+ * and change their mind on.
+ *
+ * On since 25 September 2026, when a test click through such a link
+ * (alosim.com/japan-esim?plan_id=…&affid=1810&oid=9&source_id=linktest) showed
+ * up in our Everflow reports under the $5 offer, with a transaction id — the
+ * id a purchase is attributed to — and the parameters plan_id, affid, oid
+ * and source_id read from the page. Everflow's script on aloSIM's site takes
+ * the ids from the link itself; the registered tracking pages are not needed.
+ * Turning it off falls back to the registered pages; both settings are tested.
  */
-export const LINK_TO_PLAN = false;
+export const LINK_TO_PLAN = true;
 
 /** Languages our site speaks that aloSIM also has pages in, and their path segment. */
 const ALOSIM_LANGUAGES: Partial<Record<Locale, string>> = { he: 'he' };
