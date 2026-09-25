@@ -123,6 +123,7 @@ export function PlanListItem({
         <PlanCta
           row={row}
           dict={dict}
+          locale={locale}
           detailsOpen={detailsOpen}
           onToggleDetails={() => setDetailsOpen((open) => !open)}
           onChosen={onChosen}

@@ -1,3 +1,4 @@
+import type { Locale } from '@/i18n/config';
 import type { Plan } from '@/lib/types/plan';
 
 /**
@@ -23,14 +24,16 @@ export type OutboundLink = {
   target: '_blank';
 };
 
-export function outboundLink(plan: Plan): OutboundLink | null {
-  if (!plan.affiliateUrl) return null;
+export function outboundLink(plan: Plan, locale?: Locale): OutboundLink | null {
+  // The provider's page in the visitor's language when there is one.
+  const href = (locale && plan.affiliateUrlByLocale?.[locale]) || plan.affiliateUrl;
+  if (!href) return null;
   // Only http(s). A feed is external input, and `javascript:` in an href is
   // the oldest trick there is.
-  if (!/^https?:\/\//i.test(plan.affiliateUrl)) return null;
+  if (!/^https?:\/\//i.test(href)) return null;
 
   return {
-    href: plan.affiliateUrl,
+    href,
     rel: 'sponsored noopener noreferrer',
     target: '_blank',
   };

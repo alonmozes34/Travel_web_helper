@@ -1,4 +1,4 @@
-import type { CurrencyCode } from '@/i18n/config';
+import type { CurrencyCode, Locale } from '@/i18n/config';
 import type { PlanCoverage } from './coverage';
 import type { Discount } from './discount';
 import type { Network } from './network';
@@ -102,6 +102,11 @@ export type Plan = {
    * second case does the button say which plan to pick.
    */
   affiliateLandsOn?: 'plan' | 'destination';
+  /**
+   * The same link in the visitor's language, where the provider has a page in
+   * it: a Hebrew reader lands on the provider's Hebrew page for the plan.
+   */
+  affiliateUrlByLocale?: Partial<Record<Locale, string>>;
   source: PlanSource;
   /** Only shown once a real API supplies it. */
   lastUpdatedAt: string | null;

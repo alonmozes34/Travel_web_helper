@@ -42,3 +42,11 @@ export type AlosimPlan = {
 export type AlosimPage = { items: AlosimPlan[]; offset: number; total: number };
 
 export type AlosimCredentials = { clientId: string; clientSecret: string };
+
+/** Where "buy" goes for one plan. */
+export type AlosimLink = {
+  href: string;
+  landsOn: 'plan' | 'destination';
+  /** The same link to aloSIM's page in another language, where it has one. */
+  byLocale?: Partial<Record<import('@/i18n/config').Locale, string>>;
+};

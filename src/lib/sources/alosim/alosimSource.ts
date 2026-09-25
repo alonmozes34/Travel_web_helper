@@ -1,10 +1,11 @@
 import { ALOSIM_OFFER_ID } from '@/data/alosim';
+import type { Locale } from '@/i18n/config';
 import { alosimDestinations, alosimPageLinks } from '@/data/alosim.generated';
 import { cached } from '@/lib/catalogue/cache';
 import type { Plan } from '@/lib/types/plan';
 import { sourceResult, type ProviderSource, type SkippedRecord, type SourceResult } from '../ProviderSource';
 import { mapAlosimPlan } from './mapPlan';
-import type { AlosimCredentials, AlosimPage, AlosimPlan } from './types';
+import type { AlosimCredentials, AlosimLink, AlosimPage, AlosimPlan } from './types';
 
 export const ALOSIM_API_BASE = 'https://api.alosim.com';
 
@@ -128,34 +129,39 @@ const trackingByCountry = new Map(
 );
 
 /**
- * Use the API's per-plan link for plans whose page has no tracking link of
- * its own on aloSIM's main site.
+ * Send every "buy" to aloSIM's own page for the exact plan, in the visitor's
+ * language — the per-plan link their Store API issues, with our affiliate and
+ * offer ids in it, and its Hebrew twin (the same page under /he/, which the
+ * API itself returns when asked for Hebrew; checked for all 2,148 plans on 25
+ * September 2026, same page and same price).
  *
- * Off until it is confirmed that a sale through that link is credited to us —
- * by aloSIM, or by a test click in our Everflow reports. It matters for about
- * one plan in six (small countries and three bundles); every other plan
- * already goes straight to itself through an issued tracking link, below.
- * Flipping this is the whole change; the tests cover both settings.
+ * This is what the owner asked for: one click, onto the plan the visitor
+ * chose, in a language they read — no page of other plans to wander through
+ * and change their mind on. It stays off until a click through such a link is
+ * confirmed to reach our Everflow reports, because those links are not the
+ * pages aloSIM registered for us there, and a link that does not credit us
+ * is a sale lost. Flipping this is the whole change; the tests cover both.
  */
 export const LINK_TO_PLAN = false;
 
+/** Languages our site speaks that aloSIM also has pages in, and their path segment. */
+const ALOSIM_LANGUAGES: Partial<Record<Locale, string>> = { he: 'he' };
+
 /**
- * Where "buy" sends a traveller for an aloSIM plan, in order of preference:
+ * Where "buy" sends a traveller for an aloSIM plan.
  *
- *  1. **The tracking link aloSIM issued for the plan's page on their main
- *     site, with the plan's `plan_id` added.** That is the page the API's own
- *     per-plan link points at, so the plan opens selected, and the tracking
- *     parameters are the ones Everflow issued, untouched. Adding `plan_id` is
- *     the same kind of change as adding `source_id`, which aloSIM confirmed.
- *     This covers about five plans in six.
+ * With `LINK_TO_PLAN` on: aloSIM's own per-plan link, localised (above).
+ *
+ * With it off, the links aloSIM registered for us, in order of preference:
+ *
+ *  1. **The tracking link for the plan's page on their main site, with the
+ *     plan's `plan_id` added**, so the page opens on the plan. English only:
+ *     those are the pages registered. About five plans in six.
  *  2. **Their store app's tracking link for the destination**, which lands on
- *     the destination rather than the plan — and the store app lists fewer
- *     plans than the main site (six for Japan, against thirty-two), which is
- *     how the owner, on 25 September 2026, clicked a 50GB, 10-day Japan plan
- *     at $27.50 and found nothing like it. Used only where (1) does not exist.
- *  3. **The API's per-plan link**, which carries our affiliate and offer ids
- *     but no tracking-page id; used where neither exists, or instead of (2)
- *     once `LINK_TO_PLAN` is on.
+ *     the destination rather than the plan, and lists fewer plans than the
+ *     main site (six for Japan against thirty-two). The button then says
+ *     what to pick. Only where (1) does not exist.
+ *  3. **aloSIM's own per-plan link**, where neither exists.
  *
  * `source_id` is the one custom parameter aloSIM's links support. It carries
  * the destination, so their reports show which destinations sell.
@@ -164,24 +170,45 @@ export function alosimLinkFor(
   item: AlosimPlan,
   countryCodes: string[],
   { toPlan = LINK_TO_PLAN }: { toPlan?: boolean } = {},
-): { href: string; landsOn: 'plan' | 'destination' } | null {
+): AlosimLink | null {
   const slug = pageSlug(item.url);
   const single = countryCodes.length === 1 && item.locations.length === 1 ? countryCodes[0] : null;
   const tag = single ?? slug;
   const tagged = (url: string) => (tag ? withParam(url, 'source_id', tag) : url);
-  const planId = planIdOf(item.url);
 
+  const ownPlanLink = (): AlosimLink => {
+    const byLocale: Partial<Record<Locale, string>> = {};
+    for (const [locale, segment] of Object.entries(ALOSIM_LANGUAGES) as Array<[Locale, string]>) {
+      const localised = inLanguage(item.url, segment);
+      if (localised) byLocale[locale] = tagged(localised);
+    }
+    return { href: tagged(item.url), landsOn: 'plan', byLocale };
+  };
+
+  if (toPlan) return ownPlanLink();
+
+  const planId = planIdOf(item.url);
   const sitePage = slug ? alosimPageLinks[slug]?.[ALOSIM_OFFER_ID] : undefined;
   if (sitePage && planId) {
     return { href: tagged(withParam(sitePage, 'plan_id', planId)), landsOn: 'plan' };
   }
 
-  const destination = toPlan
-    ? undefined
-    : ((slug ? trackingBySlug.get(slug) : undefined) ?? (single ? trackingByCountry.get(single) : undefined));
+  const destination = (slug ? trackingBySlug.get(slug) : undefined) ?? (single ? trackingByCountry.get(single) : undefined);
   if (destination) return { href: tagged(destination.links[ALOSIM_OFFER_ID]), landsOn: 'destination' };
 
-  return { href: tagged(item.url), landsOn: 'plan' };
+  return ownPlanLink();
+}
+
+/** alosim.com/japan-esim → alosim.com/he/japan-esim, the form their API returns for Hebrew. */
+function inLanguage(url: string, segment: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'alosim.com') return null;
+    parsed.pathname = `/${segment}${parsed.pathname}`;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }
 
 function planIdOf(url: string): string | null {

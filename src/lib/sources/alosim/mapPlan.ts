@@ -5,7 +5,7 @@ import type { Network, NetworkTechnology } from '@/lib/types/network';
 import type { FairUsage, Plan } from '@/lib/types/plan';
 import type { SkippedRecord } from '../ProviderSource';
 import { alpha3ToAlpha2 } from './countryCodes';
-import type { AlosimNetwork, AlosimPlan } from './types';
+import type { AlosimLink, AlosimNetwork, AlosimPlan } from './types';
 
 export const ALOSIM_PROVIDER_ID = 'alosim';
 
@@ -35,7 +35,7 @@ export type MappedAlosimPlan = { plan: Plan } | { skipped: SkippedRecord };
 export function mapAlosimPlan(
   item: AlosimPlan,
   fetchedAt: string,
-  linkFor: (item: AlosimPlan, countryCodes: string[]) => { href: string; landsOn: 'plan' | 'destination' } | null,
+  linkFor: (item: AlosimPlan, countryCodes: string[]) => AlosimLink | null,
 ): MappedAlosimPlan {
   const planId = readPlanId(item.url);
   const label = `${titleCase(item.name)} ${item.dataGigabytes} ${item.validityDays}d`;
@@ -100,6 +100,7 @@ export function mapAlosimPlan(
       topUp: null,
       affiliateUrl: link?.href ?? null,
       affiliateLandsOn: link?.landsOn,
+      affiliateUrlByLocale: link?.byLocale,
       source: 'api',
       lastUpdatedAt: fetchedAt,
     },

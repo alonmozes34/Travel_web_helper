@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 
 import { alosimLink } from '@/data/alosim';
+import { outboundLink } from '@/lib/affiliate/link';
 import { buildComparison } from '@/lib/comparison/buildComparison';
 import { applyPromotions } from '@/lib/pricing/promotions';
 import { planPrice } from '@/lib/pricing/convert';
@@ -167,6 +168,29 @@ describe('the buy link', () => {
     assert.equal(url.searchParams.get('affid'), '1810');
     assert.equal(url.searchParams.get('oid'), '9');
     assert.equal(url.searchParams.get('source_id'), 'QA');
+  });
+
+  test('with LINK_TO_PLAN on, every plan goes to its own page, in Hebrew for a Hebrew reader', () => {
+    const link = alosimLinkFor(thai5gb, ['TH'], { toPlan: true })!;
+    const planId = new URL(thai5gb.url).searchParams.get('plan_id');
+    assert.equal(link.landsOn, 'plan');
+    const en = new URL(link.href);
+    assert.equal(en.origin + en.pathname, 'https://alosim.com/thailand-esim');
+    const he = new URL(link.byLocale!.he!);
+    assert.equal(he.origin + he.pathname, 'https://alosim.com/he/thailand-esim', 'the form their API returns for Hebrew');
+    for (const url of [en, he]) {
+      assert.equal(url.searchParams.get('plan_id'), planId);
+      assert.equal(url.searchParams.get('affid'), '1810');
+      assert.equal(url.searchParams.get('oid'), '9');
+      assert.equal(url.searchParams.get('source_id'), 'TH');
+    }
+  });
+
+  test('the button takes the link in the visitor\'s language', () => {
+    const plan = mapAlosimPlan(thai5gb, 'T', (item, codes) => alosimLinkFor(item, codes, { toPlan: true }));
+    assert.ok('plan' in plan);
+    assert.match(outboundLink(plan.plan, 'he')!.href, /^https:\/\/alosim\.com\/he\/thailand-esim\?/);
+    assert.match(outboundLink(plan.plan, 'en')!.href, /^https:\/\/alosim\.com\/thailand-esim\?/);
   });
 
   test('with no tracking page at all, their own plan link', () => {

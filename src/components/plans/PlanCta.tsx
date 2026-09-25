@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, buttonClasses } from "@/components/ui/Button";
+import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/getDictionary";
 import { interpolate } from "@/i18n/interpolate";
 import { MB_PER_GB } from "@/lib/formatters/data";
@@ -21,6 +22,7 @@ import type { ComparisonRow } from "@/lib/comparison/buildComparison";
 export function PlanCta({
   row,
   dict,
+  locale,
   size = "sm",
   detailsOpen,
   onToggleDetails,
@@ -28,6 +30,7 @@ export function PlanCta({
 }: {
   row: ComparisonRow;
   dict: Dictionary;
+  locale: Locale;
   size?: "sm" | "md";
   /** The desktop list states this once beneath the rows instead. */
   detailsOpen: boolean;
@@ -41,7 +44,7 @@ export function PlanCta({
   onChosen?: () => void;
 }) {
   const [noted, setNoted] = useState(false);
-  const link = outboundLink(row.plan);
+  const link = outboundLink(row.plan, locale);
   const label = interpolate(dict.plan.viewAtTemplate, {
     provider: row.provider.name,
   });
