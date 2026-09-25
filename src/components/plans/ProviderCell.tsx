@@ -15,7 +15,9 @@ export function ProviderCell({ row }: { row: ComparisonRow }) {
       {provider.logo ? (
         <span
           aria-hidden="true"
-          className="flex h-10 w-24 shrink-0 items-center justify-center rounded-[10px] border border-line bg-white px-2"
+          // Pixels, not rem: a logo is a picture, and sized in text units it
+          // doubled with 200% text and pushed a phone screen sideways.
+          className="flex h-[40px] w-[84px] shrink-0 items-center justify-center rounded-[10px] border border-line bg-white px-[8px]"
         >
           <Image
             src={provider.logo.src}
@@ -23,7 +25,7 @@ export function ProviderCell({ row }: { row: ComparisonRow }) {
             width={provider.logo.width}
             height={provider.logo.height}
             unoptimized
-            className="h-auto max-h-6 w-auto max-w-full"
+            className="h-auto max-h-[24px] w-auto max-w-full"
           />
         </span>
       ) : (

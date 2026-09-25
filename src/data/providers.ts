@@ -9,7 +9,16 @@ import { mockProviders } from './mockProviders';
  * than repeating what their marketing suggests.
  */
 export const providers: Provider[] = [
-  { id: 'alosim', name: 'aloSIM', slug: 'alosim', brandColor: '#1C3FAA', activation: null },
+  {
+    id: 'alosim',
+    name: 'aloSIM',
+    slug: 'alosim',
+    brandColor: '#1C3FAA',
+    activation: null,
+    // "aloSIM logo (black)" from their affiliate creatives in Everflow,
+    // trimmed and scaled to four times the size it is shown at.
+    logo: { src: '/providers/alosim.png', width: 205, height: 96 },
+  },
 ];
 
 /** A real provider first; the demo ones exist only for the demo catalogue. */
