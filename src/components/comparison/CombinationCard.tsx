@@ -5,7 +5,7 @@ import { Ltr } from '@/components/ui/Bdi';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { countries } from '@/data/countries';
-import { getProvider } from '@/data/mockProviders';
+import { getProvider } from '@/data/providers';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';

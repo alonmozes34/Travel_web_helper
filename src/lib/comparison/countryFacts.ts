@@ -8,6 +8,8 @@ export type CountryFact = { question: string; answer: string };
 type FactsDictionary = {
   worksQuestion: string;
   worksAnswerTemplate: string;
+  providersOne: string;
+  providersTemplate: string;
   networksQuestion: string;
   networksAnswerTemplate: string;
   networksUnknownAnswer: string;
@@ -20,6 +22,7 @@ type FactsDictionary = {
   hotspotQuestion: string;
   hotspotAnswerTemplate: string;
   hotspotNoneAnswer: string;
+  hotspotUnknownAnswer: string;
   worksAnswerBroadTemplate: string;
 };
 
@@ -69,7 +72,8 @@ export function buildCountryFacts({
     ),
   ].sort();
 
-  const hotspotCount = rows.filter((row) => row.plan.hotspot).length;
+  const hotspotCount = rows.filter((row) => row.plan.hotspot === true).length;
+  const hotspotKnown = rows.filter((row) => row.plan.hotspot !== null).length;
 
   // "All the plans here are for this destination" stops being true the moment
   // the only coverage is a regional or global bundle, so the answer changes
@@ -99,7 +103,10 @@ export function buildCountryFacts({
         {
           country: countryName,
           plans: comparison.planCount,
-          providers: comparison.providerCount,
+          providers:
+            comparison.providerCount === 1
+              ? facts.providersOne
+              : interpolate(facts.providersTemplate, { count: comparison.providerCount }),
         },
       ),
     },
@@ -134,9 +141,13 @@ export function buildCountryFacts({
     },
     {
       question: facts.hotspotQuestion,
+      // "None allow it" is only true when every provider said so. When some
+      // did not say, the honest answer is that we do not know.
       answer:
         hotspotCount === 0
-          ? facts.hotspotNoneAnswer
+          ? hotspotKnown === total
+            ? facts.hotspotNoneAnswer
+            : facts.hotspotUnknownAnswer
           : interpolate(facts.hotspotAnswerTemplate, {
               count: hotspotCount,
               total,

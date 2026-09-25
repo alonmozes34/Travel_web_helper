@@ -7,17 +7,10 @@ import {
 /**
  * aloSIM — the first real provider to approve us.
  *
- * What this file holds is exactly what aloSIM have given us so far: which
- * destinations they sell for, and the affiliate link to each of those pages.
- * It does NOT hold prices, data allowances or validity, because they have not
- * supplied them. That is the whole reason no aloSIM plan appears on the site
- * yet: a row in a comparison needs a price, and we do not invent one.
- *
- * It is committed ahead of that feed on purpose. When the plan data does
- * arrive it will carry names and sizes, not links, and every plan still needs
- * somewhere to send a traveller — so the mapping from a destination to the
- * right page on their store is groundwork that would otherwise be done by
- * hand 121 times under time pressure.
+ * This file holds their Everflow tracking link for each destination page. The
+ * plans themselves — prices, allowances, validity — come live from their
+ * Store API (`src/lib/sources/alosim`), which uses these links as the "buy"
+ * target, because a sale through them is the one aloSIM confirmed is credited.
  */
 
 export type { AlosimDestination, AlosimOfferId };
@@ -26,15 +19,13 @@ export { alosimAffiliateId, alosimOfferIds } from './alosim.generated';
 /**
  * Which of the two live offers our links use.
  *
- * Provisionally the flat-fee one. The two pay differently — $5 per sale
- * against 10% of the order — and they cross at an order of $50, while
- * aloSIM's own packages start at $4.50 a week. For the orders this site will
- * actually send, the flat fee is worth several times the percentage.
+ * The flat-fee one, as aloSIM asked: "Please use the $5 offer links" (Adam
+ * Bednarek, September 2026). $5 on a new customer's first purchase, 30-day
+ * cookie, paid monthly by PayPal after a 30-day refund hold.
  *
- * "Provisionally" because that arithmetic assumes the two offers are
- * otherwise identical, and the payout terms and cookie window have not been
- * read yet. Deep-link coverage at least is identical: both offers register
- * the same 121 countries and 12 regions.
+ * Deep-link coverage is identical between the two offers — both register the
+ * same 121 countries and 12 regions — so the choice changes what we are paid,
+ * never which plans appear or how they rank.
  *
  * Changing it is this one constant. Nothing else knows the number.
  */

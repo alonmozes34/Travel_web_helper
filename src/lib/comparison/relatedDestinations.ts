@@ -1,6 +1,5 @@
 import { countries, type Country } from '@/data/countries';
 import type { Locale } from '@/i18n/config';
-import { isCountryCovered } from './catalogueCoverage';
 
 /**
  * The other destinations worth offering from a country page.
@@ -38,17 +37,19 @@ export const RELATED_LIMIT = 8;
  * Order of preference: a destination on the hero's shortlist, then one people
  * travel to, then one we can actually sell for.
  */
-function rank(country: Country): number {
+function rank(country: Country, isCovered: (code: string) => boolean): number {
   let score = 0;
   if (!country.popular) score += 4;
   if (country.aliases.length === 0) score += 2;
-  if (!isCountryCovered(country.code)) score += 1;
+  if (!isCovered(country.code)) score += 1;
   return score;
 }
 
 export function relatedDestinations(
   code: string,
   locale: Locale,
+  /** Whether the live catalogue sells for a destination — see `coverageOf`. */
+  isCovered: (code: string) => boolean,
   limit = RELATED_LIMIT,
 ): RelatedDestination[] {
   const self = countries.find((country) => country.code === code);
@@ -72,7 +73,7 @@ export function relatedDestinations(
    * purely because their names begin with alef.
    */
   const byRelevance = (a: Country, b: Country) =>
-    rank(a) - rank(b) ||
+    rank(a, isCovered) - rank(b, isCovered) ||
     b.aliases.length - a.aliases.length ||
     a.names[locale].localeCompare(b.names[locale], locale);
 
@@ -90,7 +91,7 @@ export function relatedDestinations(
     chosen.push(...elsewhere);
   }
 
-  return chosen.map((country) => ({ country, covered: isCountryCovered(country.code) }));
+  return chosen.map((country) => ({ country, covered: isCovered(country.code) }));
 }
 
 /** Every destination on a continent, in the reader's alphabet. */

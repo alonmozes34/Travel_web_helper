@@ -30,7 +30,7 @@ export function CoverageNote({
     coverage.kind === 'global'
       ? dict.search.coverageGlobal
       : interpolate(dict.search.coverageRegionTemplate, {
-          region: region?.names[locale] ?? coverage.regionId ?? '',
+          region: region?.names[locale] ?? coverage.regionName ?? coverage.regionId ?? '',
         });
 
   return (

@@ -1,5 +1,5 @@
 import { hasTechnology } from '@/lib/types/network';
-import type { Plan } from '@/lib/types/plan';
+import { dailyFullSpeedMb, type Plan } from '@/lib/types/plan';
 import type { DataNeedEstimate } from './estimateDataNeed';
 
 /**
@@ -153,7 +153,7 @@ export function featureScore(plan: Plan): number {
  * need costs nothing; a cap well below it is a real limitation.
  */
 export function fairUsageFactor(plan: Plan, estimate: DataNeedEstimate): number {
-  const threshold = plan.fairUsage?.dailyThresholdMb;
+  const threshold = dailyFullSpeedMb(plan.fairUsage, plan.validityDays);
   if (!plan.isUnlimited || !threshold || estimate.dailyMb <= 0) return 1;
   const ratio = threshold / estimate.dailyMb;
   if (ratio >= 1) return 1;

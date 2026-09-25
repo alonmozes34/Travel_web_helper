@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { countries } from '@/data/countries';
-import { isCountryCovered } from '@/lib/comparison/catalogueCoverage';
+import { getCatalogue } from '@/lib/catalogue/getCatalogue';
+import { coverageOf } from '@/lib/comparison/catalogueCoverage';
 import { localeConfig, localePath, locales } from '@/i18n/config';
 import { siteUrl } from '@/lib/site';
 
@@ -12,7 +13,12 @@ import { siteUrl } from '@/lib/site';
 /** Pages that exist for trust and law rather than for search traffic. */
 const LOW_PRIORITY = ['/accessibility', '/disclosure', '/privacy', '/terms'];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Which destinations are listed depends on the live catalogue, so the sitemap
+// is built on request rather than frozen at build time.
+export const dynamic = 'force-dynamic';
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { isCovered: isCountryCovered } = coverageOf((await getCatalogue()).plans);
   const paths = [
     '/',
     '/accessibility',

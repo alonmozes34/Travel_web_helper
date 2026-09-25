@@ -106,6 +106,7 @@ export const en: Dictionary = {
     yes: 'Yes',
     no: 'No',
     unknown: 'Unknown',
+    notStated: 'Not stated',
   },
   home: {
     heroTitle: 'Yesh Klita',
@@ -257,6 +258,7 @@ export const en: Dictionary = {
   },
   results: {
     summaryTemplate: 'We found {plans} plans from {providers} providers',
+    summaryOneProviderTemplate: 'We found {plans} plans from one provider',
     tailoredTemplate: 'Tailored to {days} days · {usage} usage · about {gb}GB',
     tailoredStatedTemplate: 'For {days} days · the {gb}GB you asked for',
     legEstimateTemplate: '{country} · {days} {unit} ≈ {gb}GB',
@@ -286,6 +288,8 @@ export const en: Dictionary = {
     noHotspot: 'No tethering',
     calls: 'Calls',
     noCalls: 'No calls',
+    hotspotUnknown: 'Hotspot: not stated',
+    callsUnknown: 'Calls: not stated',
     sms: 'SMS',
     noSms: 'No SMS',
     topUp: 'You can add more data',
@@ -314,7 +318,15 @@ export const en: Dictionary = {
     coversTripTemplate: 'Covers {days} trip days',
     shortValidity: 'Shorter than your trip',
     fairUsage: 'No volume cap — but there is a daily ceiling',
-    fairUsageDetailTemplate: 'Full speed up to {gb}GB per day, then throttled to {kbps}kbps.',
+    fairUsageCapped: 'No volume cap — but speed drops after a limit',
+    fairUsageDetailTemplate: 'Full speed up to {gb}GB per day, then throttled to {speed}.',
+    fairUsageDetailPlanTemplate: 'Full speed up to {gb}GB for the whole plan, then throttled to {speed}.',
+    fairUsageDetailUnknownTemplate:
+      'Full speed up to {gb}GB, then throttled to {speed}. The provider does not say whether the limit is per day or for the whole plan.',
+    fairUsageShortDayTemplate: '{gb}GB a day, then {speed}',
+    fairUsageShortPlanTemplate: '{gb}GB per plan, then {speed}',
+    fairUsageShortUnknownTemplate: '{gb}GB, then {speed}',
+    fullSpeedTemplate: 'up to {amount} at full speed',
     couponTemplate: 'Code {code} · saves {amount}',
     compareLabel: 'Tick to compare',
     comparingLabel: 'Selected to compare',
@@ -427,7 +439,7 @@ export const en: Dictionary = {
     facts: {
       worksQuestion: 'Does eSIM work in {country}?',
       worksAnswerTemplate:
-        'Yes. We found {plans} eSIM plans for {country} from {providers} providers. Every plan listed is for this destination and runs on local networks.',
+        'Yes. We found {plans} eSIM plans for {country} from {providers}. Every plan listed works in this destination and runs on local networks.',
       networksQuestion: 'Which networks are available?',
       networksAnswerTemplate: 'The plans we compared run on {operators}. Each plan shows its own network on its row.',
       networksUnknownAnswer:
@@ -440,12 +452,16 @@ export const en: Dictionary = {
       fiveGNoneAnswer: 'None of the plans we compared for this destination include 5G.',
       fiveGUnknownAnswer:
         'Unknown. Without the network list for this destination there is no way to tell which plans support 5G, and we will not guess.',
+      providersOne: 'one provider',
+      providersTemplate: '{count} providers',
       hotspotQuestion: 'Can you use hotspot?',
       hotspotAnswerTemplate:
-        '{count} of {total} plans allow tethering. Every row states explicitly whether a plan supports it.',
+        '{count} of {total} plans allow tethering. Every row says whether a plan supports it, does not, or the provider does not say.',
       hotspotNoneAnswer: 'None of the plans we compared for this destination allow tethering.',
+      hotspotUnknownAnswer:
+        'Unknown. The providers do not say whether their plans for this destination allow tethering, and we will not guess. If it matters to you, check with the provider before you buy.',
       worksAnswerBroadTemplate:
-        'Yes. No plan is sold for {country} alone, but we found {plans} regional and global plans from {providers} providers that list {country} among their destinations.',
+        'Yes. No plan is sold for {country} alone, but we found {plans} regional and global plans from {providers} that list {country} among their destinations.',
     },
     backToSearch: 'Search another destination',
     coverage: {
@@ -456,7 +472,7 @@ export const en: Dictionary = {
       noneBody:
         'We found no plan at all — country, regional or global — that includes this destination. That does not mean no eSIM exists for {country}; it means ours does not list one.',
       noneStatusTemplate:
-        'The current catalogue covers {covered} of the {total} destinations you can search here, and it is demo data. Once real providers are connected, coverage comes from their catalogues.',
+        'The current catalogue covers {covered} of the {total} destinations you can search here. Coverage comes from the catalogues of the providers connected to the site, and changes with them.',
       noneAlternativesTitle: 'In the meantime, these destinations can be compared',
     },
   },
@@ -493,7 +509,7 @@ export const en: Dictionary = {
     limitations: [
       'The site has not been tested with screen readers (NVDA, VoiceOver, JAWS), and in particular the reading of Hebrew text interleaved with numbers and English terms has not been checked.',
       'The site has not been reviewed by a licensed accessibility consultant and has not been tested with disabled users.',
-      'The site is under development and the data shown is demo data.',
+      'The site is under development, and parts of it are still changing.',
     ],
     contactTitle: 'Reporting an accessibility problem',
     contactIntro:
@@ -514,7 +530,7 @@ export const en: Dictionary = {
   preview: {
     navTitle: 'Preview',
     heading: 'This part is still closed',
-    body: 'The comparison pages show demo data — prices created for development, which are not real offers from any provider. So they are not published yet.',
+    body: 'The comparison pages are not published yet — the site is pre-launch.',
     invite: 'Been given a password? Enter it here.',
     label: 'Password',
     submit: 'Enter',

@@ -101,10 +101,11 @@ export function mapImpactItem(
       finalPriceMinor,
       discount: null,
       networks: [],
-      hotspot: false,
-      calls: false,
-      sms: false,
-      topUp: false,
+      // Not in an affiliate catalogue either, so not stated rather than "no".
+      hotspot: null,
+      calls: null,
+      sms: null,
+      topUp: null,
       // Filled in by the source, which is what holds the tracking template.
       affiliateUrl: typeof item.Url === 'string' ? item.Url : null,
       source: 'api',

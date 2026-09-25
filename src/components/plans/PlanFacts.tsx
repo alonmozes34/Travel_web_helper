@@ -1,10 +1,10 @@
+import { fairUsageCopy } from '@/lib/formatters/fairUsage';
 import { Ltr } from "@/components/ui/Bdi";
 import { cn } from "@/components/ui/cn";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/getDictionary";
 import { interpolate } from "@/i18n/interpolate";
 import type { ComparisonRow } from "@/lib/comparison/buildComparison";
-import { MB_PER_GB } from "@/lib/formatters/data";
 import { formatData } from "@/lib/formatters/data";
 import { formatPrice } from "@/lib/formatters/price";
 import { hasTechnology, networksForDestinations } from "@/lib/types/network";
@@ -77,10 +77,14 @@ export function DataFact({
         : interpolate(dict.plan.dataDaysTemplate, { days: row.daysOfData });
 
   const perUnit = plan.isUnlimited
-    ? plan.fairUsage?.dailyThresholdMb
-      ? interpolate(dict.plan.perDayTemplate, {
-          price: formatData(plan.fairUsage.dailyThresholdMb, locale),
-        })
+    ? plan.fairUsage?.thresholdMb
+      ? plan.fairUsage.per === "day"
+        ? interpolate(dict.plan.perDayTemplate, {
+            price: formatData(plan.fairUsage.thresholdMb, locale),
+          })
+        : interpolate(dict.plan.fullSpeedTemplate, {
+            amount: formatData(plan.fairUsage.thresholdMb, locale),
+          })
       : null
     : row.pricePerGbMinor !== null
       ? interpolate(dict.plan.perGbTemplate, {
@@ -170,11 +174,21 @@ export function NetworkFact({
     ...(networks.length > 0
       ? [{ label: fiveG ? dict.plan.fiveG : dict.plan.no5g, on: fiveG }]
       : []),
+    // Three answers each: yes, no, and "the provider does not say".
     {
-      label: plan.hotspot ? dict.plan.hotspot : dict.plan.noHotspot,
-      on: plan.hotspot,
+      label:
+        plan.hotspot === null
+          ? dict.plan.hotspotUnknown
+          : plan.hotspot
+            ? dict.plan.hotspot
+            : dict.plan.noHotspot,
+      on: plan.hotspot === true,
     },
-    { label: plan.calls ? dict.plan.calls : dict.plan.noCalls, on: plan.calls },
+    {
+      label:
+        plan.calls === null ? dict.plan.callsUnknown : plan.calls ? dict.plan.calls : dict.plan.noCalls,
+      on: plan.calls === true,
+    },
   ];
 
   return (
@@ -216,19 +230,15 @@ export function FairUsageNote({
   dict: Dictionary;
 }) {
   const fup = row.plan.fairUsage;
-  if (!row.plan.isUnlimited || !fup?.dailyThresholdMb) return null;
+  if (!row.plan.isUnlimited || !fup?.thresholdMb) return null;
+  const copy = fairUsageCopy(fup, dict);
 
   return (
     <details className="mt-2 inline-block max-w-full rounded-xs bg-warn-50 px-2 py-1 text-sm text-warn-ink">
       <summary className="cursor-pointer list-none marker:content-none">
-        <span aria-hidden="true">⚠︎</span> {dict.plan.fairUsage}
+        <span aria-hidden="true">⚠︎</span> {copy.label}
       </summary>
-      <p className="mt-1 max-w-[46ch]">
-        {interpolate(dict.plan.fairUsageDetailTemplate, {
-          gb: Math.round(fup.dailyThresholdMb / MB_PER_GB),
-          kbps: fup.throttledToKbps ?? "—",
-        })}
-      </p>
+      <p className="mt-1 max-w-[46ch]">{copy.detail}</p>
     </details>
   );
 }

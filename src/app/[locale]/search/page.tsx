@@ -19,7 +19,7 @@ import type { RecommendationKey } from "@/lib/comparison/recommend";
 import { isSortKey } from "@/lib/comparison/sort";
 import { getDisplayCurrency } from "@/lib/currencyServer";
 import { tripProfileFromParams } from "@/lib/types/trip";
-import { isCountryCovered } from "@/lib/comparison/catalogueCoverage";
+import { coverageOf } from "@/lib/comparison/catalogueCoverage";
 
 export const metadata: Metadata = {
   // A search result is a private query, not a page for a search engine.
@@ -65,6 +65,7 @@ export default async function SearchPage({
     rates: catalogue.rates,
   });
   const { estimate, combination } = comparison;
+  const { isCovered: isCountryCovered } = coverageOf(catalogue.plans);
 
   const names = profile.destinations
     .map(
@@ -152,7 +153,7 @@ export default async function SearchPage({
             {comparison.rows.length > 0 || combination ? (
               <p className="mt-6 text-base text-ink-2">
                 <strong className="font-semibold text-ink">
-                  {interpolate(dict.results.summaryTemplate, {
+                  {interpolate(comparison.providerCount === 1 ? dict.results.summaryOneProviderTemplate : dict.results.summaryTemplate, {
                     plans: comparison.planCount,
                     providers: comparison.providerCount,
                   })}

@@ -1,6 +1,6 @@
 import type { CurrencyCode } from '@/i18n/config';
 import type { Plan } from '@/lib/types/plan';
-import { convertPrice, type FxRate } from '@/lib/pricing/convert';
+import { planPrice, type FxRate } from '@/lib/pricing/convert';
 import { estimateDataNeed, type DataNeedEstimate } from './estimateDataNeed';
 import type { TripDestination, TripProfile } from '@/lib/types/trip';
 
@@ -53,7 +53,7 @@ export function buildCombination({
 
   const uncovered = new Set(codes);
   const legs: CombinationLeg[] = [];
-  const priceOf = (plan: Plan) => convertPrice(plan.finalPriceMinor, plan.sourceCurrency, currency, rates);
+  const priceOf = (plan: Plan) => planPrice(plan, plan.finalPriceMinor, currency, rates);
 
   // A destination with no plan at all means there is no combination to offer.
   for (const code of codes) {

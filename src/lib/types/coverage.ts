@@ -13,6 +13,11 @@ export type PlanCoverage = {
   kind: CoverageKind;
   countries: string[];
   regionId: string | null;
+  /**
+   * The provider's own name for a bundle we have no region of our own for
+   * ("Scandinavia", "British Isles"). Shown as their label, never matched on.
+   */
+  regionName?: string;
   /** The provider's own figure, displayed as a claim. Never used for matching. */
   publishedDestinationCount: number | null;
 };

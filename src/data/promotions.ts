@@ -32,11 +32,19 @@ export type Promotion = {
   confirmedOn: string;
 };
 
-/**
- * Empty on purpose.
- *
- * aloSIM offered a 15% code for this site's visitors on 24 September 2026. We
- * have asked for its terms: which plans, which customers, whether it expires,
- * and whether the link applies it. It is added here once they answer.
- */
-export const promotions: readonly Promotion[] = [];
+export const promotions: readonly Promotion[] = [
+  {
+    // "The code is YESHKLITA15. The code is for new customers only, and it
+    // expires Feb 28th, 2027." Whether it covers regional plans too, and
+    // whether the tracking link applies it by itself, has been asked; until
+    // then the code is shown to type in.
+    providerId: 'alosim',
+    code: 'YESHKLITA15',
+    percent: 15,
+    audience: 'newCustomers',
+    appliedByLink: false,
+    validUntil: '2027-02-28',
+    confirmedBy: 'Adam Bednarek, aloSIM partnerships, by email',
+    confirmedOn: '2026-09-24',
+  },
+];

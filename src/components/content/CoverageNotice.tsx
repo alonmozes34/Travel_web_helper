@@ -4,7 +4,7 @@ import { localePath } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import { popularCountries } from '@/data/countries';
-import { coveredCount, destinationCount } from '@/lib/comparison/catalogueCoverage';
+import type { CatalogueCoverage } from '@/lib/comparison/catalogueCoverage';
 
 /**
  * What a destination page says when the catalogue is thinner than the map.
@@ -20,8 +20,11 @@ export function CoverageNotice({
   countryName,
   locale,
   dict,
+  coverage,
 }: {
   kind: 'none' | 'broad-only';
+  /** From the live catalogue — see `coverageOf`. */
+  coverage: Pick<CatalogueCoverage, 'coveredCount' | 'destinationCount'>;
   countryName: string;
   locale: Locale;
   dict: Dictionary;
@@ -49,8 +52,8 @@ export function CoverageNotice({
       </p>
       <p className="mt-3 text-sm text-ink-3">
         {interpolate(copy.noneStatusTemplate, {
-          covered: coveredCount,
-          total: destinationCount,
+          covered: coverage.coveredCount,
+          total: coverage.destinationCount,
         })}
       </p>
 

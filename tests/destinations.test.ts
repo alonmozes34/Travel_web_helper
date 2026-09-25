@@ -3,7 +3,8 @@ import { describe, test } from 'node:test';
 
 import { countries, getCountryByCode } from '@/data/countries';
 import { destinationContinents } from '@/data/regions';
-import { isCountryCovered } from '@/lib/comparison/catalogueCoverage';
+import { mockPlans } from '@/data/mockPlans';
+import { coverageOf } from '@/lib/comparison/catalogueCoverage';
 import {
   destinationsByContinent,
   popularDestinations,
@@ -17,10 +18,13 @@ import {
  * a page that links to itself or to nothing, and an index that drops the
  * destinations we cannot sell for instead of labelling them.
  */
+// Against the demo catalogue: coverage is a property of whatever catalogue is live.
+const { isCovered: isCountryCovered } = coverageOf(mockPlans);
+
 describe('related destinations', () => {
   test('a destination never suggests itself', () => {
     for (const country of countries.filter((entry) => entry.continent !== 'antarctic')) {
-      const related = relatedDestinations(country.code, 'he');
+      const related = relatedDestinations(country.code, 'he', isCountryCovered);
       assert.ok(
         !related.some((entry) => entry.country.code === country.code),
         `${country.code} links to itself`,
@@ -32,14 +36,14 @@ describe('related destinations', () => {
     // Oceania and the Caribbean have few entries; the block is topped up from
     // the hero's shortlist rather than rendered half empty.
     for (const country of countries.filter((entry) => entry.continent !== 'antarctic')) {
-      const related = relatedDestinations(country.code, 'he');
+      const related = relatedDestinations(country.code, 'he', isCountryCovered);
       assert.equal(related.length, RELATED_LIMIT, `${country.code} produced ${related.length}`);
     }
   });
 
   test('no duplicates, even when the list is topped up from elsewhere', () => {
     for (const code of ['FJ', 'BB', 'GR', 'NR', 'TV']) {
-      const related = relatedDestinations(code, 'he');
+      const related = relatedDestinations(code, 'he', isCountryCovered);
       const codes = related.map((entry) => entry.country.code);
       assert.equal(new Set(codes).size, codes.length, `${code} repeated a destination`);
     }
@@ -48,14 +52,14 @@ describe('related destinations', () => {
   test('a destination people actually travel to outranks an alphabetical accident', () => {
     // Sorting Europe by Hebrew name offered Åland and the Faroes to somebody
     // going to Greece. Italy and Spain are the answer; alef is not a reason.
-    const names = relatedDestinations('GR', 'he').map((entry) => entry.country.names.en);
+    const names = relatedDestinations('GR', 'he', isCountryCovered).map((entry) => entry.country.names.en);
     assert.ok(names.includes('Italy'), names.join(', '));
     assert.ok(names.includes('Spain'), names.join(', '));
     assert.ok(!names.includes('Åland Islands'), names.join(', '));
   });
 
   test('a suggestion we cannot sell for is still shown, and still marked', () => {
-    const related = relatedDestinations('FJ', 'he');
+    const related = relatedDestinations('FJ', 'he', isCountryCovered);
     const uncovered = related.filter((entry) => !entry.covered);
     // The flag has to match what the catalogue actually says, either way.
     for (const entry of related) {
@@ -66,7 +70,7 @@ describe('related destinations', () => {
 
   test('every suggested destination is a real country with a page', () => {
     for (const code of ['GR', 'TH', 'US', 'JP']) {
-      for (const entry of relatedDestinations(code, 'he')) {
+      for (const entry of relatedDestinations(code, 'he', isCountryCovered)) {
         assert.ok(getCountryByCode(entry.country.code), entry.country.code);
         assert.match(entry.country.slug, /^[a-z0-9-]+$/);
       }
@@ -74,8 +78,8 @@ describe('related destinations', () => {
   });
 
   test('the two locales order differently but suggest from the same tier', () => {
-    const he = relatedDestinations('GR', 'he').map((entry) => entry.country.code);
-    const en = relatedDestinations('GR', 'en').map((entry) => entry.country.code);
+    const he = relatedDestinations('GR', 'he', isCountryCovered).map((entry) => entry.country.code);
+    const en = relatedDestinations('GR', 'en', isCountryCovered).map((entry) => entry.country.code);
     assert.deepEqual([...he].sort(), [...en].sort());
   });
 });

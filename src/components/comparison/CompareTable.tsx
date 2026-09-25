@@ -1,5 +1,6 @@
 "use client";
 
+import { fairUsageCopy } from '@/lib/formatters/fairUsage';
 import { Ltr } from "@/components/ui/Bdi";
 import { Sheet } from "@/components/ui/Sheet";
 import { cn } from "@/components/ui/cn";
@@ -7,7 +8,7 @@ import { currencyConfig, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/getDictionary";
 import { interpolate } from "@/i18n/interpolate";
 import type { ComparisonRow } from "@/lib/comparison/buildComparison";
-import { MB_PER_GB, formatData } from "@/lib/formatters/data";
+import { formatData } from "@/lib/formatters/data";
 import { formatPrice } from "@/lib/formatters/price";
 import { hasTechnology, networksForDestinations } from "@/lib/types/network";
 
@@ -167,32 +168,31 @@ export function CompareTable({
     {
       key: "hotspot",
       compare: (row) => String(row.plan.hotspot),
-      render: (row) => (row.plan.hotspot ? yes : no),
+      render: (row) => (row.plan.hotspot === null ? unknown : row.plan.hotspot ? yes : no),
     },
     {
       key: "calls",
       compare: (row) => String(row.plan.calls),
-      render: (row) => (row.plan.calls ? yes : no),
+      render: (row) => (row.plan.calls === null ? unknown : row.plan.calls ? yes : no),
     },
     {
       key: "sms",
       compare: (row) => String(row.plan.sms),
-      render: (row) => (row.plan.sms ? yes : no),
+      render: (row) => (row.plan.sms === null ? unknown : row.plan.sms ? yes : no),
     },
     {
       key: "topUp",
       compare: (row) => String(row.plan.topUp),
-      render: (row) => (row.plan.topUp ? yes : no),
+      render: (row) => (row.plan.topUp === null ? unknown : row.plan.topUp ? yes : no),
     },
     {
       key: "fairUsage",
-      compare: (row) => String(row.plan.fairUsage?.dailyThresholdMb ?? 0),
+      compare: (row) => String(row.plan.fairUsage?.thresholdMb ?? 0),
       render: (row) =>
-        row.plan.fairUsage?.dailyThresholdMb ? (
-          <Ltr className="tnum text-warn-ink">
-            {Math.round(row.plan.fairUsage.dailyThresholdMb / MB_PER_GB)}GB /{" "}
-            {row.plan.fairUsage.throttledToKbps}kbps
-          </Ltr>
+        row.plan.fairUsage?.thresholdMb ? (
+          <span className="tnum text-warn-ink">
+            {fairUsageCopy(row.plan.fairUsage, dict).short}
+          </span>
         ) : (
           "—"
         ),

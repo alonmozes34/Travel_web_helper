@@ -108,6 +108,7 @@ export const he = {
     yes: 'כן',
     no: 'לא',
     unknown: 'לא ידוע',
+    notStated: 'לא צוין',
   },
   home: {
     // The H1 is two lines: the brand, then what the site does. Splitting them
@@ -270,6 +271,7 @@ export const he = {
   },
   results: {
     summaryTemplate: 'מצאנו {plans} חבילות מ‑{providers} ספקים',
+    summaryOneProviderTemplate: 'מצאנו {plans} חבילות מספק אחד',
     tailoredTemplate: 'מותאם ל‑{days} ימים · שימוש {usage} · כ‑{gb}GB',
     tailoredStatedTemplate: 'מותאם ל‑{days} ימים · {gb}GB שביקשתם',
     legEstimateTemplate: '{country} · {days} {unit} ≈ {gb}GB',
@@ -302,6 +304,8 @@ export const he = {
     noHotspot: 'בלי שיתוף אינטרנט',
     calls: 'שיחות טלפון',
     noCalls: 'בלי שיחות טלפון',
+    hotspotUnknown: 'שיתוף אינטרנט: לא צוין',
+    callsUnknown: 'שיחות טלפון: לא צוין',
     sms: 'הודעות SMS',
     noSms: 'בלי הודעות SMS',
     topUp: 'אפשר להוסיף גלישה',
@@ -330,7 +334,15 @@ export const he = {
     coversTripTemplate: 'מכסה {days} ימי טיול',
     shortValidity: 'קצר מהטיול שהוגדר',
     fairUsage: 'בלי הגבלת נפח — אבל יש תקרה יומית',
-    fairUsageDetailTemplate: 'מהירות מלאה עד {gb}GB ביום, ולאחר מכן האטה ל־{kbps}kbps.',
+    fairUsageCapped: 'בלי הגבלת נפח — אבל המהירות יורדת אחרי תקרה',
+    fairUsageDetailTemplate: 'מהירות מלאה עד {gb}GB ביום, ולאחר מכן האטה ל־{speed}.',
+    fairUsageDetailPlanTemplate: 'מהירות מלאה עד {gb}GB לכל תקופת החבילה, ולאחר מכן האטה ל־{speed}.',
+    fairUsageDetailUnknownTemplate:
+      'מהירות מלאה עד {gb}GB, ולאחר מכן האטה ל־{speed}. הספק לא מציין אם התקרה יומית או לכל תקופת החבילה.',
+    fairUsageShortDayTemplate: '{gb}GB ביום, אחר כך {speed}',
+    fairUsageShortPlanTemplate: '{gb}GB לתקופה, אחר כך {speed}',
+    fairUsageShortUnknownTemplate: '{gb}GB, אחר כך {speed}',
+    fullSpeedTemplate: 'עד {amount} במהירות מלאה',
     couponTemplate: 'קוד {code} · חיסכון {amount}',
     compareLabel: 'סמנו להשוואה',
     comparingLabel: 'נבחר להשוואה',
@@ -445,7 +457,7 @@ export const he = {
     facts: {
       worksQuestion: 'האם eSIM עובד ב{country}?',
       worksAnswerTemplate:
-        'כן. מצאנו {plans} חבילות eSIM ל{country} מ־{providers} ספקים. כל החבילות ברשימה מיועדות ליעד הזה, ופועלות על רשתות מקומיות.',
+        'כן. מצאנו {plans} חבילות eSIM ל{country} מ{providers}. כל החבילות ברשימה עובדות ביעד הזה, ופועלות על רשתות מקומיות.',
       networksQuestion: 'אילו רשתות זמינות?',
       networksAnswerTemplate: 'החבילות שהשווינו פועלות על {operators}. הרשת של כל חבילה מצוינת בשורה שלה.',
       networksUnknownAnswer:
@@ -458,12 +470,17 @@ export const he = {
       fiveGNoneAnswer: 'אף אחת מהחבילות שהשווינו ליעד הזה לא כוללת 5G.',
       fiveGUnknownAnswer:
         'לא ידוע. בלי רשימת הרשתות ביעד הזה אי אפשר לדעת אילו חבילות תומכות ב‑5G, ולא ננחש.',
+      // Filled into "מ{providers}": "מספק אחד", "מ־3 ספקים".
+      providersOne: 'ספק אחד',
+      providersTemplate: '־{count} ספקים',
       hotspotQuestion: 'אפשר לשתף את האינטרנט עם עוד מכשיר?',
       hotspotAnswerTemplate:
-        '{count} מתוך {total} חבילות מאפשרות שיתוף אינטרנט. בכל שורה מצוין במפורש אם החבילה תומכת ואם לא.',
+        '{count} מתוך {total} חבילות מאפשרות שיתוף אינטרנט. בכל שורה מצוין אם החבילה תומכת, לא תומכת, או שהספק לא ציין.',
       hotspotNoneAnswer: 'אף אחת מהחבילות שהשווינו ליעד הזה לא מאפשרת שיתוף אינטרנט.',
+      hotspotUnknownAnswer:
+        'לא ידוע. הספקים לא מציינים אם החבילות ליעד הזה מאפשרות שיתוף אינטרנט, ולא ננחש. אם זה חשוב לכם, בדקו מול הספק לפני הרכישה.',
       worksAnswerBroadTemplate:
-        'כן. אין חבילה שנמכרת ל{country} בלבד, אבל מצאנו {plans} חבילות אזוריות וגלובליות מ־{providers} ספקים ש{country} נמצאת ברשימת היעדים שלהן.',
+        'כן. אין חבילה שנמכרת ל{country} בלבד, אבל מצאנו {plans} חבילות אזוריות וגלובליות מ{providers}, ש{country} נמצאת ברשימת היעדים שלהן.',
     },
     backToSearch: 'חיפוש יעד אחר',
     coverage: {
@@ -474,7 +491,7 @@ export const he = {
       noneBody:
         'לא מצאנו אף חבילה — לא של המדינה, לא אזורית ולא גלובלית — שכוללת את היעד הזה. זה לא אומר שאין eSIM ל{country}; זה אומר שהוא לא נמצא בקטלוג שלנו.',
       noneStatusTemplate:
-        'הקטלוג הנוכחי מכסה {covered} יעדים מתוך {total} שאפשר לחפש כאן, והוא מבוסס על נתוני הדגמה בלבד. כשנתחבר לספקים אמיתיים הכיסוי יילקח מהקטלוג שלהם.',
+        'הקטלוג הנוכחי מכסה {covered} יעדים מתוך {total} שאפשר לחפש כאן. הכיסוי נלקח מהקטלוגים של הספקים שמחוברים לאתר, ומתעדכן איתם.',
       noneAlternativesTitle: 'בינתיים אפשר להשוות ליעדים האלה',
     },
   },
@@ -511,7 +528,7 @@ export const he = {
     limitations: [
       'האתר טרם נבדק עם קוראי מסך (NVDA, VoiceOver, JAWS), ובפרט לא נבדקה הקראת טקסט עברי המשולב במספרים ובמונחים באנגלית.',
       'האתר לא נבדק על ידי מורשה נגישות שירות ולא נבחן עם משתמשים בעלי מוגבלות.',
-      'האתר נמצא בפיתוח והנתונים המוצגים בו הם נתוני הדגמה.',
+      'האתר נמצא בפיתוח, וחלקים ממנו עדיין משתנים.',
     ],
     contactTitle: 'דיווח על בעיית נגישות',
     contactIntro:
@@ -532,7 +549,7 @@ export const he = {
   preview: {
     navTitle: 'תצוגה מוקדמת',
     heading: 'החלק הזה עדיין סגור',
-    body: 'עמודי ההשוואה מציגים נתוני הדגמה — מחירים שנוצרו לצורך פיתוח, שאינם הצעות אמיתיות של אף ספק. לכן הם עדיין לא מפורסמים.',
+    body: 'עמודי ההשוואה עוד לא פורסמו לציבור — האתר לפני השקה.',
     invite: 'קיבלתם סיסמה? הזינו אותה כאן.',
     label: 'סיסמה',
     submit: 'כניסה',

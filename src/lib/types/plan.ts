@@ -11,11 +11,30 @@ export type PlanSource = 'mock' | 'api';
  * the note can be written in any language and the severity can be scored.
  */
 export type FairUsage = {
-  /** Full-speed allowance per day, in MB. */
-  dailyThresholdMb: number | null;
+  /** Full-speed allowance, in MB, over the period `per` names. */
+  thresholdMb: number | null;
+  /**
+   * What the allowance is counted over. `null` when the provider gives the
+   * figure without saying — and "3GB a day" and "3GB for the whole plan" are
+   * different products, so the page does not pick one for them.
+   */
+  per: 'day' | 'plan' | null;
   /** Speed after the threshold, in kbps. */
   throttledToKbps: number | null;
 };
+
+/**
+ * The allowance as a daily figure, for scoring.
+ *
+ * When the period is unknown this takes the less generous reading — the whole
+ * plan — so a provider's silence can never rank a plan above one that states
+ * its terms.
+ */
+export function dailyFullSpeedMb(fairUsage: FairUsage | null, validityDays: number): number | null {
+  if (!fairUsage?.thresholdMb) return null;
+  if (fairUsage.per === 'day') return fairUsage.thresholdMb;
+  return fairUsage.thresholdMb / Math.max(1, validityDays);
+}
 
 /**
  * The one internal shape every provider adapter maps onto.
@@ -50,12 +69,26 @@ export type Plan = {
   /** Price after discount, in the source currency's minor unit. */
   finalPriceMinor: number;
   discount: Discount | null;
+  /**
+   * The same price as `originalPriceMinor`, as the provider itself charges it
+   * in other currencies. A traveller paying in euros is then shown what the
+   * provider will actually charge them in euros, rather than our conversion
+   * of the dollar price — two figures that can differ, and only one of which
+   * appears on their card.
+   */
+  localPricesMinor?: Partial<Record<CurrencyCode, number>>;
 
   networks: Network[];
-  hotspot: boolean;
-  calls: boolean;
-  sms: boolean;
-  topUp: boolean;
+  /**
+   * `null` is "the source does not say". It is a third answer, not a polite
+   * `false`: showing "no hotspot" for a plan whose provider never mentioned
+   * hotspot is a claim about their product we cannot stand behind. Scoring
+   * and filters give credit only for `true`.
+   */
+  hotspot: boolean | null;
+  calls: boolean | null;
+  sms: boolean | null;
+  topUp: boolean | null;
 
   /**
    * Where the traveller goes to buy, as the source supplied it. Null for a

@@ -1,8 +1,8 @@
 import type { CurrencyCode } from '@/i18n/config';
 import { mockPlans } from '@/data/mockPlans';
-import { getProvider, mockProviders } from '@/data/mockProviders';
+import { getProvider } from '@/data/providers';
 import { mockFxRates } from '@/data/fxRates';
-import { convertPrice, type DisplayPrice, type FxRate } from '@/lib/pricing/convert';
+import { planPrice, type DisplayPrice, type FxRate } from '@/lib/pricing/convert';
 import { pricePerDayMinor, pricePerGbMinor } from '@/lib/pricing/perUnit';
 import { hasDiscount, type Plan } from '@/lib/types/plan';
 import type { Provider } from '@/lib/types/provider';
@@ -121,7 +121,7 @@ export function buildComparison({
   const displayByPlanId = new Map<string, DisplayPrice>();
 
   for (const plan of candidates) {
-    const price = convertPrice(plan.finalPriceMinor, plan.sourceCurrency, currency, rates);
+    const price = planPrice(plan, plan.finalPriceMinor, currency, rates);
     displayByPlanId.set(plan.id, price);
     priceByPlanId.set(plan.id, price.amountMinor);
   }
@@ -143,7 +143,7 @@ export function buildComparison({
   const rows: ComparisonRow[] = scored.map((entry) => {
     const price = displayByPlanId.get(entry.plan.id)!;
     const originalPrice = hasDiscount(entry.plan)
-      ? convertPrice(entry.plan.originalPriceMinor, entry.plan.sourceCurrency, currency, rates)
+      ? planPrice(entry.plan, entry.plan.originalPriceMinor, currency, rates)
       : null;
 
     return {
@@ -193,8 +193,6 @@ export function buildComparison({
 
 /** A provider id with no record is a data bug, not a reason to crash a page. */
 function fallbackProvider(id: string): Provider {
-  return { id, name: id, slug: id, brandColor: '#5A6D7E', activation: 'both' };
+  return { id, name: id, slug: id, brandColor: '#5A6D7E', activation: null };
 }
 
-/** Total distinct providers across all destinations, for copy that needs it. */
-export const totalProviderCount = mockProviders.length;

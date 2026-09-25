@@ -103,14 +103,15 @@ test('a region in the name resolves to the countries in it, never to a label', a
 
 test('a feed cannot claim features it does not carry', async () => {
   // An affiliate catalogue has no network, hotspot, calls, SMS or fair-usage
-  // data. Those must arrive as absent, not as generous defaults.
+  // data. Those must arrive as absent — neither a generous "yes" nor a "no"
+  // that would be just as much a claim about the provider's product.
   const { plans } = await run();
   for (const plan of plans) {
     assert.deepEqual(plan.networks, []);
-    assert.equal(plan.hotspot, false);
-    assert.equal(plan.calls, false);
-    assert.equal(plan.sms, false);
-    assert.equal(plan.topUp, false);
+    assert.equal(plan.hotspot, null);
+    assert.equal(plan.calls, null);
+    assert.equal(plan.sms, null);
+    assert.equal(plan.topUp, null);
     assert.equal(plan.fairUsage, null);
   }
 });

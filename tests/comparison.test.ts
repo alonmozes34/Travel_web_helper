@@ -288,7 +288,7 @@ describe('the unlimited category ranks on the trip, not on surplus validity', ()
     validityDays: 10,
     finalPriceMinor: 15228,
     originalPriceMinor: 15228,
-    fairUsage: { dailyThresholdMb: 5 * MB_PER_GB, throttledToKbps: 512 },
+    fairUsage: { thresholdMb: 5 * MB_PER_GB, per: 'day', throttledToKbps: 512 },
   });
   const dearerLonger = plan({
     id: 'dearer-15d',
@@ -298,7 +298,7 @@ describe('the unlimited category ranks on the trip, not on surplus validity', ()
     validityDays: 15,
     finalPriceMinor: 22356,
     originalPriceMinor: 22356,
-    fairUsage: { dailyThresholdMb: 5 * MB_PER_GB, throttledToKbps: 512 },
+    fairUsage: { thresholdMb: 5 * MB_PER_GB, per: 'day', throttledToKbps: 512 },
   });
 
   test('the cheaper plan wins when both outlast the trip', () => {
@@ -316,7 +316,7 @@ describe('the unlimited category ranks on the trip, not on surplus validity', ()
       ...cheaperShorter,
       id: 'cheaper-throttled',
       // Well under the 600MB a day this trip is estimated at.
-      fairUsage: { dailyThresholdMb: 100, throttledToKbps: 256 },
+      fairUsage: { thresholdMb: 100, per: 'day', throttledToKbps: 256 },
     });
     const comparison = buildComparison({
       profile: trip,

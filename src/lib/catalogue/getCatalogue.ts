@@ -5,6 +5,7 @@ import type { Plan } from '@/lib/types/plan';
 import { mergeResults, type ProviderSource, type SkippedRecord } from '@/lib/sources/ProviderSource';
 import type { RateSource } from '@/lib/sources/RateSource';
 import { ecbRateSource } from '@/lib/sources/ecb/ecbRateSource';
+import { alosimCredentialsFromEnv, alosimSource } from '@/lib/sources/alosim/alosimSource';
 import { mockPlanSource, mockRateSource } from '@/lib/sources/mockPlanSource';
 import { cached } from './cache';
 
@@ -45,13 +46,27 @@ export type CatalogueSources = { plans: ProviderSource[]; rates: RateSource[] };
 /**
  * The sources in play.
  *
- * Plans are the demo catalogue until a provider approves us. Rates are real
- * today: the ECB feed needs no key, so the fallback set exists only for when
- * the feed cannot be reached, and every rate carries which of the two it came
- * from all the way to the page.
+ * Plans come from every provider whose credentials are configured — aloSIM
+ * today. The demo catalogue is never mixed in with them: a real price beside
+ * an invented one tells a traveller nothing, and a search engine would index
+ * the invented one as an offer. It runs only where it is asked for by name
+ * (`DEMO_CATALOGUE=true`), for development and the test suites, and only when
+ * no real provider is configured. With neither, the catalogue is empty and
+ * every page says it has nothing yet.
+ *
+ * Rates are real: the ECB feed needs no key, so the fallback set exists only
+ * for when the feed cannot be reached, and every rate carries which of the
+ * two it came from all the way to the page.
  */
+export function planSourcesFromEnv(env: Record<string, string | undefined> = process.env): ProviderSource[] {
+  const alosim = alosimCredentialsFromEnv(env);
+  const real = alosim ? [alosimSource({ credentials: alosim })] : [];
+  if (real.length > 0) return real;
+  return env.DEMO_CATALOGUE === 'true' ? [mockPlanSource()] : [];
+}
+
 export function defaultSources(): CatalogueSources {
-  return { plans: [mockPlanSource()], rates: [ecbRateSource(), mockRateSource()] };
+  return { plans: planSourcesFromEnv(), rates: [ecbRateSource(), mockRateSource()] };
 }
 
 /**

@@ -24,18 +24,17 @@ import { Faq } from "@/components/content/Faq";
 import { buildCountryFacts } from "@/lib/comparison/countryFacts";
 import type { RecommendationKey } from "@/lib/comparison/recommend";
 import { filtersFromParams } from "@/lib/comparison/filter";
-import { isCountryCovered } from "@/lib/comparison/catalogueCoverage";
+import { coverageOf } from "@/lib/comparison/catalogueCoverage";
 import { isSortKey } from "@/lib/comparison/sort";
 
 /**
- * Every country on the globe has a page, but only the ones the catalogue can
- * answer for are worth pre-rendering. The rest render on demand — they are
- * rare, and their page is mostly a short "we have nothing here yet".
+ * Pre-rendered at build: the popular destinations. Every other page renders on
+ * request, like these do whenever a query is attached.
  */
 export function generateStaticParams() {
-  const worthPrerendering = countries.filter(
-    (country) => country.popular || isCountryCovered(country.code),
-  );
+  // The popular ones only. Whether a destination has plans is a question for
+  // the live catalogue, which a build may not be able to reach.
+  const worthPrerendering = countries.filter((country) => country.popular);
   return locales.flatMap((locale) =>
     worthPrerendering.map((country) => ({ locale, country: country.slug })),
   );
@@ -118,6 +117,7 @@ export default async function CountryPage({
     rates: catalogue.rates,
   });
   const { estimate } = comparison;
+  const coverage = coverageOf(catalogue.plans);
 
   // Three states, and the page must not look the same in all of them: plans
   // sold for this country, only regional or global plans that include it, or
@@ -191,6 +191,7 @@ export default async function CountryPage({
             countryName={name}
             locale={locale}
             dict={dict}
+            coverage={coverage}
           />
         )}
 
@@ -198,7 +199,7 @@ export default async function CountryPage({
           <>
             <p className="mt-6 text-base text-ink-2">
               <strong className="font-semibold text-ink">
-                {interpolate(dict.results.summaryTemplate, {
+                {interpolate(comparison.providerCount === 1 ? dict.results.summaryOneProviderTemplate : dict.results.summaryTemplate, {
                   plans: comparison.planCount,
                   providers: comparison.providerCount,
                 })}
@@ -260,7 +261,7 @@ export default async function CountryPage({
       {/* Every destination page used to be an island: reachable from the
           sitemap and from a search, and from nothing else. */}
       <RelatedDestinations
-        destinations={relatedDestinations(country.code, locale)}
+        destinations={relatedDestinations(country.code, locale, coverage.isCovered)}
         locale={locale}
         dict={dict}
       />

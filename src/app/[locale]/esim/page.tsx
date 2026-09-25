@@ -7,11 +7,8 @@ import { getRegionName } from '@/data/regions';
 import { isLocale, localePath, type Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
-import {
-  coveredCount,
-  destinationCount,
-  isCountryCovered,
-} from '@/lib/comparison/catalogueCoverage';
+import { getCatalogue } from '@/lib/catalogue/getCatalogue';
+import { coverageOf } from '@/lib/comparison/catalogueCoverage';
 import { destinationsByContinent, popularDestinations } from '@/lib/comparison/relatedDestinations';
 
 export async function generateMetadata({
@@ -25,7 +22,10 @@ export async function generateMetadata({
   return { title: dict.destinationIndex.title, description: dict.destinationIndex.intro };
 }
 
-export const dynamic = 'force-static';
+// Rendered on request, from the catalogue's own cache. Prerendered at build it
+// would freeze whatever the build could see — and a build without provider
+// credentials sees nothing.
+export const dynamic = 'force-dynamic';
 
 /**
  * The destination index.
@@ -53,14 +53,17 @@ export default async function DestinationIndexPage({
   const dict = getDictionary(locale);
   const page = dict.destinationIndex;
   const popular = popularDestinations(locale);
+  const { plans } = await getCatalogue();
+  const { coveredCount, destinationCount, isCovered: isCountryCovered } = coverageOf(plans);
+  const isDemo = plans.length > 0 && plans.every((plan) => plan.source === 'mock');
 
   return (
     <Container className="py-12">
       <h1 className="font-head text-3xl font-bold tracking-tight sm:text-4xl">{page.title}</h1>
       <p className="mt-4 max-w-[70ch] text-lg text-ink-2">{page.intro}</p>
       <p className="mt-3 max-w-[70ch] text-sm text-ink-3">
-        {interpolate(page.statusTemplate, { covered: coveredCount, total: destinationCount })}{' '}
-        {page.demoNote}
+        {interpolate(page.statusTemplate, { covered: coveredCount, total: destinationCount })}
+        {isDemo ? <> {page.demoNote}</> : null}
       </p>
 
       <section className="mt-10">

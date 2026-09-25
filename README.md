@@ -95,8 +95,10 @@ its own `openGraph` block, and a segment that does so replaces the images it
 would otherwise inherit. `npm run test:e2e` fails if a page stops carrying an
 `og:image`, or if any brand asset stops being served.
 
-> **All plan data in this repository is mock data.** Nothing here is a real
-> offer from any provider. See [Mock data](#mock-data).
+> **Live plans come from aloSIM's Store API**, when `ALOSIM_CLIENT_ID` and
+> `ALOSIM_CLIENT_SECRET` are set. The demo catalogue in this repository is
+> invented, runs only with `DEMO_CATALOGUE=true`, and is never shown beside a
+> real one. See [Plan data](#plan-data).
 
 ## Stack
 
@@ -119,12 +121,16 @@ npm run generate:brand     # regenerate favicon, app icons and share cards
 ```
 
 `test:e2e` drives a real browser through destination → results. Point it at a
-server you have already started:
+server you have already started. The browser suites assert against the demo
+catalogue, so start the server with it:
 
 ```bash
-npm run build && npm run start &
+npm run build && DEMO_CATALOGUE=true npm run start &
 BASE_URL=http://localhost:3000 npm run test:e2e
 ```
+
+`test:a11y` should also be run once against the real catalogue (start with the
+aloSIM credentials instead), since that is what visitors see.
 
 ## Locale routing
 
@@ -400,9 +406,24 @@ localStorage, so the server renders prices in it on the first paint instead of
 the page changing under the reader after hydration. Changing it calls
 `router.refresh()` so the server re-renders with the new cookie.
 
-## Mock data
+## Plan data
 
-Plan data will carry `source: 'mock' | 'api'`. Anywhere mock data is rendered,
+Where plans come from is decided in one place, `planSourcesFromEnv` in
+`src/lib/catalogue/getCatalogue.ts`:
+
+| Configured | Catalogue |
+| --- | --- |
+| `ALOSIM_CLIENT_ID` + `ALOSIM_CLIENT_SECRET` | aloSIM's Store API, refreshed every three hours |
+| neither, `DEMO_CATALOGUE=true` | the invented demo catalogue — development and tests only |
+| neither | empty; every page says it has nothing yet |
+
+The two are never mixed. aloSIM gave written permission to display their API
+prices, and on 25 September 2026 fifteen of them were checked by hand against
+their store and matched to the cent. What their API does not state — hotspot,
+calls, SMS, top-up, installation method, whether an unlimited plan's cap is per
+day — is shown as "not stated", never as "no".
+
+Plan data carries `source: 'mock' | 'api'`. Anywhere mock data is rendered,
 `MockDataNotice` states so on the page, and mock discount codes are never
 presented as real offers. This separation is a type-level guarantee, not a
 convention to remember.

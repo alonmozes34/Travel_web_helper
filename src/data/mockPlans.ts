@@ -99,7 +99,7 @@ function buildPlan(seed: PlanSeed, index: number): Plan {
     dataAmountMb: seed.unlimited ? 0 : Math.round((seed.gb ?? 0) * MB_PER_GB),
     isUnlimited: Boolean(seed.unlimited),
     fairUsage: seed.fup
-      ? { dailyThresholdMb: Math.round(seed.fup[0] * MB_PER_GB), throttledToKbps: seed.fup[1] }
+      ? { thresholdMb: Math.round(seed.fup[0] * MB_PER_GB), per: 'day', throttledToKbps: seed.fup[1] }
       : null,
     validityDays: seed.days,
     sourceCurrency: seed.currency,

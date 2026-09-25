@@ -6,5 +6,6 @@ export type Provider = {
   slug: string;
   /** Used for the logo tile until real provider marks are licensed. */
   brandColor: string;
-  activation: ActivationMethod;
+  /** Null when the provider has not told us, rather than a guess. */
+  activation: ActivationMethod | null;
 };

@@ -1,0 +1,309 @@
+[
+  {
+    "name": "thailand",
+    "locations": [
+      "THA"
+    ],
+    "dataGigabytes": "5",
+    "validityDays": 30,
+    "price": 800,
+    "prices": {
+      "AUD": 1200,
+      "CAD": 1200,
+      "EUR": 750,
+      "GBP": 650,
+      "MXN": 15000,
+      "USD": 800
+    },
+    "currency": "USD",
+    "url": "https://alosim.com/thailand-esim?plan_id=61f06f861c556d16ad97bdfb&affid=1810&oid=9",
+    "providers": [
+      {
+        "network": "AIS",
+        "speed": "5G",
+        "country": "Thailand",
+        "phone": "Calling & Texting",
+        "countryCode": "THA"
+      }
+    ],
+    "dataBeforeThrottle": "",
+    "throttleSpeed": ""
+  },
+  {
+    "name": "thailand",
+    "locations": [
+      "THA"
+    ],
+    "dataGigabytes": "Unlimited",
+    "validityDays": 7,
+    "price": 2700,
+    "prices": {
+      "AUD": 4200,
+      "CAD": 4000,
+      "EUR": 2500,
+      "GBP": 2100,
+      "MXN": 50000,
+      "USD": 2700
+    },
+    "currency": "USD",
+    "url": "https://alosim.com/thailand-esim?plan_id=69810fb1ffc7d97358513458&affid=1810&oid=9",
+    "providers": [
+      {
+        "network": "AIS",
+        "speed": "5G",
+        "country": "Thailand",
+        "phone": "Calling & Texting",
+        "countryCode": "THA"
+      }
+    ],
+    "dataBeforeThrottle": "3 GB",
+    "throttleSpeed": "1 Mbps"
+  },
+  {
+    "name": "europe",
+    "locations": [
+      "AUT",
+      "BEL",
+      "BGR",
+      "HRV",
+      "CYP",
+      "CZE"
+    ],
+    "dataGigabytes": "1",
+    "validityDays": 7,
+    "price": 500,
+    "prices": {
+      "AUD": 750,
+      "CAD": 750,
+      "EUR": 500,
+      "GBP": 400,
+      "MXN": 9500,
+      "USD": 500
+    },
+    "currency": "USD",
+    "url": "https://alosim.com/europe-esim?plan_id=64ac1112e0f7082c9fb341d8&affid=1810&oid=9",
+    "providers": [
+      {
+        "network": "Telenor d.o.o.",
+        "speed": "LTE",
+        "country": "Serbia",
+        "phone": "Calling & Texting",
+        "countryCode": "SRB"
+      },
+      {
+        "network": "Vodafone",
+        "speed": "5G",
+        "country": "Netherlands (the)",
+        "phone": "Calling & Texting",
+        "countryCode": "NLD"
+      },
+      {
+        "network": "NetCom",
+        "speed": "5G",
+        "country": "Norway",
+        "phone": "Calling & Texting",
+        "countryCode": "NOR"
+      }
+    ],
+    "dataBeforeThrottle": "",
+    "throttleSpeed": ""
+  },
+  {
+    "name": "scandinavia",
+    "locations": [
+      "DNK",
+      "FIN",
+      "NOR",
+      "SWE"
+    ],
+    "dataGigabytes": "1",
+    "validityDays": 7,
+    "price": 500,
+    "prices": {
+      "AUD": 750,
+      "CAD": 750,
+      "EUR": 500,
+      "GBP": 400,
+      "MXN": 9500,
+      "USD": 500
+    },
+    "currency": "USD",
+    "url": "https://alosim.com/scandinavia-esim?plan_id=61f160041c556d52cc97bfac&affid=1810&oid=9",
+    "providers": [
+      {
+        "network": "Hi3G Danemark",
+        "speed": "5G",
+        "country": "Denmark",
+        "phone": "Calling & Texting",
+        "countryCode": "DNK"
+      },
+      {
+        "network": "Telenor",
+        "speed": "LTE",
+        "country": "Sweden",
+        "phone": "Calling & Texting",
+        "countryCode": "SWE"
+      },
+      {
+        "network": "Telia Norge",
+        "speed": "5G",
+        "country": "Norway",
+        "phone": "Calling & Texting",
+        "countryCode": "NOR"
+      },
+      {
+        "network": "DNA Finland",
+        "speed": "5G",
+        "country": "Finland",
+        "phone": "Calling & Texting",
+        "countryCode": "FIN"
+      },
+      {
+        "network": "TDC ",
+        "speed": "5G",
+        "country": "Denmark",
+        "phone": "Calling & Texting",
+        "countryCode": "DNK"
+      },
+      {
+        "network": "Telia Sverige",
+        "speed": "5G",
+        "country": "Sweden",
+        "phone": "Calling & Texting",
+        "countryCode": "SWE"
+      },
+      {
+        "network": "Telenor Norge",
+        "speed": "5G",
+        "country": "Norway",
+        "phone": "Calling & Texting",
+        "countryCode": "NOR"
+      },
+      {
+        "network": "Hi3G Sweden",
+        "speed": "5G",
+        "country": "Sweden",
+        "phone": "Calling & Texting",
+        "countryCode": "SWE"
+      },
+      {
+        "network": "Sonera Corporation Finland",
+        "speed": "5G",
+        "country": "Finland",
+        "phone": "Calling & Texting",
+        "countryCode": "FIN"
+      }
+    ],
+    "dataBeforeThrottle": "",
+    "throttleSpeed": ""
+  },
+  {
+    "name": "Global",
+    "locations": [
+      "ALB",
+      "DZA",
+      "AIA",
+      "ATG",
+      "ARM",
+      "ARG"
+    ],
+    "dataGigabytes": "1",
+    "validityDays": 7,
+    "price": 1000,
+    "prices": {
+      "AUD": 1500,
+      "CAD": 1500,
+      "EUR": 950,
+      "GBP": 800,
+      "MXN": 19000,
+      "USD": 1000
+    },
+    "currency": "USD",
+    "url": "https://alosim.com/global-esim?plan_id=68c1b55d2374c067df7b4f1e&affid=1810&oid=9",
+    "providers": [
+      {
+        "network": "Vietnamobile Communications Center",
+        "speed": "LTE",
+        "country": "Viet Nam",
+        "phone": "Calling & Texting",
+        "countryCode": "VNM"
+      },
+      {
+        "network": "Free Cara\u00efbe",
+        "speed": "LTE",
+        "country": "Saint Barth\u00e9lemy",
+        "phone": "Calling & Texting",
+        "countryCode": "BLM"
+      },
+      {
+        "network": "Ooreedo",
+        "speed": "5G",
+        "country": "Tunisia",
+        "phone": "Calling & Texting",
+        "countryCode": "TUN"
+      }
+    ],
+    "dataBeforeThrottle": "",
+    "throttleSpeed": ""
+  },
+  {
+    "name": "netherlands antilles",
+    "locations": [
+      "ANT"
+    ],
+    "dataGigabytes": "1",
+    "validityDays": 7,
+    "price": 800,
+    "prices": {
+      "AUD": 1200,
+      "CAD": 1200,
+      "EUR": 750,
+      "GBP": 650,
+      "MXN": 15000,
+      "USD": 800
+    },
+    "currency": "USD",
+    "url": "https://alosim.com/netherlands-antilles-esim?plan_id=6661ead6e64088e1c22c23a7&affid=1810&oid=9",
+    "providers": [
+      {
+        "network": "UTS",
+        "speed": "LTE",
+        "country": "Antilles",
+        "phone": "Calling & Texting",
+        "countryCode": "ANT"
+      }
+    ],
+    "dataBeforeThrottle": "",
+    "throttleSpeed": ""
+  },
+  {
+    "name": "kosovo",
+    "locations": [
+      "KSV"
+    ],
+    "dataGigabytes": "1",
+    "validityDays": 7,
+    "price": 600,
+    "prices": {
+      "AUD": 900,
+      "CAD": 900,
+      "EUR": 550,
+      "GBP": 500,
+      "MXN": 11000,
+      "USD": 600
+    },
+    "currency": "USD",
+    "url": "https://alosim.com/kosovo-esim?plan_id=64a5b55ecc24a98b84ea186b&affid=1810&oid=9",
+    "providers": [
+      {
+        "network": "Telecom of Kosovo J.S.C.",
+        "speed": "LTE",
+        "country": "Kosovo",
+        "phone": "Calling & Texting",
+        "countryCode": "KSV"
+      }
+    ],
+    "dataBeforeThrottle": "",
+    "throttleSpeed": ""
+  }
+]

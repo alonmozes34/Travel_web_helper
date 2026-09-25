@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { countries } from '../src/data/countries';
 import { mockPlans, getPlansForCountry } from '../src/data/mockPlans';
-import { coveredCount, destinationCount, isCountryCovered } from '../src/lib/comparison/catalogueCoverage';
+import { coverageOf, destinationCount } from '../src/lib/comparison/catalogueCoverage';
+
+// Coverage is worked out from whatever catalogue is live; here, the demo one.
+const { coveredCount, isCovered: isCountryCovered } = coverageOf(mockPlans);
 import { networksForDestinations } from '../src/lib/types/network';
 
 test('a plan covers exactly as many destinations as it advertises', () => {

@@ -130,3 +130,35 @@ export function convertPrice(
     fxSource: rate.source,
   };
 }
+
+/**
+ * A plan's price in the traveller's currency.
+ *
+ * When the provider has its own price in that currency, that price is used and
+ * nothing is converted: it is the figure their checkout will show. Otherwise
+ * the amount is converted as usual. `amountMinor` is in the plan's source
+ * currency — the final or the original price — and the provider's own price is
+ * scaled by the same ratio, so a discount applies to both alike.
+ */
+export function planPrice(
+  plan: { sourceCurrency: CurrencyCode; originalPriceMinor: number; localPricesMinor?: Partial<Record<CurrencyCode, number>> },
+  amountMinor: number,
+  to: CurrencyCode,
+  rates: FxRate[],
+): DisplayPrice {
+  const local = plan.localPricesMinor?.[to];
+  if (to !== plan.sourceCurrency && local && plan.originalPriceMinor > 0) {
+    const localAmount = Math.round((local * amountMinor) / plan.originalPriceMinor);
+    return {
+      currency: to,
+      amountMinor: localAmount,
+      sourceCurrency: to,
+      sourceAmountMinor: localAmount,
+      isConverted: false,
+      fxRate: null,
+      fxAsOf: null,
+      fxSource: null,
+    };
+  }
+  return convertPrice(amountMinor, plan.sourceCurrency, to, rates);
+}

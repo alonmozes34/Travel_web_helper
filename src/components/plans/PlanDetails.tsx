@@ -1,5 +1,5 @@
+import { fairUsageCopy } from '@/lib/formatters/fairUsage';
 import { Ltr } from '@/components/ui/Bdi';
-import { MB_PER_GB } from '@/lib/formatters/data';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
@@ -16,11 +16,13 @@ import { scoreWeights } from '@/lib/comparison/scorePlan';
 export function PlanDetails({ row, dict }: { row: ComparisonRow; dict: Dictionary }) {
   const { plan } = row;
 
+  const answer = (value: boolean | null) =>
+    value === null ? dict.common.notStated : value ? dict.common.yes : dict.common.no;
   const specs = [
-    { label: dict.details.sms, value: plan.sms ? dict.common.yes : dict.common.no },
-    { label: dict.details.topUp, value: plan.topUp ? dict.common.yes : dict.common.no },
-    { label: dict.plan.calls, value: plan.calls ? dict.common.yes : dict.common.no },
-    { label: dict.plan.hotspot, value: plan.hotspot ? dict.common.yes : dict.common.no },
+    { label: dict.details.sms, value: answer(plan.sms) },
+    { label: dict.details.topUp, value: answer(plan.topUp) },
+    { label: dict.plan.calls, value: answer(plan.calls) },
+    { label: dict.plan.hotspot, value: answer(plan.hotspot) },
   ];
 
   const factors = [
@@ -43,17 +45,18 @@ export function PlanDetails({ row, dict }: { row: ComparisonRow; dict: Dictionar
           ))}
           <div className="flex justify-between gap-3">
             <dt className="text-ink-2">{dict.details.activation}</dt>
-            <dd className="font-semibold">{dict.details.activationValues[row.provider.activation]}</dd>
+            <dd className="font-semibold">
+              {row.provider.activation
+                ? dict.details.activationValues[row.provider.activation]
+                : dict.common.notStated}
+            </dd>
           </div>
         </dl>
 
-        {plan.fairUsage?.dailyThresholdMb ? (
+        {plan.fairUsage?.thresholdMb ? (
           <p className="mt-3 text-sm text-warn-ink">
             <strong className="font-semibold">{dict.details.fairUsageTitle}:</strong>{' '}
-            {interpolate(dict.plan.fairUsageDetailTemplate, {
-              gb: Math.round(plan.fairUsage.dailyThresholdMb / MB_PER_GB),
-              kbps: plan.fairUsage.throttledToKbps ?? '—',
-            })}
+            {fairUsageCopy(plan.fairUsage, dict).detail}
           </p>
         ) : null}
       </div>
