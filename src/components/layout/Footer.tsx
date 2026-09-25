@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { AffiliateDisclosure } from '@/components/content/AffiliateDisclosure';
+import { Ltr } from '@/components/ui/Bdi';
+import { buildCommit, releasedOn, siteVersion } from '@/lib/version';
 import { localePath, type Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { Brand } from './Brand';
@@ -69,9 +71,25 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
       <div className="border-t border-line-soft bg-surface-2">
         <Container className="flex flex-col gap-3 py-6 md:flex-row md:items-end md:justify-between">
           <AffiliateDisclosure dict={dict} variant="full" className="max-w-[70ch]" />
-          <p className="text-sm text-ink-3">
-            © {new Date().getFullYear()} {dict.brand.name}. {dict.footer.rights}.
-          </p>
+          <div className="text-sm text-ink-3">
+            <p>
+              © {new Date().getFullYear()} {dict.brand.name}. {dict.footer.rights}.
+            </p>
+            {/* Which build is live: the version, the day it was released, and
+                the commit the host built — so a change can be checked on the
+                site itself rather than guessed at. */}
+            <p className="mt-1">
+              {dict.footer.versionLabel} <Ltr className="tnum">{siteVersion}</Ltr>
+              {' · '}
+              <Ltr className="tnum">{releasedOn}</Ltr>
+              {buildCommit ? (
+                <>
+                  {' · '}
+                  <Ltr className="tnum">{buildCommit}</Ltr>
+                </>
+              ) : null}
+            </p>
+          </div>
         </Container>
       </div>
     </footer>

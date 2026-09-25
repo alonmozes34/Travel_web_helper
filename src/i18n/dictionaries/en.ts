@@ -45,6 +45,7 @@ export const en: Dictionary = {
     privacy: 'Privacy',
     terms: 'Terms',
     rights: 'All rights reserved',
+    versionLabel: 'Version',
   },
   disclosure: {
     short: 'Compare here. Buy directly from the provider.',

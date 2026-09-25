@@ -47,6 +47,7 @@ export const he = {
     privacy: 'פרטיות',
     terms: 'תנאי שימוש',
     rights: 'כל הזכויות שמורות',
+    versionLabel: 'גרסה',
   },
   disclosure: {
     short: 'משווים אצלנו. רוכשים ישירות מהספק.',

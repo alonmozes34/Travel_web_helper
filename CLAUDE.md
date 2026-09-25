@@ -49,3 +49,19 @@ Rules that follow from that, and hold for every change:
    incomplete — an earlier session did so from this file after the gap had
    closed. Phone, postal address and response window stay empty and marked
    until the owner supplies them; do not fill them.
+
+## Versions
+
+The owner asked to be able to follow what changed. Every change that reaches
+the site is released as a version:
+
+- Move `siteVersion` and `releasedOn` in `src/lib/version.ts` and `version` in
+  `package.json` together — `tests/version.test.ts` fails if they disagree.
+- Add an entry at the top of `CHANGELOG.md`, in Hebrew, in words the owner
+  would use: what a visitor would notice, not what the code did.
+- Tag the commit `v<version>` and push the tag.
+- Minor for anything a visitor could notice, patch for fixes only; `1.0.0` is
+  the public launch.
+
+The footer shows the version, its date, and the commit the host built, so the
+owner can check which build is live.
