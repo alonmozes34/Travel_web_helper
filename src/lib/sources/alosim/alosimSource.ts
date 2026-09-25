@@ -1,5 +1,5 @@
 import { ALOSIM_OFFER_ID } from '@/data/alosim';
-import { alosimDestinations } from '@/data/alosim.generated';
+import { alosimDestinations, alosimPageLinks } from '@/data/alosim.generated';
 import { cached } from '@/lib/catalogue/cache';
 import type { Plan } from '@/lib/types/plan';
 import { sourceResult, type ProviderSource, type SkippedRecord, type SourceResult } from '../ProviderSource';
@@ -21,6 +21,17 @@ const REFRESH_MS = 3 * 60 * 60 * 1000;
  * Paging stays, in case the catalogue outgrows it.
  */
 const PAGE_SIZE = 2500;
+
+/**
+ * Asked for by name. The API localises by `Accept-Language`, and Node's fetch
+ * sends `*` when nothing is set — which the API put into every plan link as a
+ * path segment: "alosim.com/" then "*" then "/japan-esim". Those links matched
+ * none of the tracking pages aloSIM issued, so every button fell back to the
+ * store app, and plans with no tracking page at all got a link to a page that
+ * does not exist. Found on 25 September 2026, when a check with curl (which
+ * sends no such header) disagreed with the running site.
+ */
+const API_LANGUAGE = 'en';
 
 export type AlosimFetch = (url: string, init: { method: 'GET' | 'POST'; headers: Record<string, string>; body?: string }) => Promise<unknown>;
 
@@ -73,11 +84,14 @@ export function alosimSource({
 async function loadCatalogue(credentials: AlosimCredentials, fetchJson: AlosimFetch, fetchedAt: string): Promise<SourceResult> {
   const auth = (await fetchJson(`${ALOSIM_API_BASE}/v1/authorize`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Accept-Language': API_LANGUAGE },
     body: JSON.stringify({ clientId: credentials.clientId, clientSecret: credentials.clientSecret }),
   })) as { access_token?: string; token_type?: string };
   if (!auth.access_token) throw new Error('aloSIM authorize returned no token');
-  const headers = { Authorization: `${auth.token_type ?? 'Bearer'} ${auth.access_token}` };
+  const headers = {
+    Authorization: `${auth.token_type ?? 'Bearer'} ${auth.access_token}`,
+    'Accept-Language': API_LANGUAGE,
+  };
 
   const page = (offset: number) =>
     fetchJson(`${ALOSIM_API_BASE}/v1/plans?currency=USD&offset=${offset}&count=${PAGE_SIZE}`, {
@@ -114,27 +128,34 @@ const trackingByCountry = new Map(
 );
 
 /**
- * Send "buy" straight to the plan, through the per-plan link the API gives.
+ * Use the API's per-plan link for plans whose page has no tracking link of
+ * its own on aloSIM's main site.
  *
  * Off until it is confirmed that a sale through that link is credited to us —
- * by aloSIM, or by a test click showing up in our Everflow reports. The
- * owner's own test on 25 September 2026 is why it matters: a 50GB, 10-day
- * Japan plan at $27.50 sent him to aloSIM's Japan page, which opened on the
- * 30-day plans, where the nearest thing was 20GB at $25. The price was right
- * and the landing was wrong, and to a visitor those look the same.
- *
+ * by aloSIM, or by a test click in our Everflow reports. It matters for about
+ * one plan in six (small countries and three bundles); every other plan
+ * already goes straight to itself through an issued tracking link, below.
  * Flipping this is the whole change; the tests cover both settings.
  */
 export const LINK_TO_PLAN = false;
 
 /**
- * Where "buy" sends a traveller for an aloSIM plan.
+ * Where "buy" sends a traveller for an aloSIM plan, in order of preference:
  *
- * The Everflow tracking link for the plan's destination page, because aloSIM
- * confirmed that is how a sale is credited — it lands on the destination, not
- * the plan, and the button then says which plan to pick there. The API's
- * per-plan link, which carries our affiliate and offer ids too, is used where
- * no tracking page exists, or everywhere once `LINK_TO_PLAN` is on.
+ *  1. **The tracking link aloSIM issued for the plan's page on their main
+ *     site, with the plan's `plan_id` added.** That is the page the API's own
+ *     per-plan link points at, so the plan opens selected, and the tracking
+ *     parameters are the ones Everflow issued, untouched. Adding `plan_id` is
+ *     the same kind of change as adding `source_id`, which aloSIM confirmed.
+ *     This covers about five plans in six.
+ *  2. **Their store app's tracking link for the destination**, which lands on
+ *     the destination rather than the plan — and the store app lists fewer
+ *     plans than the main site (six for Japan, against thirty-two), which is
+ *     how the owner, on 25 September 2026, clicked a 50GB, 10-day Japan plan
+ *     at $27.50 and found nothing like it. Used only where (1) does not exist.
+ *  3. **The API's per-plan link**, which carries our affiliate and offer ids
+ *     but no tracking-page id; used where neither exists, or instead of (2)
+ *     once `LINK_TO_PLAN` is on.
  *
  * `source_id` is the one custom parameter aloSIM's links support. It carries
  * the destination, so their reports show which destinations sell.
@@ -146,15 +167,29 @@ export function alosimLinkFor(
 ): { href: string; landsOn: 'plan' | 'destination' } | null {
   const slug = pageSlug(item.url);
   const single = countryCodes.length === 1 && item.locations.length === 1 ? countryCodes[0] : null;
+  const tag = single ?? slug;
+  const tagged = (url: string) => (tag ? withParam(url, 'source_id', tag) : url);
+  const planId = planIdOf(item.url);
+
+  const sitePage = slug ? alosimPageLinks[slug]?.[ALOSIM_OFFER_ID] : undefined;
+  if (sitePage && planId) {
+    return { href: tagged(withParam(sitePage, 'plan_id', planId)), landsOn: 'plan' };
+  }
+
   const destination = toPlan
     ? undefined
     : ((slug ? trackingBySlug.get(slug) : undefined) ?? (single ? trackingByCountry.get(single) : undefined));
-  const base = destination?.links[ALOSIM_OFFER_ID] ?? item.url;
-  const tag = single ?? slug;
-  return {
-    href: tag ? withParam(base, 'source_id', tag) : base,
-    landsOn: destination ? 'destination' : 'plan',
-  };
+  if (destination) return { href: tagged(destination.links[ALOSIM_OFFER_ID]), landsOn: 'destination' };
+
+  return { href: tagged(item.url), landsOn: 'plan' };
+}
+
+function planIdOf(url: string): string | null {
+  try {
+    return new URL(url).searchParams.get('plan_id');
+  } catch {
+    return null;
+  }
 }
 
 function pageSlug(url: string): string | null {

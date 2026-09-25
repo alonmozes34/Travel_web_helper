@@ -120,37 +120,61 @@ describe('mapping an aloSIM plan', () => {
 });
 
 describe('the buy link', () => {
-  test('a country plan goes through the Everflow tracking link, tagged with the destination', () => {
-    const href = planOf(thai5gb).affiliateUrl!;
-    const tracking = new URL(alosimLink('TH')!);
-    const url = new URL(href);
-    assert.equal(url.origin + url.pathname, tracking.origin + tracking.pathname);
+  // A plan whose page has no main-site tracking link, only a store-app one —
+  // true of about one plan in six; Qatar is one.
+  const qatar: AlosimPlan = {
+    ...thai5gb,
+    name: 'qatar',
+    locations: ['QAT'],
+    providers: [],
+    url: 'https://alosim.com/qatar-esim?plan_id=qatar-plan&affid=1810&oid=9',
+  };
+
+  test('goes through the tracking link aloSIM issued for the main-site page, straight to the plan', () => {
+    const plan = planOf(thai5gb);
+    const url = new URL(plan.affiliateUrl!);
+    assert.equal(url.origin + url.pathname, 'https://alosim.com/thailand-esim/');
+    assert.equal(url.searchParams.get('uid'), '612', 'the tracking page id Everflow issued');
     assert.equal(url.searchParams.get('affid'), '1810');
     assert.equal(url.searchParams.get('oid'), '9', 'the $5 offer aloSIM asked us to use');
+    assert.equal(url.searchParams.get('plan_id'), new URL(thai5gb.url).searchParams.get('plan_id'));
     assert.equal(url.searchParams.get('source_id'), 'TH');
+    assert.equal(plan.affiliateLandsOn, 'plan');
   });
 
-  test('it says where it lands, so the button can say which plan to pick', () => {
-    assert.equal(planOf(thai5gb).affiliateLandsOn, 'destination');
-    assert.equal(planOf(global).affiliateLandsOn, 'plan', 'no tracking page, so their own plan link');
+  test('bundles too, where their main-site page has a tracking link', () => {
+    const url = new URL(planOf(europe).affiliateUrl!);
+    assert.equal(url.origin + url.pathname, 'https://alosim.com/europe-esim/');
+    assert.ok(url.searchParams.get('uid'));
+    assert.ok(url.searchParams.get('plan_id'));
+    assert.equal(url.searchParams.get('source_id'), 'europe-esim');
   });
 
-  test('with LINK_TO_PLAN on, every button goes to the plan, still tagged', () => {
-    const link = alosimLinkFor(thai5gb, ['TH'], { toPlan: true })!;
+  test('without one, the store-app link for the destination, and the button says what to pick', () => {
+    const link = alosimLinkFor(qatar, ['QA'])!;
+    assert.equal(link.landsOn, 'destination');
+    const url = new URL(link.href);
+    assert.equal(url.origin + url.pathname, new URL(alosimLink('QA')!).origin + new URL(alosimLink('QA')!).pathname);
+    assert.equal(url.searchParams.get('source_id'), 'QA');
+  });
+
+  test('with LINK_TO_PLAN on, that case goes to the plan through their own link instead', () => {
+    const link = alosimLinkFor(qatar, ['QA'], { toPlan: true })!;
     const url = new URL(link.href);
     assert.equal(link.landsOn, 'plan');
-    assert.equal(url.origin + url.pathname, 'https://alosim.com/thailand-esim');
-    assert.ok(url.searchParams.get('plan_id'));
+    assert.equal(url.origin + url.pathname, 'https://alosim.com/qatar-esim');
+    assert.equal(url.searchParams.get('plan_id'), 'qatar-plan');
     assert.equal(url.searchParams.get('affid'), '1810');
     assert.equal(url.searchParams.get('oid'), '9');
-    assert.equal(url.searchParams.get('source_id'), 'TH');
+    assert.equal(url.searchParams.get('source_id'), 'QA');
   });
 
-  test('a bundle with a tracking page uses it; one without falls back to their own plan link', () => {
-    assert.match(planOf(europe).affiliateUrl!, /^https:\/\/app\.alosim\.com\/esim-store\//);
-    const globalUrl = new URL(planOf(global).affiliateUrl!);
-    assert.equal(globalUrl.searchParams.get('affid'), '1810');
-    assert.equal(globalUrl.searchParams.get('source_id'), 'global-esim');
+  test('with no tracking page at all, their own plan link', () => {
+    const plan = planOf(global);
+    const url = new URL(plan.affiliateUrl!);
+    assert.equal(plan.affiliateLandsOn, 'plan');
+    assert.equal(url.searchParams.get('affid'), '1810');
+    assert.equal(url.searchParams.get('source_id'), 'global-esim');
   });
 });
 
@@ -169,6 +193,17 @@ describe('the source', () => {
     };
     return { calls, fetchJson };
   }
+
+  test('asks for English by name, or the API puts "*" into every plan link', async () => {
+    const languages: Array<string | undefined> = [];
+    const fetchJson: AlosimFetch = async (url, init) => {
+      languages.push(init.headers['Accept-Language']);
+      if (url.endsWith('/v1/authorize')) return { access_token: 'token', token_type: 'Bearer' };
+      return { items: fixture, offset: 0, total: fixture.length };
+    };
+    await alosimSource({ credentials: { clientId: 'id', clientSecret: 'secret' }, fetchJson }).fetch();
+    assert.deepEqual(languages, ['en', 'en']);
+  });
 
   test('signs in, reads the plans, and reports what it skipped', async () => {
     const { calls, fetchJson } = fakeApi();

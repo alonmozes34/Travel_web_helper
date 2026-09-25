@@ -38,6 +38,13 @@ const DEEP_LINK =
   /\/esim-store\/(country|region)\/([^?]+)\?uid=(\d+)&oid=(\d+)&affid=(\d+)/u;
 
 /**
+ * The same destinations on their main site, alosim.com/<page>/. Those pages
+ * carry every plan — their store app's page for Japan lists six — and they
+ * are the pages the Store API's per-plan links point at, with `plan_id`.
+ */
+const SITE_PAGE = /^https:\/\/alosim\.com\/([^/?]+)\/?\?uid=(\d+)&oid=(\d+)&affid=\d+$/u;
+
+/**
  * Slugs whose spelling differs from ours. Each is a naming difference, not a
  * different place — CLDR says "Czechia" where aloSIM says "czech-republic".
  */
@@ -139,6 +146,29 @@ for (const row of rows) {
   entries.set(key, entry);
 }
 
+/** main-site page → offer id → { uid, link } for the lowest uid seen. */
+const pages = new Map<string, Map<number, { uid: number; link: string }>>();
+for (const row of rows) {
+  const match = SITE_PAGE.exec(row['Tracking Link']);
+  if (!match) continue;
+  const [, page, uid, oid] = match;
+  const offers = pages.get(page) ?? new Map();
+  const current = offers.get(Number(oid));
+  if (!current || Number(uid) < current.uid) offers.set(Number(oid), { uid: Number(uid), link: row['Tracking Link'] });
+  pages.set(page, offers);
+}
+
+const pageBody = [...pages.entries()]
+  .sort((a, b) => a[0].localeCompare(b[0]))
+  .map(([page, offers]) => {
+    const links = [...offers.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([offer, value]) => `${offer}: '${value.link}'`)
+      .join(', ');
+    return `  '${page}': { ${links} },`;
+  })
+  .join('\n');
+
 const list = [...entries.values()].sort(
   (a, b) => a.kind.localeCompare(b.kind) || a.slug.localeCompare(b.slug),
 );
@@ -195,12 +225,20 @@ export const alosimAffiliateId = '${affiliateId}';
 export const alosimDestinations: AlosimDestination[] = [
 ${body}
 ];
+
+/**
+ * Tracking links to pages on their main site, keyed by the page's path
+ * ("japan-esim"), per offer — exactly as aloSIM issued them.
+ */
+export const alosimPageLinks: Record<string, Record<number, string>> = {
+${pageBody}
+};
 `;
 
 writeFileSync(resolve('src/data/alosim.generated.ts'), file);
 
 console.log(
-  `wrote ${list.length} destinations — ${countryCount} countries, ${regionCount} regions, offers ${offerIds.join('/')}`,
+  `wrote ${list.length} destinations — ${countryCount} countries, ${regionCount} regions, offers ${offerIds.join('/')}; ${pages.size} main-site pages`,
 );
 if (unmapped.size > 0) {
   console.warn(`unmapped slugs (add them to SLUG_TO_CODE): ${[...unmapped].join(', ')}`);
