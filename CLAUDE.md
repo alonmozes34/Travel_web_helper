@@ -59,7 +59,10 @@ the site is released as a version:
   `package.json` together — `tests/version.test.ts` fails if they disagree.
 - Add an entry at the top of `CHANGELOG.md`, in Hebrew, in words the owner
   would use: what a visitor would notice, not what the code did.
-- Tag the commit `v<version>` and push the tag.
+- Tag the commit `v<version>`. The cloud sessions may push only their branch —
+  a tag push is refused there, and is not to be worked around — so the tag
+  stays local unless the owner adds it on GitHub; the changelog and the
+  footer are the record that matters.
 - Minor for anything a visitor could notice, patch for fixes only; `1.0.0` is
   the public launch.
 
