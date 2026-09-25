@@ -1,4 +1,4 @@
-import { hasTechnology } from '@/lib/types/network';
+import { hasTechnology, networksForDestinations } from '@/lib/types/network';
 import { dailyFullSpeedMb, type Plan } from '@/lib/types/plan';
 import type { DataNeedEstimate } from './estimateDataNeed';
 
@@ -178,16 +178,46 @@ function relativePriceScore(price: number, min: number): number {
 }
 
 /**
+ * Whether a plan does the job at all: it lasts the trip and it carries the
+ * data. The price every plan is measured against is the cheapest of these.
+ */
+export function isAdequate(plan: Plan, estimate: DataNeedEstimate): boolean {
+  return plan.validityDays >= estimate.days && provisionFactor(plan, estimate) === 1;
+}
+
+/**
+ * Narrower first: a plan sold for this one country, then a regional bundle,
+ * then a global one. Used only to break ties — at the same price and score, a
+ * Thailand plan is the more relevant answer for a trip to Thailand.
+ */
+export function coverageSpecificity(plan: Plan): number {
+  return plan.coverage.kind === 'country' ? 0 : plan.coverage.kind === 'region' ? 1 : 2;
+}
+
+/**
  * Score every plan for one destination together, because "cheap" only means
  * anything relative to the alternatives on the same page.
+ *
+ * Relative to the cheapest plan that does the job — not the cheapest plan on
+ * the page. Against a 40GB need for ten days of tethering in Thailand, a 2GB
+ * plan at ₪16 set the baseline, every plan that actually carried 40GB scored
+ * near zero on price, and price, which carries half the weight, stopped
+ * separating them: a 100GB, 180-day bundle at ₪599 came out as "best value"
+ * over a ten-day unlimited plan at ₪113. A plan that cannot do the job is
+ * already discounted for that; it must not also set the price of the ones
+ * that can.
  */
 export function scorePlans(plans: Plan[], context: ScoringContext): ScoredPlan[] {
   const { estimate, priceByPlanId } = context;
 
-  const prices = plans
-    .map((plan) => priceByPlanId.get(plan.id))
+  const priceOf = (plan: Plan) => priceByPlanId.get(plan.id);
+  const adequatePrices = plans
+    .filter((plan) => isAdequate(plan, estimate))
+    .map(priceOf)
     .filter((price): price is number => typeof price === 'number');
-  const min = prices.length ? Math.min(...prices) : 0;
+  const allPrices = plans.map(priceOf).filter((price): price is number => typeof price === 'number');
+  const baseline = adequatePrices.length ? adequatePrices : allPrices;
+  const min = baseline.length ? Math.min(...baseline) : 0;
 
   return plans
     .map((plan) => {
@@ -228,7 +258,12 @@ export function scorePlans(plans: Plan[], context: ScoringContext): ScoredPlan[]
         coversTrip: plan.validityDays >= estimate.days,
       };
     })
-    .sort((a, b) => b.score - a.score);
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        (priceOf(a.plan) ?? Infinity) - (priceOf(b.plan) ?? Infinity) ||
+        coverageSpecificity(a.plan) - coverageSpecificity(b.plan),
+    );
 }
 
 /**
@@ -238,15 +273,27 @@ export function scorePlans(plans: Plan[], context: ScoringContext): ScoredPlan[]
  * how many local networks the plan can use, hotspot, allowance and
  * limitations. It does not use coverage ratings, and it is not price-driven.
  */
-export function browsingScore(plan: Plan, estimate: DataNeedEstimate): number {
-  let score = 0;
-  if (hasTechnology(plan.networks, '5G')) score += 0.35;
-  if (plan.networks.length >= 2) score += 0.15;
-  if (plan.hotspot) score += 0.15;
+export function browsingScore(plan: Plan, estimate: DataNeedEstimate, countryCodes: string[] = []): number {
+  let score = networkScore(plan, countryCodes);
 
   const generosity = plan.isUnlimited ? 1 : Math.min(1, needFitScore(plan, estimate));
   score += 0.25 * generosity;
 
   score += 0.1 * fairUsageFactor(plan, estimate);
+  return score;
+}
+
+/**
+ * The network half of "best for browsing": 5G, more than one local network,
+ * hotspot — read at the destinations being searched. A regional plan lists an
+ * operator in every country it covers; three networks in Thailand matter to a
+ * trip to Thailand, and one each in twenty other countries do not.
+ */
+export function networkScore(plan: Plan, countryCodes: string[] = []): number {
+  const networks = networksForDestinations(plan.networks, countryCodes);
+  let score = 0;
+  if (hasTechnology(networks, '5G')) score += 0.35;
+  if (networks.length >= 2) score += 0.15;
+  if (plan.hotspot) score += 0.15;
   return score;
 }

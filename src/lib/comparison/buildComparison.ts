@@ -127,7 +127,7 @@ export function buildComparison({
   }
 
   const scored = scorePlans(candidates, { estimate, priceByPlanId });
-  const recommendations = recommend(scored, { estimate, priceByPlanId });
+  const recommendations = recommend(scored, { estimate, priceByPlanId, countryCodes });
 
   const badgesByPlanId = new Map<string, RecommendationKey[]>();
   for (const recommendation of Object.values(recommendations)) {
@@ -154,7 +154,7 @@ export function buildComparison({
       pricePerGbMinor: pricePerGbMinor(entry.plan, price.amountMinor),
       pricePerDayMinor: pricePerDayMinor(price.amountMinor, entry.plan.validityDays),
       score: entry.score,
-      browsingScore: browsingScore(entry.plan, estimate),
+      browsingScore: browsingScore(entry.plan, estimate, countryCodes),
       unlimitedCostMinor: entry.plan.isUnlimited
         ? unlimitedCost(entry.plan, estimate, price.amountMinor)
         : null,

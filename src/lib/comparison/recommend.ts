@@ -1,6 +1,6 @@
 import type { Plan } from '@/lib/types/plan';
 import type { DataNeedEstimate } from './estimateDataNeed';
-import { browsingScore, fairUsageFactor, type ScoredPlan } from './scorePlan';
+import { coverageSpecificity, fairUsageFactor, networkScore, type ScoredPlan } from './scorePlan';
 
 /**
  * V1 recommendation categories.
@@ -30,6 +30,8 @@ export type Recommendation = {
 export type RecommendationContext = {
   estimate: DataNeedEstimate;
   priceByPlanId: Map<string, number>;
+  /** The destinations searched, so network facts are read for those only. */
+  countryCodes?: string[];
 };
 
 /**
@@ -44,7 +46,7 @@ export function recommend(
   const result: Partial<Record<RecommendationKey, Recommendation>> = {};
   if (scored.length === 0) return result;
 
-  const { estimate, priceByPlanId } = context;
+  const { estimate, priceByPlanId, countryCodes = [] } = context;
   const priceOf = (plan: Plan) => priceByPlanId.get(plan.id) ?? Number.POSITIVE_INFINITY;
   const entryFor = (key: RecommendationKey, entry: ScoredPlan): Recommendation => ({
     key,
@@ -55,16 +57,29 @@ export function recommend(
   const best = scored[0];
   if (best) result.bestValue = entryFor('bestValue', best);
 
-  // Cheapest still has to last the trip; if nothing does, we say nothing.
+  // Cheapest still has to last the trip; if nothing does, we say nothing. And
+  // it has to carry the data when anything does: "cheapest" for someone
+  // tethering for ten days was a 2GB plan that would be gone by lunchtime.
+  // Only when no plan covers the need does the cheapest overall stand in,
+  // flagged as short.
   const longEnough = scored.filter((entry) => entry.coversTrip);
-  const cheapest = [...longEnough].sort((a, b) => priceOf(a.plan) - priceOf(b.plan))[0];
+  const enoughData = longEnough.filter((entry) => !entry.isBelowEstimatedNeed);
+  const cheapest = [...(enoughData.length ? enoughData : longEnough)].sort(
+    (a, b) => priceOf(a.plan) - priceOf(b.plan) || coverageSpecificity(a.plan) - coverageSpecificity(b.plan),
+  )[0];
   if (cheapest) result.cheapest = entryFor('cheapest', cheapest);
 
-  if (scored.length > 1) {
-    const forBrowsing = [...scored].sort(
+  // The best network at the destination, among plans that last the trip and
+  // carry the data; then the cheapest of those. It used to reward data beyond
+  // the need as well, which on every page picked the biggest bundle among
+  // plans on identical networks — ₪324 for 50GB where ₪113 bought the same
+  // three Thai networks for the length of the trip.
+  if (longEnough.length > 1) {
+    const forBrowsing = [...(enoughData.length ? enoughData : longEnough)].sort(
       (a, b) =>
-        browsingScore(b.plan, estimate) - browsingScore(a.plan, estimate) ||
-        priceOf(a.plan) - priceOf(b.plan),
+        networkScore(b.plan, countryCodes) - networkScore(a.plan, countryCodes) ||
+        priceOf(a.plan) - priceOf(b.plan) ||
+        coverageSpecificity(a.plan) - coverageSpecificity(b.plan),
     )[0];
     if (forBrowsing) result.bestForBrowsing = entryFor('bestForBrowsing', forBrowsing);
   }
@@ -73,7 +88,8 @@ export function recommend(
   const bestUnlimited = [...unlimited].sort(
     (a, b) =>
       unlimitedCost(a.plan, estimate, priceOf(a.plan)) -
-      unlimitedCost(b.plan, estimate, priceOf(b.plan)),
+        unlimitedCost(b.plan, estimate, priceOf(b.plan)) ||
+      coverageSpecificity(a.plan) - coverageSpecificity(b.plan),
   )[0];
   if (bestUnlimited) result.bestUnlimited = entryFor('bestUnlimited', bestUnlimited);
 
