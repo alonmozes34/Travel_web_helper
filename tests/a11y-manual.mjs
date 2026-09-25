@@ -42,6 +42,34 @@ for (const path of ['/', '/esim/thailand', '/en/esim/thailand', '/search?to=TH:1
   await phone.close();
 }
 
+// A phone must be able to change language without opening anything. The
+// switcher once sat in a `hidden sm:block` wrapper, so below 640px there was
+// no way out of the Hebrew site at all — and someone who cannot read Hebrew
+// will not guess that the menu hides it. Checked in both directions, then the
+// same switch through the menu.
+for (const [path, name, expected] of [['/esim/thailand', 'English', '/en/esim/thailand'], ['/en/esim/thailand', 'עברית', '/esim/thailand']]) {
+  const phone = await browser.newPage({ viewport: { width: 320, height: 700 } });
+  await phone.goto(BASE + path, { waitUntil: 'domcontentloaded' });
+  const link = phone.locator('header').getByRole('link', { name, exact: true });
+  const visible = await link.isVisible().catch(() => false);
+  const box = visible ? await link.boundingBox() : null;
+  if (visible) await Promise.all([phone.waitForURL(BASE + expected), link.click()]);
+  ok(`language switch visible in the phone header: ${path}`, visible && phone.url() === BASE + expected, visible ? phone.url() : 'no visible link');
+  ok(`phone language switch is 44px tall: ${path}`, !!box && box.height >= 44, box ? `${Math.round(box.height)}px` : 'missing');
+  await phone.close();
+}
+{
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await phone.goto(BASE + '/esim/thailand', { waitUntil: 'domcontentloaded' });
+  await phone.locator('header button[aria-expanded]').click();
+  const inMenu = phone.locator('dialog[open]').getByRole('link', { name: 'English', exact: true });
+  const shown = await inMenu.isVisible().catch(() => false);
+  if (shown) await Promise.all([phone.waitForURL(BASE + '/en/esim/thailand'), inMenu.click()]);
+  const closed = await phone.evaluate(() => !document.querySelector('dialog[open]'));
+  ok('language switch in the phone menu, and the menu closes after it', shown && closed && phone.url().endsWith('/en/esim/thailand'), phone.url());
+  await phone.close();
+}
+
 // 2.1.1 / 2.1.2 Keyboard: complete the core journey with the keyboard alone.
 const kb = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
 await kb.goto(BASE + '/', { waitUntil: 'domcontentloaded' });

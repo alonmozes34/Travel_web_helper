@@ -1,6 +1,6 @@
 {
   "name": "yeshklita",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "private": true,
   "engines": {
     "node": ">=20.9.0"

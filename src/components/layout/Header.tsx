@@ -46,12 +46,21 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           </ul>
         </nav>
 
-        <div className="ms-auto flex items-center gap-2">
+        <div className="ms-auto flex flex-wrap items-center justify-end gap-2">
           <div className="hidden sm:block">
             <LocaleSwitcher locale={locale} label={dict.header.languageLabel} />
           </div>
+          {/* On a phone only the other language is shown, so it fits beside
+              the currency and the menu button at 320px. It is in the menu
+              too, but a reader who cannot read this page's language will not
+              look for it there. */}
+          <div className="sm:hidden">
+            <LocaleSwitcher locale={locale} label={dict.header.languageLabel} variant="other" />
+          </div>
           <CurrencySwitcher label={dict.header.currencyLabel} />
           <MobileMenu
+            locale={locale}
+            languageLabel={dict.header.languageLabel}
             links={links}
             openLabel={dict.nav.openMenu}
             closeLabel={dict.nav.closeMenu}

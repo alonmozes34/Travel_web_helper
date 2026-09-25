@@ -3,14 +3,20 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Sheet } from '@/components/ui/Sheet';
+import type { Locale } from '@/i18n/config';
+import { LocaleSwitcher } from './LocaleSwitcher';
 import type { NavLink } from './navLinks';
 
 export function MobileMenu({
+  locale,
+  languageLabel,
   links,
   openLabel,
   closeLabel,
   title,
 }: {
+  locale: Locale;
+  languageLabel: string;
   links: NavLink[];
   openLabel: string;
   closeLabel: string;
@@ -48,6 +54,13 @@ export function MobileMenu({
             </li>
           ))}
         </ul>
+        <h3 className="mt-6 text-sm font-semibold text-ink-2">{languageLabel}</h3>
+        <LocaleSwitcher
+          locale={locale}
+          label={languageLabel}
+          variant="list"
+          onNavigate={() => setOpen(false)}
+        />
       </Sheet>
     </>
   );
