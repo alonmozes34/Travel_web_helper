@@ -130,6 +130,22 @@ describe('the buy link', () => {
     assert.equal(url.searchParams.get('source_id'), 'TH');
   });
 
+  test('it says where it lands, so the button can say which plan to pick', () => {
+    assert.equal(planOf(thai5gb).affiliateLandsOn, 'destination');
+    assert.equal(planOf(global).affiliateLandsOn, 'plan', 'no tracking page, so their own plan link');
+  });
+
+  test('with LINK_TO_PLAN on, every button goes to the plan, still tagged', () => {
+    const link = alosimLinkFor(thai5gb, ['TH'], { toPlan: true })!;
+    const url = new URL(link.href);
+    assert.equal(link.landsOn, 'plan');
+    assert.equal(url.origin + url.pathname, 'https://alosim.com/thailand-esim');
+    assert.ok(url.searchParams.get('plan_id'));
+    assert.equal(url.searchParams.get('affid'), '1810');
+    assert.equal(url.searchParams.get('oid'), '9');
+    assert.equal(url.searchParams.get('source_id'), 'TH');
+  });
+
   test('a bundle with a tracking page uses it; one without falls back to their own plan link', () => {
     assert.match(planOf(europe).affiliateUrl!, /^https:\/\/app\.alosim\.com\/esim-store\//);
     const globalUrl = new URL(planOf(global).affiliateUrl!);

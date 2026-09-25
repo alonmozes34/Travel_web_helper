@@ -96,6 +96,12 @@ export type Plan = {
    * pretending to lead somewhere.
    */
   affiliateUrl: string | null;
+  /**
+   * Where that link lands: on this plan, or on the provider's page for the
+   * destination, where the traveller still has to pick it out. Only in the
+   * second case does the button say which plan to pick.
+   */
+  affiliateLandsOn?: 'plan' | 'destination';
   source: PlanSource;
   /** Only shown once a real API supplies it. */
   lastUpdatedAt: string | null;

@@ -301,6 +301,9 @@ export const he = {
     buyAtProvider: 'לא משלמים כאן — הרכישה מתבצעת באתר הספק',
     prototypeLink: 'אב־טיפוס — הקישור לספק עדיין לא פעיל',
     opensInNewTab: '(נפתח בלשונית חדשה, באתר הספק)',
+    // Shown when the link opens the provider's destination page, not the plan.
+    pickThereTemplate: 'בדף של {provider} בחרו: {days} ימים · {data}',
+    pickThereUnlimited: 'ללא הגבלה',
     hotspot: 'שיתוף אינטרנט',
     noHotspot: 'בלי שיתוף אינטרנט',
     calls: 'שיחות טלפון',

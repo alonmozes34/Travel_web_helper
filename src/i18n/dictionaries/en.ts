@@ -285,6 +285,8 @@ export const en: Dictionary = {
     buyAtProvider: 'You do not pay here — the purchase happens on the provider’s site',
     prototypeLink: 'Prototype — the provider link is not live yet',
     opensInNewTab: '(opens in a new tab, on the provider’s site)',
+    pickThereTemplate: 'On the {provider} page, choose {days} days · {data}',
+    pickThereUnlimited: 'Unlimited',
     hotspot: 'Tethering',
     noHotspot: 'No tethering',
     calls: 'Calls',

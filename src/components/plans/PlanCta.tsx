@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import type { Dictionary } from "@/i18n/getDictionary";
 import { interpolate } from "@/i18n/interpolate";
+import { MB_PER_GB } from "@/lib/formatters/data";
 import { outboundLink } from "@/lib/affiliate/link";
 import { track } from "@/lib/analytics/events";
 import type { ComparisonRow } from "@/lib/comparison/buildComparison";
@@ -103,6 +104,20 @@ export function PlanCta({
           is the difference between a link someone follows and a link someone
           is afraid of. Nobody should have to click to find out whether this
           charges them. */}
+      {/* The link opens the provider's page for the destination, where this
+          plan sits among the others; say which one to pick, in the terms the
+          provider's own page uses. */}
+      {link && row.plan.affiliateLandsOn === "destination" ? (
+        <p className="text-sm font-semibold text-ink">
+          {interpolate(dict.plan.pickThereTemplate, {
+            provider: row.provider.name,
+            days: row.plan.validityDays,
+            data: row.plan.isUnlimited
+              ? dict.plan.pickThereUnlimited
+              : `${Math.round((row.plan.dataAmountMb / MB_PER_GB) * 10) / 10}GB`,
+          })}
+        </p>
+      ) : null}
       <p className="text-sm text-ink-2" aria-live="polite">
         {!link && noted ? dict.plan.prototypeLink : dict.plan.buyAtProvider}
       </p>

@@ -35,7 +35,7 @@ export type MappedAlosimPlan = { plan: Plan } | { skipped: SkippedRecord };
 export function mapAlosimPlan(
   item: AlosimPlan,
   fetchedAt: string,
-  linkFor: (item: AlosimPlan, countryCodes: string[]) => string | null,
+  linkFor: (item: AlosimPlan, countryCodes: string[]) => { href: string; landsOn: 'plan' | 'destination' } | null,
 ): MappedAlosimPlan {
   const planId = readPlanId(item.url);
   const label = `${titleCase(item.name)} ${item.dataGigabytes} ${item.validityDays}d`;
@@ -74,6 +74,7 @@ export function mapAlosimPlan(
   }
 
   const allowance = unlimited ? 'Unlimited' : `${formatGb(gigabytes)}GB`;
+  const link = linkFor(item, countries);
 
   return {
     plan: {
@@ -97,7 +98,8 @@ export function mapAlosimPlan(
       calls: null,
       sms: null,
       topUp: null,
-      affiliateUrl: linkFor(item, countries),
+      affiliateUrl: link?.href ?? null,
+      affiliateLandsOn: link?.landsOn,
       source: 'api',
       lastUpdatedAt: fetchedAt,
     },

@@ -114,24 +114,47 @@ const trackingByCountry = new Map(
 );
 
 /**
+ * Send "buy" straight to the plan, through the per-plan link the API gives.
+ *
+ * Off until it is confirmed that a sale through that link is credited to us —
+ * by aloSIM, or by a test click showing up in our Everflow reports. The
+ * owner's own test on 25 September 2026 is why it matters: a 50GB, 10-day
+ * Japan plan at $27.50 sent him to aloSIM's Japan page, which opened on the
+ * 30-day plans, where the nearest thing was 20GB at $25. The price was right
+ * and the landing was wrong, and to a visitor those look the same.
+ *
+ * Flipping this is the whole change; the tests cover both settings.
+ */
+export const LINK_TO_PLAN = false;
+
+/**
  * Where "buy" sends a traveller for an aloSIM plan.
  *
- * The Everflow tracking link for the plan's page comes first, because aloSIM
- * confirmed that is how a sale is credited. The API also gives each plan a
- * deep link carrying our affiliate and offer ids; whether a sale through it
- * is credited the same way is still being confirmed with aloSIM, so it is used
- * only for pages that have no tracking link of their own.
+ * The Everflow tracking link for the plan's destination page, because aloSIM
+ * confirmed that is how a sale is credited — it lands on the destination, not
+ * the plan, and the button then says which plan to pick there. The API's
+ * per-plan link, which carries our affiliate and offer ids too, is used where
+ * no tracking page exists, or everywhere once `LINK_TO_PLAN` is on.
  *
  * `source_id` is the one custom parameter aloSIM's links support. It carries
  * the destination, so their reports show which destinations sell.
  */
-export function alosimLinkFor(item: AlosimPlan, countryCodes: string[]): string | null {
+export function alosimLinkFor(
+  item: AlosimPlan,
+  countryCodes: string[],
+  { toPlan = LINK_TO_PLAN }: { toPlan?: boolean } = {},
+): { href: string; landsOn: 'plan' | 'destination' } | null {
   const slug = pageSlug(item.url);
   const single = countryCodes.length === 1 && item.locations.length === 1 ? countryCodes[0] : null;
-  const destination = (slug ? trackingBySlug.get(slug) : undefined) ?? (single ? trackingByCountry.get(single) : undefined);
+  const destination = toPlan
+    ? undefined
+    : ((slug ? trackingBySlug.get(slug) : undefined) ?? (single ? trackingByCountry.get(single) : undefined));
   const base = destination?.links[ALOSIM_OFFER_ID] ?? item.url;
   const tag = single ?? slug;
-  return tag ? withParam(base, 'source_id', tag) : base;
+  return {
+    href: tag ? withParam(base, 'source_id', tag) : base,
+    landsOn: destination ? 'destination' : 'plan',
+  };
 }
 
 function pageSlug(url: string): string | null {
