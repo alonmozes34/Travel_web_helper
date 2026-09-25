@@ -75,6 +75,14 @@
   /* The entire product has exactly two shadows. */
   --shadow-search: 0 10px 30px -14px rgb(16 44 68 / 0.28);
   --shadow-sheet: 0 -12px 32px -18px rgb(16 44 68 / 0.35);
+
+  /* The loading bar: a segment sweeping across its track. Used only under
+     motion-safe; with reduced motion the segment simply stands still. */
+  --animate-loading-bar: loading-bar 1.4s ease-in-out infinite;
+  @keyframes loading-bar {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+  }
 }
 
 @layer base {

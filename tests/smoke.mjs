@@ -80,6 +80,8 @@ await shot(page, 'phase2-home-desktop');
 
 await page.getByRole('button', { name: 'השוו חבילות' }).click();
 await page.waitForURL('**/search**');
+// The loading screen shows first while prices load; wait for the results.
+await page.locator('main article').first().waitFor({ timeout: 20000 });
 const url = new URL(page.url());
 ok('a multi-stop trip goes to the search page', url.pathname === '/search', url.pathname);
 ok(

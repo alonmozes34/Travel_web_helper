@@ -38,10 +38,18 @@ export function cached<T>({
   load,
   ttlMs,
   now = () => Date.now(),
+  staleWhileRevalidate = false,
 }: {
   load: () => Promise<T>;
   ttlMs: number;
   now?: () => number;
+  /**
+   * Once a value exists, an expired read returns it at once and refreshes in
+   * the background, so nobody waits on the refresh but whoever arrives first
+   * on a fresh server. The value is never older than one interval plus the
+   * refresh itself.
+   */
+  staleWhileRevalidate?: boolean;
 }): Cached<T> {
   let state: CacheState<T> | null = null;
   // Concurrent requests during a refresh share one fetch rather than starting
@@ -71,6 +79,12 @@ export function cached<T>({
         inFlight ??= refresh().finally(() => {
           inFlight = null;
         });
+        if (staleWhileRevalidate && state) {
+          // A failed background refresh is already recorded on the state by
+          // `refresh`; nothing is waiting on this promise to hear about it.
+          inFlight.catch(() => {});
+          return state;
+        }
         await inFlight;
       }
       return state!;

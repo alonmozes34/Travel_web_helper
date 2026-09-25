@@ -159,7 +159,7 @@ describe('the source', () => {
     const source = alosimSource({ credentials: { clientId: 'id', clientSecret: 'secret' }, fetchJson });
     const result = await source.fetch();
     assert.equal(calls[0], 'POST /v1/authorize');
-    assert.match(calls[1], /^GET \/v1\/plans\?currency=USD&offset=0&count=200$/);
+    assert.match(calls[1], /^GET \/v1\/plans\?currency=USD&offset=0&count=2500$/);
     assert.equal(result.plans.length, fixture.length - 1);
     assert.equal(result.skipped.length, 1);
   });
@@ -176,6 +176,22 @@ describe('the source', () => {
     clock += 3 * 60 * 60 * 1000;
     await source.fetch();
     assert.ok(calls.length > after, 'past three hours, refreshed');
+  });
+
+  test('once it has a catalogue, an expired read does not wait for aloSIM', async () => {
+    let clock = 0;
+    let hang = false;
+    const fetchJson: AlosimFetch = async (url) => {
+      if (hang) return new Promise(() => {}); // aloSIM never answers
+      if (url.endsWith('/v1/authorize')) return { access_token: 'token', token_type: 'Bearer' };
+      return { items: fixture, offset: 0, total: fixture.length };
+    };
+    const source = alosimSource({ credentials: { clientId: 'id', clientSecret: 'secret' }, fetchJson, now: () => clock });
+    const first = await source.fetch();
+    hang = true;
+    clock += 4 * 60 * 60 * 1000;
+    const second = await source.fetch();
+    assert.equal(second, first, 'the last catalogue, served at once');
   });
 
   test('a short read is a failure, not a smaller catalogue', async () => {
