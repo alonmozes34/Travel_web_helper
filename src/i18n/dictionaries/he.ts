@@ -368,6 +368,8 @@ export const he = {
     promoCodeTemplate: 'קוד {code}',
     promoInLink: 'ההנחה כבר כלולה בקישור',
     promoSavingTemplate: 'חיסכון {amount}',
+    copyCode: 'העתקת הקוד',
+    codeCopied: 'הקוד הועתק',
   },
   details: {
     title: 'פרטי החבילה',
@@ -738,6 +740,12 @@ export const he = {
    * traveller has already left for the provider, so its job is to be useful
    * on the way back, not to interrupt anything.
    */
+  beforeYouGo: {
+    titleTemplate: 'רגע לפני שממשיכים ל־{provider}',
+    pasteAtTemplate: 'מדביקים את הקוד בשלב התשלום באתר {provider}.',
+    continueTemplate: 'להמשך לחבילה באתר {provider}',
+    copiesOnContinue: 'הכפתור מעתיק את הקוד גם בעצמו',
+  },
   tripExtras: {
     heading: 'עוד דבר אחד לטיול',
     esimChosen: 'נבחרה חבילת eSIM',

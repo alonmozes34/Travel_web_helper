@@ -9,6 +9,8 @@ import { MB_PER_GB } from "@/lib/formatters/data";
 import { outboundLink } from "@/lib/affiliate/link";
 import { track } from "@/lib/analytics/events";
 import type { ComparisonRow } from "@/lib/comparison/buildComparison";
+import { isPresentableDiscount } from "@/lib/types/discount";
+import { BeforeYouGo } from "./BeforeYouGo";
 
 /**
  * Primary call to action.
@@ -28,6 +30,7 @@ export function PlanCta({
   detailsId,
   onToggleDetails,
   onChosen,
+  demoDataEnabled = false,
 }: {
   row: ComparisonRow;
   dict: Dictionary;
@@ -45,8 +48,16 @@ export function PlanCta({
    * on screen. That is what the trip-extras offer hangs off.
    */
   onChosen?: () => void;
+  /** Whether a demo discount code may be shown, as on the card. */
+  demoDataEnabled?: boolean;
 }) {
   const [noted, setNoted] = useState(false);
+  const [beforeYouGo, setBeforeYouGo] = useState(false);
+  // A code the traveller has to type at the provider's checkout. When there is
+  // one, the button opens a dialog with the code first — see BeforeYouGo.
+  const { discount } = row.plan;
+  const codeToType =
+    discount && !discount.appliedByLink && isPresentableDiscount(discount, demoDataEnabled) ? discount : null;
   const link = outboundLink(row.plan, locale);
   const label = interpolate(dict.plan.viewAtTemplate, {
     provider: row.provider.name,
@@ -71,7 +82,14 @@ export function PlanCta({
             href={link.href}
             rel={link.rel}
             target={link.target}
-            onClick={recordClick}
+            onClick={(event) => {
+              if (codeToType) {
+                event.preventDefault();
+                setBeforeYouGo(true);
+                return;
+              }
+              recordClick();
+            }}
             className={buttonClasses("primary", size, "grow sm:grow-0")}
           >
             {label}
@@ -124,6 +142,23 @@ export function PlanCta({
               : `${Math.round((row.plan.dataAmountMb / MB_PER_GB) * 10) / 10}GB`,
           })}
         </p>
+      ) : null}
+      {link && codeToType ? (
+        <BeforeYouGo
+          open={beforeYouGo}
+          onClose={() => setBeforeYouGo(false)}
+          row={row}
+          discount={codeToType}
+          link={link}
+          dict={dict}
+          locale={locale}
+          onContinue={(askedAboutCar) => {
+            track({ name: "provider_clicked", planId: row.plan.id, providerId: row.plan.providerId });
+            // Asked in the dialog already: the page does not ask again.
+            if (!askedAboutCar) onChosen?.();
+            setBeforeYouGo(false);
+          }}
+        />
       ) : null}
       {/* "You don't pay here" is said once under the list, not on every
           card; only the demo's dead button needs a word of its own. */}

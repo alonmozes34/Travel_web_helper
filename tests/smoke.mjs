@@ -198,15 +198,20 @@ ok(
   (await page.locator('main').innerText()).includes('לכל GB'),
 );
 
-// Both currencies, both readable, both labelled. The shekel answers "what
-// does this cost me" and the provider's currency answers "what will my card
-// be charged" — a traveller has both questions and neither may be in 11px grey.
+// One currency on the face of the card — the owner found a second figure in
+// dollars or pounds under the shekel price confusing. The provider's own
+// figure, labelled as what the card is charged, is one tap away.
 {
-  const card = await page.locator('article').first().innerText();
+  const first = page.locator('article').first();
+  const card = await first.innerText();
   ok('the price in the traveller’s own currency is shown', /₪\s?\d/.test(card));
-  ok('the amount the provider charges is shown too', /(\$|€)\d/.test(card));
+  ok('no second currency on the face of the card', !/(\$|€|£)\s?\d/.test(card), card.match(/(\$|€|£)\s?[\d.]+/)?.[0] ?? '');
   ok('the shekel figure is labelled as approximate', card.includes('בערך'));
-  ok('the charged amount says where it will appear', card.includes('כרטיס האשראי'));
+  await first.getByRole('button', { name: 'עוד פרטים' }).click();
+  const opened = await first.innerText();
+  ok('the amount the provider charges is in the details', /(\$|€)\d/.test(opened));
+  ok('the charged amount says where it will appear', opened.includes('כרטיס האשראי'));
+  await first.getByRole('button', { name: 'סגירת הפרטים' }).click();
 }
 
 // The rate is one keyboard-reachable tap away — a disclosure, not a tooltip.

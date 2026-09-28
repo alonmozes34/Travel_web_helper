@@ -159,14 +159,18 @@ export function PlanListItem({
           detailsId={detailsId}
           onToggleDetails={() => setDetailsOpen((open) => !open)}
           onChosen={onChosen}
+          demoDataEnabled={demoDataEnabled}
         />
       </div>
 
       {detailsOpen ? (
         <div id={detailsId} className="mt-4 border-t border-line-soft pt-4">
-          <p className="text-sm text-ink-2">
-            {dict.plan.planNameLabel}: <Ltr className="font-semibold text-ink">{plan.planName}</Ltr>
-          </p>
+          <div className="grid gap-1">
+            <p className="text-sm text-ink-2">
+              {dict.plan.planNameLabel}: <Ltr className="font-semibold text-ink">{plan.planName}</Ltr>
+            </p>
+            <ProviderPrice row={row} locale={locale} dict={dict} />
+          </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-4 gap-y-3 md:grid-cols-3">
             <DataFact row={row} locale={locale} dict={dict} />
             <ValidityFact row={row} dict={dict} tripDays={tripDays} />
@@ -190,32 +194,43 @@ export function PlanListItem({
 }
 
 /**
- * The price, once, large, in the traveller's currency — and beneath it, small,
- * the provider's own figure, labelled as what the card is charged only where
- * that has been confirmed.
+ * The price, once, in the currency the traveller chose — nothing else in
+ * money on the face of the card. The owner: a second figure in dollars or
+ * pounds under the shekel price confused more than it told. The provider's own
+ * figure is under "more details" (`ProviderPrice`), and "about" says the
+ * shekel figure is a conversion.
  */
 function PriceSummary({ row, locale, dict }: { row: ComparisonRow; locale: Locale; dict: Dictionary }) {
   const { price, originalPrice } = row;
   const home = formatPrice(price.amountMinor, price.currency, locale);
   const homeBefore = originalPrice ? formatPrice(originalPrice.amountMinor, originalPrice.currency, locale) : null;
-  const charged = formatPrice(price.sourceAmountMinor, price.sourceCurrency, locale);
-  const confirmed = row.provider.billingCurrency !== 'not-confirmed';
 
   return (
-    <div className="md:text-end">
-      <div className="flex flex-wrap items-baseline gap-x-2 md:justify-end">
-        {price.isConverted ? <span className="text-sm text-ink-2">{dict.plan.approxShort}</span> : null}
-        <Ltr className="tnum font-head text-3xl font-bold tracking-tight">{home}</Ltr>
-        {homeBefore ? <Ltr className="tnum text-base text-ink-2 line-through">{homeBefore}</Ltr> : null}
-      </div>
-      {price.isConverted ? (
-        <p className="mt-0.5 text-sm text-ink-2">
-          {interpolate(confirmed ? dict.plan.chargedShortTemplate : dict.plan.listedShortTemplate, {
-            provider: row.provider.name,
-            amount: '⁨' + charged + '⁩',
-          })}
-        </p>
-      ) : null}
+    <div className="flex flex-wrap items-baseline gap-x-2 md:justify-end">
+      {price.isConverted ? <span className="text-sm text-ink-2">{dict.plan.approxShort}</span> : null}
+      <Ltr className="tnum font-head text-3xl font-bold tracking-tight">{home}</Ltr>
+      {homeBefore ? <Ltr className="tnum text-base text-ink-2 line-through">{homeBefore}</Ltr> : null}
     </div>
+  );
+}
+
+/**
+ * The provider's own figure, in the details: labelled as what the card is
+ * charged only where that has been confirmed.
+ */
+function ProviderPrice({ row, locale, dict }: { row: ComparisonRow; locale: Locale; dict: Dictionary }) {
+  const { price } = row;
+  if (!price.isConverted) return null;
+  const confirmed = row.provider.billingCurrency !== 'not-confirmed';
+  return (
+    <p className="text-sm text-ink-2">
+      {interpolate(confirmed ? dict.plan.chargedShortTemplate : dict.plan.listedShortTemplate, {
+        provider: row.provider.name,
+        // First-strong isolates, so "$27.50" keeps its order inside Hebrew.
+        amount: '\u2068' + formatPrice(price.sourceAmountMinor, price.sourceCurrency, locale) + '\u2069',
+      })}
+      {'. '}
+      {dict.plan.chargedExplains}
+    </p>
   );
 }

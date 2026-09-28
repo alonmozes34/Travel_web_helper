@@ -348,6 +348,8 @@ export const en: Dictionary = {
     firstPurchasePromoTemplate: '{percent} off your first purchase',
     promoCodeTemplate: 'code {code}',
     promoInLink: 'already applied by the link',
+    copyCode: 'Copy code',
+    codeCopied: 'Code copied',
     promoSavingTemplate: 'saves {amount}',
   },
   details: {
@@ -704,6 +706,12 @@ export const en: Dictionary = {
     },
   },
 
+  beforeYouGo: {
+    titleTemplate: 'Before you go to {provider}',
+    pasteAtTemplate: 'Paste the code at checkout on {provider}.',
+    continueTemplate: 'Continue to the plan at {provider}',
+    copiesOnContinue: 'The button copies the code too',
+  },
   tripExtras: {
     heading: 'One more thing for your trip',
     esimChosen: 'eSIM plan selected',

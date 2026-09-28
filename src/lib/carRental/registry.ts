@@ -18,6 +18,20 @@ export const rentalSources: readonly RentalSource[] = [
   demoRentalSource,
 ];
 
+/**
+ * Whether to ask an eSIM buyer about a rental car at all.
+ *
+ * Only when a real rental network is connected. The demo source is always
+ * "configured" so the rental page has something to run on in development, but
+ * sending a traveller who has just chosen a real eSIM to a page of invented
+ * rental offers would waste their trip-planning time on nothing. The demo
+ * catalogue switches the question on, so the test suites still exercise it.
+ */
+export function carRentalOfferEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  if (env.DEMO_CATALOGUE === 'true') return true;
+  return configuredRentalSources().some((source) => source.id !== demoRentalSource.id);
+}
+
 export function configuredRentalSources(
   sources: readonly RentalSource[] = rentalSources,
 ): RentalSource[] {

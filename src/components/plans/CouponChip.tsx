@@ -7,6 +7,7 @@ import { interpolate } from '@/i18n/interpolate';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import { formatPrice } from '@/lib/formatters/price';
 import { isPresentableDiscount, type Discount } from '@/lib/types/discount';
+import { CopyCodeButton } from './CopyCodeButton';
 
 /**
  * Discount code and what it saves.
@@ -38,19 +39,23 @@ export function CouponChip({
   }
 
   if (!row.originalPrice) return null;
-  const savings = row.originalPrice.sourceAmountMinor - row.price.sourceAmountMinor;
+  // In the traveller's currency, like the price above it: a saving in dollars
+  // under a price in shekels made the card show two currencies again.
+  const savings = row.originalPrice.amountMinor - row.price.amountMinor;
   if (savings <= 0) return null;
 
   return (
-    <Chip>
-      <Ltr className="tnum">
-        {interpolate(dict.plan.couponTemplate, {
-          code: discount!.code,
-          amount: formatPrice(savings, row.price.sourceCurrency, locale),
-        })}
-      </Ltr>
-      <span className="font-normal text-warn-ink">·&nbsp;{dict.plan.demoCoupon}</span>
-    </Chip>
+    <WithCopy code={discount!.code} dict={dict}>
+      <Chip>
+        <Ltr className="tnum">
+          {interpolate(dict.plan.couponTemplate, {
+            code: discount!.code,
+            amount: formatPrice(savings, row.price.currency, locale),
+          })}
+        </Ltr>
+        <span className="font-normal text-warn-ink">·&nbsp;{dict.plan.demoCoupon}</span>
+      </Chip>
+    </WithCopy>
   );
 }
 
@@ -66,9 +71,7 @@ function PromotionChip({
   dict: Dictionary;
 }) {
   const forEveryone = discount.audience === 'everyone';
-  const savings = row.originalPrice
-    ? row.originalPrice.sourceAmountMinor - row.price.sourceAmountMinor
-    : 0;
+  const savings = row.originalPrice ? row.originalPrice.amountMinor - row.price.amountMinor : 0;
   // A code for everyone is only claimed once it is visibly in the price.
   if (forEveryone && savings <= 0) return null;
 
@@ -83,12 +86,12 @@ function PromotionChip({
   if (forEveryone) {
     parts.push(
       fill(dict.plan.promoSavingTemplate, {
-        amount: <Ltr className="tnum">{formatPrice(savings, row.price.sourceCurrency, locale)}</Ltr>,
+        amount: <Ltr className="tnum">{formatPrice(savings, row.price.currency, locale)}</Ltr>,
       }),
     );
   }
 
-  return (
+  const chip = (
     <Chip>
       {parts.map((part, index) => (
         <span key={index}>
@@ -104,6 +107,18 @@ function PromotionChip({
         </span>
       ))}
     </Chip>
+  );
+  // A code already in the link has nothing to copy.
+  return discount.appliedByLink ? chip : <WithCopy code={discount.code} dict={dict}>{chip}</WithCopy>;
+}
+
+/** The chip, and beside it a button that copies the code. */
+function WithCopy({ code, dict, children }: { code: string; dict: Dictionary; children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {children}
+      <CopyCodeButton code={code} label={dict.plan.copyCode} copiedLabel={dict.plan.codeCopied} />
+    </div>
   );
 }
 

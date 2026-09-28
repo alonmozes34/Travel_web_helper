@@ -26,6 +26,8 @@ type TripExtrasValue = {
   tripDays: number;
   /** The plan whose outbound click was followed, if any. */
   chosenPlanId: string | null;
+  /** Whether a real rental network is connected, so the car question may be asked. */
+  carRentalOffer: boolean;
   choose: (planId: string) => void;
 };
 
@@ -40,11 +42,13 @@ export function TripExtrasProvider({
   locale,
   countryCode,
   tripDays,
+  carRentalOffer,
   children,
 }: {
   locale: Locale;
   countryCode: string | undefined;
   tripDays: number;
+  carRentalOffer: boolean;
   children: ReactNode;
 }) {
   const [chosenPlanId, setChosenPlanId] = useState<string | null>(null);
@@ -54,13 +58,13 @@ export function TripExtrasProvider({
     // storage is a browser-only fact and this is the first moment it matters.
     // Reading it in an effect would mean setting state from one, which is the
     // cascading render `react-hooks/set-state-in-effect` exists to prevent.
-    if (isTripExtraDeclined('carRental')) return;
+    if (!carRentalOffer || isTripExtraDeclined('carRental')) return;
     setChosenPlanId((current) => current ?? planId);
-  }, []);
+  }, [carRentalOffer]);
 
   const value = useMemo(
-    () => ({ locale, countryCode, tripDays, chosenPlanId, choose }),
-    [locale, countryCode, tripDays, chosenPlanId, choose],
+    () => ({ locale, countryCode, tripDays, chosenPlanId, carRentalOffer, choose }),
+    [locale, countryCode, tripDays, chosenPlanId, carRentalOffer, choose],
   );
 
   return <TripExtrasContext.Provider value={value}>{children}</TripExtrasContext.Provider>;

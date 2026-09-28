@@ -17,6 +17,7 @@ import { getDisplayCurrency } from "@/lib/currencyServer";
 import { ResultsView } from "@/components/results/ResultsView";
 import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
 import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
+import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { CountryFacts } from "@/components/content/CountryFacts";
 import { RelatedDestinations } from "@/components/content/RelatedDestinations";
 import { CoverageNotice } from "@/components/content/CoverageNotice";
@@ -231,6 +232,7 @@ export default async function CountryPage({
                 front of it. */}
             <TripExtrasProvider
               locale={locale}
+              carRentalOffer={carRentalOfferEnabled()}
               countryCode={comparison.countryCodes[0]}
               tripDays={estimate.days}
             >

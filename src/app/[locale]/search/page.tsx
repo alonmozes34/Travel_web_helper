@@ -6,6 +6,7 @@ import { ResultsView } from "@/components/results/ResultsView";
 import { CombinationCard } from "@/components/comparison/CombinationCard";
 import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
 import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
+import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { AffiliateDisclosure } from "@/components/content/AffiliateDisclosure";
 import { MockDataNotice } from "@/components/content/MockDataNotice";
 import { countries } from "@/data/countries";
@@ -215,6 +216,7 @@ export default async function SearchPage({
                 traveller who clicks both must still see one offer. */}
             <TripExtrasProvider
               locale={locale}
+              carRentalOffer={carRentalOfferEnabled()}
               countryCode={comparison.countryCodes[0]}
               tripDays={estimate.days}
             >
