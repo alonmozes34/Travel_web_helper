@@ -230,7 +230,7 @@ export function FairUsageNote({
   dict: Dictionary;
 }) {
   const fup = row.plan.fairUsage;
-  if (!row.plan.isUnlimited || !fup?.thresholdMb) return null;
+  if (!row.plan.isUnlimited || !fup) return null;
   const copy = fairUsageCopy(fup, dict);
 
   return (

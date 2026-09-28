@@ -6,6 +6,7 @@ import { mergeResults, type ProviderSource, type SkippedRecord } from '@/lib/sou
 import type { RateSource } from '@/lib/sources/RateSource';
 import { ecbRateSource } from '@/lib/sources/ecb/ecbRateSource';
 import { alosimCredentialsFromEnv, alosimSource } from '@/lib/sources/alosim/alosimSource';
+import { yesimPartnerIdFromEnv, yesimSource } from '@/lib/sources/yesim/yesimSource';
 import { mockPlanSource, mockRateSource } from '@/lib/sources/mockPlanSource';
 import { cached } from './cache';
 
@@ -46,8 +47,8 @@ export type CatalogueSources = { plans: ProviderSource[]; rates: RateSource[] };
 /**
  * The sources in play.
  *
- * Plans come from every provider whose credentials are configured — aloSIM
- * today. The demo catalogue is never mixed in with them: a real price beside
+ * Plans come from every provider configured in the environment — aloSIM
+ * (`ALOSIM_CLIENT_ID`/`ALOSIM_CLIENT_SECRET`) and Yesim (`YESIM_PARTNER_ID`). The demo catalogue is never mixed in with them: a real price beside
  * an invented one tells a traveller nothing, and a search engine would index
  * the invented one as an offer. It runs only where it is asked for by name
  * (`DEMO_CATALOGUE=true`), for development and the test suites, and only when
@@ -60,7 +61,11 @@ export type CatalogueSources = { plans: ProviderSource[]; rates: RateSource[] };
  */
 export function planSourcesFromEnv(env: Record<string, string | undefined> = process.env): ProviderSource[] {
   const alosim = alosimCredentialsFromEnv(env);
-  const real = alosim ? [alosimSource({ credentials: alosim })] : [];
+  const yesim = yesimPartnerIdFromEnv(env);
+  const real = [
+    ...(alosim ? [alosimSource({ credentials: alosim })] : []),
+    ...(yesim ? [yesimSource({ partnerId: yesim })] : []),
+  ];
   if (real.length > 0) return real;
   return env.DEMO_CATALOGUE === 'true' ? [mockPlanSource()] : [];
 }

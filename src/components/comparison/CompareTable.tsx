@@ -189,7 +189,7 @@ export function CompareTable({
       key: "fairUsage",
       compare: (row) => String(row.plan.fairUsage?.thresholdMb ?? 0),
       render: (row) =>
-        row.plan.fairUsage?.thresholdMb ? (
+        row.plan.isUnlimited && row.plan.fairUsage ? (
           <span className="tnum text-warn-ink">
             {fairUsageCopy(row.plan.fairUsage, dict).short}
           </span>

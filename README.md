@@ -96,7 +96,8 @@ would otherwise inherit. `npm run test:e2e` fails if a page stops carrying an
 `og:image`, or if any brand asset stops being served.
 
 > **Live plans come from aloSIM's Store API**, when `ALOSIM_CLIENT_ID` and
-> `ALOSIM_CLIENT_SECRET` are set. The demo catalogue in this repository is
+> `ALOSIM_CLIENT_SECRET` are set, **and Yesim's Prices API**, when
+> `YESIM_PARTNER_ID` is set. The demo catalogue in this repository is
 > invented, runs only with `DEMO_CATALOGUE=true`, and is never shown beside a
 > real one. See [Plan data](#plan-data).
 
@@ -414,14 +415,22 @@ Where plans come from is decided in one place, `planSourcesFromEnv` in
 | Configured | Catalogue |
 | --- | --- |
 | `ALOSIM_CLIENT_ID` + `ALOSIM_CLIENT_SECRET` | aloSIM's Store API, refreshed every three hours |
+| `YESIM_PARTNER_ID` | Yesim's Prices API (no key; the id is the one in our links), refreshed every three hours |
 | neither, `DEMO_CATALOGUE=true` | the invented demo catalogue — development and tests only |
 | neither | empty; every page says it has nothing yet |
 
-The two are never mixed. aloSIM gave written permission to display their API
+Real providers are combined; the demo is never mixed with them. aloSIM gave written permission to display their API
 prices, and on 25 September 2026 fifteen of them were checked by hand against
 their store and matched to the cent. What their API does not state — hotspot,
 calls, SMS, top-up, installation method, whether an unlimited plan's cap is per
 day — is shown as "not stated", never as "no".
+
+Yesim's Prices API is the one their partner dashboard documents for
+affiliates (Integrations → "Yesim Prices API"). Their prices have not yet been
+checked by hand against their store. Their links land on the destination's
+page, not the plan, so the button says what to pick there. Their unlimited
+plans say "Possible throttling" and nothing more, which the page says in
+those words and the ranking reads as the least generous cap.
 
 Plan data carries `source: 'mock' | 'api'`. Anywhere mock data is rendered,
 `MockDataNotice` states so on the page, and mock discount codes are never

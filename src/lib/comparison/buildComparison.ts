@@ -126,7 +126,7 @@ export function buildComparison({
     priceByPlanId.set(plan.id, price.amountMinor);
   }
 
-  const scored = scorePlans(candidates, { estimate, priceByPlanId });
+  const scored = scorePlans(withoutRedundant(candidates, estimate.days, priceByPlanId), { estimate, priceByPlanId });
   const recommendations = recommend(scored, { estimate, priceByPlanId, countryCodes });
 
   const badgesByPlanId = new Map<string, RecommendationKey[]>();
@@ -194,5 +194,42 @@ export function buildComparison({
 /** A provider id with no record is a data bug, not a reason to crash a page. */
 function fallbackProvider(id: string): Provider {
   return { id, name: id, slug: id, brandColor: '#5A6D7E', activation: null };
+}
+
+/**
+ * Drops a plan when the same provider sells another for the same places that
+ * lasts the whole trip, gives at least as much data, and costs no more.
+ *
+ * Some providers sell a plan for every length from one day to thirty. For a
+ * ten-day trip the eleven-, twelve- and thirteen-day versions of the same
+ * unlimited plan cost more and give nothing the ten-day one does not, and
+ * listed one under another they bury every other provider. Nothing is hidden
+ * that could be the better buy for this trip: the plan that stays is at
+ * least as good on every count a traveller is choosing on here. Plans from
+ * different providers are never compared this way — that is the comparison
+ * itself.
+ */
+export function withoutRedundant(plans: Plan[], tripDays: number, priceByPlanId: Map<string, number>): Plan[] {
+  const places = (plan: Plan) => [...plan.coverage.countries].sort().join(',');
+  const price = (plan: Plan) => priceByPlanId.get(plan.id) ?? Infinity;
+  const sameKindOfData = (a: Plan, b: Plan) =>
+    a.isUnlimited === b.isUnlimited &&
+    (a.isUnlimited ? JSON.stringify(a.fairUsage) === JSON.stringify(b.fairUsage) : a.dataAmountMb >= b.dataAmountMb);
+
+  const coversAsWell = (a: Plan, b: Plan) =>
+    a.providerId === b.providerId &&
+    places(a) === places(b) &&
+    a.validityDays >= tripDays &&
+    sameKindOfData(a, b) &&
+    price(a) <= price(b);
+
+  return plans.filter(
+    (b) =>
+      !plans.some((a) => {
+        if (a === b || !coversAsWell(a, b)) return false;
+        // Two plans that each cover the other exactly as well: keep one.
+        return coversAsWell(b, a) ? a.id < b.id : true;
+      }),
+  );
 }
 

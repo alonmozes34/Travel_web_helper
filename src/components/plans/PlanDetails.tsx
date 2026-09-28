@@ -53,7 +53,7 @@ export function PlanDetails({ row, dict }: { row: ComparisonRow; dict: Dictionar
           </div>
         </dl>
 
-        {plan.fairUsage?.thresholdMb ? (
+        {plan.isUnlimited && plan.fairUsage ? (
           <p className="mt-3 text-sm text-warn-ink">
             <strong className="font-semibold">{dict.details.fairUsageTitle}:</strong>{' '}
             {fairUsageCopy(plan.fairUsage, dict).detail}

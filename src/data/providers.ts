@@ -4,7 +4,7 @@ import { mockProviders } from './mockProviders';
 /**
  * Providers whose plans reach the site from a real source.
  *
- * `activation` is null for aloSIM: their API does not say whether a plan
+ * `activation` is null for both: neither API says whether a plan
  * installs by QR code, by app, or both, and the page says "not stated" rather
  * than repeating what their marketing suggests.
  */
@@ -18,6 +18,16 @@ export const providers: Provider[] = [
     // "aloSIM logo (black)" from their affiliate creatives in Everflow,
     // trimmed and scaled to four times the size it is shown at.
     logo: { src: '/providers/alosim.png', width: 205, height: 96 },
+  },
+  {
+    id: 'yesim',
+    name: 'Yesim',
+    slug: 'yesim',
+    // No logo until one is taken from their affiliate marketing assets; the
+    // tile shows the initial on this colour. Their wordmark's orange darkened
+    // until white on it reads at 5.2:1 — the brand orange itself is 3:1.
+    brandColor: '#C2410C',
+    activation: null,
   },
 ];
 

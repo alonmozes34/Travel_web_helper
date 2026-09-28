@@ -82,10 +82,16 @@ await page.keyboard.press('Escape');
 
 // The cross-sell card, which only exists after an eSIM has been chosen and is
 // therefore invisible to a static load of the same URL.
+// With a real catalogue the control is a link to the provider, with the demo
+// one a button; either raises the offer. The provider's page is not loaded:
+// the audit is of this page, and a test run has no business clicking through
+// to a real provider.
 const extras = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
+await extras.context().route((url) => !url.href.startsWith(BASE), (route) => route.abort());
 await extras.goto(`${BASE}/esim/france?to=FR:5&usage=regular`, { waitUntil: 'domcontentloaded' });
 await extras.waitForTimeout(900);
-await extras.locator('article').first().getByRole('button', { name: /מעבר לאתר/ }).first().click();
+const firstCard = extras.locator('article').first();
+await firstCard.getByRole('button', { name: /מעבר לאתר/ }).or(firstCard.getByRole('link', { name: /מעבר לאתר/ })).first().click();
 await extras.waitForTimeout(400);
 const crossSell = await audit(extras, 'trip extra offer shown');
 console.log(`trip extra offer shown: ${crossSell.violations.length} violation types`);

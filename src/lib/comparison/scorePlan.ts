@@ -153,6 +153,10 @@ export function featureScore(plan: Plan): number {
  * need costs nothing; a cap well below it is a real limitation.
  */
 export function fairUsageFactor(plan: Plan, estimate: DataNeedEstimate): number {
+  // A cap the provider mentions without a figure could be anything down to
+  // nothing, so it scores as the least generous cap. Otherwise a provider that
+  // says less would rank above one that states its terms.
+  if (plan.isUnlimited && plan.fairUsage && !plan.fairUsage.thresholdMb && estimate.dailyMb > 0) return 0.6;
   const threshold = dailyFullSpeedMb(plan.fairUsage, plan.validityDays);
   if (!plan.isUnlimited || !threshold || estimate.dailyMb <= 0) return 1;
   const ratio = threshold / estimate.dailyMb;

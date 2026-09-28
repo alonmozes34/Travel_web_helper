@@ -19,11 +19,14 @@ export function fairUsageCopy(fairUsage: FairUsage, dict: Dictionary) {
     gb: Math.round(((fairUsage.thresholdMb ?? 0) / MB_PER_GB) * 10) / 10,
     speed: formatThrottle(fairUsage.throttledToKbps),
   };
-  const scope = fairUsage.per ?? 'unknown';
+  // A cap the provider mentions without a figure ("Possible throttling"):
+  // nothing to fill in, so its own sentences, which say exactly that.
+  const scope = fairUsage.thresholdMb ? (fairUsage.per ?? 'unknown') : 'unstated';
   const templates = {
     day: [dict.plan.fairUsage, dict.plan.fairUsageDetailTemplate, dict.plan.fairUsageShortDayTemplate],
     plan: [dict.plan.fairUsageCapped, dict.plan.fairUsageDetailPlanTemplate, dict.plan.fairUsageShortPlanTemplate],
     unknown: [dict.plan.fairUsageCapped, dict.plan.fairUsageDetailUnknownTemplate, dict.plan.fairUsageShortUnknownTemplate],
+    unstated: [dict.plan.fairUsageUnstated, dict.plan.fairUsageUnstatedDetail, dict.plan.fairUsageUnstatedShort],
   }[scope];
   return {
     label: templates[0],

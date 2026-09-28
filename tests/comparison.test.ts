@@ -364,8 +364,10 @@ describe('the browsing category breaks ties on price', () => {
       ] as Plan['networks'],
       hotspot: true,
     };
-    const dearer = plan({ ...facts, id: 'dearer', finalPriceMinor: 9000, originalPriceMinor: 9000 });
-    const cheaper = plan({ ...facts, id: 'cheaper', finalPriceMinor: 5000, originalPriceMinor: 5000 });
+    // Two providers: the same plan from one provider at a higher price is
+    // dropped before scoring (`withoutRedundant`), so a tie needs two sellers.
+    const dearer = plan({ ...facts, id: 'dearer', providerId: 'seller-a', finalPriceMinor: 9000, originalPriceMinor: 9000 });
+    const cheaper = plan({ ...facts, id: 'cheaper', providerId: 'seller-b', finalPriceMinor: 5000, originalPriceMinor: 5000 });
 
     const comparison = buildComparison({
       profile: { destinations: [{ countryCode: 'TH', days: 5 }], usage: 'regular' },
@@ -381,8 +383,9 @@ describe('the browsing category breaks ties on price', () => {
 
 describe('a page that mixes a real provider with the demo catalogue', () => {
   const trip = { destinations: [{ countryCode: 'TH', days: 5 }], usage: 'regular' as const };
-  const demo = plan({ id: 'demo', planName: 'Demo plan', source: 'mock' });
-  const real = plan({ id: 'real', planName: 'Real plan', source: 'api', finalPriceMinor: 7000 });
+  // Demo and real plans never share a provider.
+  const demo = plan({ id: 'demo', planName: 'Demo plan', source: 'mock', providerId: 'demo-provider' });
+  const real = plan({ id: 'real', planName: 'Real plan', source: 'api', finalPriceMinor: 7000, providerId: 'real-provider' });
 
   const build = (plans: Plan[]) =>
     buildComparison({ profile: trip, currency: 'ILS', plans, rates: mockFxRates });
