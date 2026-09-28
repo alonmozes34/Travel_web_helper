@@ -117,19 +117,35 @@ export const YESIM_PLAN_PAGES = true;
  *
  * which opened on Japan, unlimited, 10 days at the API's €28.81, and did the
  * same with `?partner_id=` added (their dashboard: "add your partner ID to any
- * URL on yesim.app"). Only that shape is built: a single-country unlimited
- * plan of two days or more. One day ("1day" or "1days"?), plans with a data
- * cap, regions and global plans have not been seen, so they get null and stay
- * off the site rather than send someone to a page that may not exist.
+ * URL on yesim.app"). The same day the owner sent the capped shape, days
+ * first and whole gigabytes after:
+ *
+ *   https://yesim.app/country/japan/30days-10gb-esim-data-plan/
+ *   https://yesim.app/country/turkey/30days-1gb-esim-data-plan/
+ *
+ * Only those two shapes are built, for single-country plans of two days or
+ * more. One day ("1day" or "1days"?), amounts under a gigabyte or not a whole
+ * number of them ("500mb"? "0.5gb"?), regions and global plans have not been
+ * seen, so they get null and stay off the site rather than send someone to a
+ * page that may not exist.
  */
 export function yesimPlanLink(
   item: YesimPlan,
   { enabled = YESIM_PLAN_PAGES }: { enabled?: boolean } = {},
 ): string | null {
   if (!enabled) return null;
-  if (!item.country_code || item.capacity.trim() !== '-1') return null;
+  if (!item.country_code) return null;
   const days = Number(item.period);
   if (!(Number.isInteger(days) && days >= 2)) return null;
+  const capacity = item.capacity.trim();
+  const megabytes = Number(capacity);
+  const allowance =
+    capacity === '-1'
+      ? 'unlimited'
+      : item.capacityUnit === 'MB' && Number.isInteger(megabytes) && megabytes > 0 && megabytes % 1024 === 0
+        ? `${megabytes / 1024}gb`
+        : null;
+  if (!allowance) return null;
 
   let destination: URL;
   let partnerId: string | null;
@@ -143,7 +159,7 @@ export function yesimPlanLink(
   if (!partnerId || !/^\d+$/.test(partnerId)) return null;
 
   const base = destination.pathname.replace(/\/+$/, '');
-  return `https://yesim.app${base}/${days}days-unlimited-esim-data-plan/?partner_id=${partnerId}`;
+  return `https://yesim.app${base}/${days}days-${allowance}-esim-data-plan/?partner_id=${partnerId}`;
 }
 
 function coverageFor(item: YesimPlan): PlanCoverage | null {

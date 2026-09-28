@@ -87,11 +87,17 @@ describe('mapping a Yesim plan', () => {
     assert.ok(plan.coverage.countries.length > 50);
   });
 
-  test('"buy" goes to the destination page with our partner id, and says so', () => {
+  test('"buy" on a capped country plan opens its own page, with our partner id', () => {
     const plan = planOf(japan10GB);
-    assert.equal(plan.affiliateUrl, 'https://yesim.app/country/japan/?partner_id=5581');
+    assert.equal(plan.affiliateUrl, 'https://yesim.app/country/japan/30days-10gb-esim-data-plan/?partner_id=5581');
+    assert.equal(plan.affiliateLandsOn, 'plan');
+    assert.equal(outboundLink(plan, 'he')?.href, plan.affiliateUrl);
+  });
+
+  test('a region plan, whose page shape is unknown, keeps the destination page and says so', () => {
+    const plan = planOf(southEastAsia);
+    assert.equal(plan.affiliateUrl, 'https://yesim.app/regions/south-east-asia-esim/?partner_id=5581');
     assert.equal(plan.affiliateLandsOn, 'destination');
-    assert.equal(outboundLink(plan, 'he')?.href, 'https://yesim.app/country/japan/?partner_id=5581');
   });
 
   test('unreadable records are skipped, never guessed', () => {
@@ -224,7 +230,7 @@ describe('the data filter', () => {
 describe('only plans whose buy link opens the plan are listed', () => {
   test('a Yesim plan, whose link lands on the country page, is left out; a plan-level link and the demo stay', async () => {
     const { buyLinkLandsOnPlan } = await import('@/lib/catalogue/getCatalogue');
-    const yesim = planOf(japan10GB);
+    const yesim = planOf(southEastAsia);
     assert.equal(buyLinkLandsOnPlan(yesim), false);
     assert.equal(buyLinkLandsOnPlan({ ...yesim, affiliateLandsOn: 'plan' }), true);
     assert.equal(buyLinkLandsOnPlan({ ...yesim, affiliateUrl: null, affiliateLandsOn: 'plan' }), false, 'no link, no listing');
@@ -246,8 +252,18 @@ describe('the address of a Yesim plan page', () => {
     );
   });
 
-  test('shapes nobody has seen are not guessed: capped, one day, regions, global', () => {
-    assert.equal(yesimPlanLink(japan10GB, on), null);
+  test('the capped shape, days first and whole gigabytes after', () => {
+    assert.equal(yesimPlanLink(japan10GB, on), 'https://yesim.app/country/japan/30days-10gb-esim-data-plan/?partner_id=5581');
+    assert.equal(
+      yesimPlanLink({ ...japan10GB, capacity: '1024' }, on),
+      'https://yesim.app/country/japan/30days-1gb-esim-data-plan/?partner_id=5581',
+    );
+  });
+
+  test('shapes nobody has seen are not guessed: under a gigabyte, part gigabytes, one day, regions, global', () => {
+    assert.equal(yesimPlanLink({ ...japan10GB, capacity: '500' }, on), null);
+    assert.equal(yesimPlanLink({ ...japan10GB, capacity: '1536' }, on), null);
+    assert.equal(yesimPlanLink({ ...japan10GB, period: '1' }, on), null);
     assert.equal(yesimPlanLink({ ...japanUnlimited10d, period: '1' }, on), null);
     assert.equal(yesimPlanLink(southEastAsia, on), null);
     assert.equal(yesimPlanLink(globalUnlimited, on), null);
@@ -264,13 +280,14 @@ describe('the address of a Yesim plan page', () => {
     assert.equal(plan.affiliateUrl, 'https://yesim.app/country/japan/10days-unlimited-esim-data-plan/?partner_id=5581');
     assert.equal(plan.affiliateLandsOn, 'plan');
     assert.equal(buyLinkLandsOnPlan(plan), true);
-    assert.equal(buyLinkLandsOnPlan(planOf(japan10GB)), false, 'a capped plan still has only the country page');
+    assert.equal(buyLinkLandsOnPlan(planOf(japan10GB)), true, 'and a capped one');
+    assert.equal(buyLinkLandsOnPlan(planOf(southEastAsia)), false, 'a region plan still has only the region page');
   });
 
   test('switched off, the plan falls back to the country page and is not listed', async () => {
     const { buyLinkLandsOnPlan } = await import('@/lib/catalogue/getCatalogue');
     assert.equal(yesimPlanLink(japanUnlimited10d, { enabled: false }), null);
-    const plan = planOf(japan10GB);
-    assert.equal(buyLinkLandsOnPlan(plan), false);
+    assert.equal(yesimPlanLink(japan10GB, { enabled: false }), null);
+    assert.equal(buyLinkLandsOnPlan(planOf(southEastAsia)), false);
   });
 });
