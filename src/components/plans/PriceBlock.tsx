@@ -50,6 +50,10 @@ export function PriceBlock({
     ? formatPrice(originalPrice.amountMinor, originalPrice.currency, locale)
     : null;
   const big = size === 'row' ? 'text-3xl' : 'text-2xl';
+  // Only a provider whose charge currency is confirmed gets "what your card is
+  // charged"; the rest get "the price at <provider>", which is all we know.
+  const confirmed = row.provider.billingCurrency !== 'not-confirmed';
+  const currencyName = currencyConfig[price.sourceCurrency].label;
 
   // Not converted: the provider bills in the traveller's own currency, so
   // there is one number and nothing to reconcile.
@@ -63,9 +67,9 @@ export function PriceBlock({
           ) : null}
         </div>
         <p className="text-sm text-ink-2">
-          {interpolate(dict.plan.chargedHereTemplate, {
-            currency: currencyConfig[price.sourceCurrency].label,
-          })}
+          {confirmed
+            ? interpolate(dict.plan.chargedHereTemplate, { currency: currencyName })
+            : interpolate(dict.plan.listedHereTemplate, { provider: row.provider.name, currency: currencyName })}
         </p>
       </div>
     );
@@ -89,7 +93,9 @@ export function PriceBlock({
       {/* The explanation of why the two differ is on the page once, above the
           results — repeating it on every card would bury the numbers again. */}
       <div className="rounded-sm bg-surface-2 px-2.5 py-1.5">
-        <span className="block text-sm text-ink-2">{dict.plan.chargedLabel}</span>
+        <span className="block text-sm text-ink-2">
+          {confirmed ? dict.plan.chargedLabel : interpolate(dict.plan.listedAtTemplate, { provider: row.provider.name })}
+        </span>
         <div className="flex flex-wrap items-baseline gap-2">
           <Ltr className="tnum font-head text-xl font-semibold">{charged}</Ltr>
           {chargedBefore ? (

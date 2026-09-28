@@ -122,7 +122,7 @@ export const he = {
       'משווים חבילות eSIM לחו״ל במקום אחד ובוחרים את החבילה שמתאימה לטיול שלכם.',
     trustStrip: [
       { strong: 'הכול במקום אחד', rest: 'במקום לפתוח עשרה אתרים של ספקים' },
-      { strong: 'המחיר בשקלים', rest: 'לצד הסכום שיחויב בכרטיס האשראי' },
+      { strong: 'המחיר בשקלים', rest: 'לצד המחיר של הספק במטבע שלו' },
       { strong: 'בלי דירוג בתשלום', rest: 'גובה העמלה שלנו לא משפיע על הסדר' },
     ],
   },
@@ -333,6 +333,8 @@ export const he = {
     chargedHereTemplate: 'מחויב ב־{currency}',
     youPayLabel: 'המחיר לכם, בשקלים (בערך)',
     chargedLabel: 'מה שיופיע בכרטיס האשראי',
+    listedAtTemplate: 'המחיר של {provider}',
+    listedHereTemplate: 'המחיר של {provider}, ב־{currency}',
     chargedExplains: 'הספק גובה במטבע שלו. חברת האשראי ממירה בשער שלה ולרוב מוסיפה עמלת מטבע חוץ, אז הסכום בשקלים עשוי להיות שונה במעט.',
     belowNeed: 'מתחת לצריכה הצפויה',
     coversTripTemplate: 'מכסה {days} ימי טיול',
@@ -440,7 +442,7 @@ export const he = {
     rows: {
       provider: 'ספק',
       price: 'המחיר לכם, בשקלים (בערך)',
-      sourcePrice: 'מה שיופיע בכרטיס האשראי',
+      sourcePrice: 'המחיר אצל הספק',
       data: 'כמה גלישה',
       validity: 'לכמה זמן',
       perUnit: 'מחיר לכל GB',

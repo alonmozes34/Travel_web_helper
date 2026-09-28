@@ -116,7 +116,7 @@ export const en: Dictionary = {
       'Compare travel eSIM plans in one place and pick the one that fits your trip.',
     trustStrip: [
       { strong: 'Everything in one place', rest: 'instead of ten provider sites' },
-      { strong: 'The price in your currency', rest: 'next to what your card is charged' },
+      { strong: 'The price in your currency', rest: "next to the provider's own price" },
       { strong: 'No paid placement', rest: 'our commission never changes the order' },
     ],
   },
@@ -316,6 +316,8 @@ export const en: Dictionary = {
     chargedHereTemplate: 'charged in {currency}',
     youPayLabel: 'What it costs you (roughly)',
     chargedLabel: 'What your card will be charged',
+    listedAtTemplate: 'The {provider} price',
+    listedHereTemplate: 'The {provider} price, in {currency}',
     chargedExplains: 'The provider bills in its own currency. Your card issuer converts at its own rate and usually adds a foreign-transaction fee, so the final amount may differ slightly.',
     belowNeed: 'Below your estimated need',
     coversTripTemplate: 'Covers {days} trip days',
@@ -421,7 +423,7 @@ export const en: Dictionary = {
     rows: {
       provider: 'Provider',
       price: 'What it costs you (roughly)',
-      sourcePrice: 'What your card is charged',
+      sourcePrice: 'Price at the provider',
       data: 'How much data',
       validity: 'How long it lasts',
       perUnit: 'Price per GB',

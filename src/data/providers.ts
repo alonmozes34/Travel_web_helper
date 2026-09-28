@@ -15,6 +15,9 @@ export const providers: Provider[] = [
     slug: 'alosim',
     brandColor: '#1C3FAA',
     activation: null,
+    // Their store showed the same US-dollar prices as their API when fifteen
+    // were checked by hand on 25 September 2026.
+    billingCurrency: 'as-listed',
     // "aloSIM logo (black)" from their affiliate creatives in Everflow,
     // trimmed and scaled to four times the size it is shown at.
     logo: { src: '/providers/alosim.png', width: 205, height: 96 },
@@ -28,6 +31,10 @@ export const providers: Provider[] = [
     // until white on it reads at 5.2:1 — the brand orange itself is 3:1.
     brandColor: '#C2410C',
     activation: null,
+    // Their API prices everything in euros. What an Israeli card is charged
+    // in has not been confirmed, and on 28 September 2026 the owner saw a
+    // Yesim price in pounds.
+    billingCurrency: 'not-confirmed',
   },
 ];
 

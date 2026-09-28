@@ -197,3 +197,10 @@ describe('one plan per length is not one row per length', () => {
     assert.ok(run([tenDays, rival], 10).includes('rival'));
   });
 });
+
+describe('what the page may say about the Yesim price', () => {
+  test('it is their listed price, not "what your card is charged", until the charge currency is confirmed', () => {
+    assert.equal(getProvider('yesim')?.billingCurrency, 'not-confirmed');
+    assert.equal(getProvider('alosim')?.billingCurrency, 'as-listed');
+  });
+});
