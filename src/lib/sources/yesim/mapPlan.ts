@@ -99,12 +99,12 @@ export function mapYesimPlan(item: YesimPlan, fetchedAt: string): MappedYesimPla
 }
 
 /**
- * Off until the owner has opened a few built addresses for other countries
- * and lengths (asked for on 28 September 2026) and seen each open on its
- * plan: one address, for Japan, is the whole evidence so far. While off,
- * every Yesim plan keeps its destination link and stays off the site.
+ * On since 28 September 2026, when the owner opened three built addresses —
+ * Japan 2 days, Japan 30 days, Turkey 7 days, each with our partner id — and
+ * each opened on its plan. Turned off, every Yesim plan keeps its destination
+ * link and the plan-link rule takes Yesim off the site again.
  */
-export const YESIM_PLAN_PAGES = false;
+export const YESIM_PLAN_PAGES = true;
 
 /**
  * The address of a plan's own page on yesim.app, with our partner id — or

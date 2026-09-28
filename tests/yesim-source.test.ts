@@ -258,11 +258,19 @@ describe('the address of a Yesim plan page', () => {
     assert.equal(yesimPlanLink({ ...japanUnlimited10d, url: 'https://yesim.app/country/japan/' }, on), null, 'no partner id, no link');
   });
 
-  test('until the owner has checked more addresses, it is off and Yesim stays hidden', async () => {
+  test('on: a country unlimited plan is listed, with the link to its own page', async () => {
     const { buyLinkLandsOnPlan } = await import('@/lib/catalogue/getCatalogue');
-    assert.equal(yesimPlanLink(japanUnlimited10d), null);
     const plan = planOf(japanUnlimited10d);
-    assert.equal(plan.affiliateLandsOn, 'destination');
+    assert.equal(plan.affiliateUrl, 'https://yesim.app/country/japan/10days-unlimited-esim-data-plan/?partner_id=5581');
+    assert.equal(plan.affiliateLandsOn, 'plan');
+    assert.equal(buyLinkLandsOnPlan(plan), true);
+    assert.equal(buyLinkLandsOnPlan(planOf(japan10GB)), false, 'a capped plan still has only the country page');
+  });
+
+  test('switched off, the plan falls back to the country page and is not listed', async () => {
+    const { buyLinkLandsOnPlan } = await import('@/lib/catalogue/getCatalogue');
+    assert.equal(yesimPlanLink(japanUnlimited10d, { enabled: false }), null);
+    const plan = planOf(japan10GB);
     assert.equal(buyLinkLandsOnPlan(plan), false);
   });
 });

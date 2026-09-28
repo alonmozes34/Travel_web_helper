@@ -128,10 +128,13 @@ export function PlanListItem({
             ) : (
               <Ltr className="tnum">{formatData(plan.dataAmountMb, locale)}</Ltr>
             )}
-            <span aria-hidden="true" className="mx-2 text-ink-3">
+            {/* Real spaces around the dot, not margins: with margins alone
+                "Unlimited·7" had no place to wrap and pushed a 390px screen
+                sideways at 200% text. */}{' '}
+            <span aria-hidden="true" className="text-ink-3">
               ·
             </span>
-            <span className="sr-only">, </span>
+            <span className="sr-only">, </span>{' '}
             <Ltr className="tnum">{plan.validityDays}</Ltr>{' '}
             {plan.validityDays === 1 ? dict.units.day : dict.units.days}
           </p>
