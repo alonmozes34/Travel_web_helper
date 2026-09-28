@@ -55,14 +55,20 @@ export function PlanCta({
 }) {
   const [noted, setNoted] = useState(false);
   const [beforeYouGo, setBeforeYouGo] = useState(false);
-  // A code the traveller has to type at the provider's checkout. When there is
-  // one, the button opens a dialog with the code first — see BeforeYouGo.
+  const [codeCopied, setCodeCopied] = useState(false);
+  // A code the traveller has to type at the provider's checkout. It is copied
+  // on the way out, without a question — the owner: the question on the way
+  // out is the rental car, not the code.
   const { discount } = row.plan;
   const codeToType =
     discount && !discount.appliedByLink && isPresentableDiscount(discount, demoDataEnabled) ? discount : null;
   // The car question, when a real rental network is connected.
   const askCar = Boolean(useTripExtras()?.carRentalOffer);
-  const hasDialog = Boolean(codeToType || askCar);
+  const hasDialog = askCar;
+
+  async function copyCodeOnTheWay() {
+    if (codeToType && (await copyText(codeToType.code))) setCodeCopied(true);
+  }
   const link = outboundLink(row.plan, locale);
   const label = interpolate(dict.plan.viewAtTemplate, {
     provider: row.provider.name,
@@ -93,10 +99,10 @@ export function PlanCta({
                 setBeforeYouGo(true);
                 return;
               }
+              void copyCodeOnTheWay();
               if (hasDialog) {
-                // Snoozed: straight through, with the code in hand, and no car
-                // question on the page either — "not for ten minutes" means it.
-                if (codeToType) void copyText(codeToType.code);
+                // Snoozed: straight through, and no car question on the page
+                // either — "not for ten minutes" means it.
                 track({ name: "provider_clicked", planId: row.plan.id, providerId: row.plan.providerId });
                 return;
               }
@@ -165,6 +171,7 @@ export function PlanCta({
           dict={dict}
           locale={locale}
           onContinue={(askedAboutCar) => {
+            void copyCodeOnTheWay();
             track({ name: "provider_clicked", planId: row.plan.id, providerId: row.plan.providerId });
             // Asked in the dialog already: the page does not ask again.
             if (!askedAboutCar) onChosen?.();
@@ -176,6 +183,9 @@ export function PlanCta({
           card; only the demo's dead button needs a word of its own. */}
       <p className="text-sm text-ink-2 empty:hidden" aria-live="polite">
         {!link && noted ? dict.plan.prototypeLink : null}
+        {codeCopied && codeToType
+          ? interpolate(dict.plan.codeCopiedOnTheWayTemplate, { code: codeToType.code, provider: row.provider.name })
+          : null}
       </p>
     </div>
   );

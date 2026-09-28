@@ -350,6 +350,7 @@ export const en: Dictionary = {
     promoInLink: 'already applied by the link',
     copyCode: 'Copy code',
     codeCopied: 'Code copied',
+    codeCopiedOnTheWayTemplate: '✓ Discount code {code} copied — paste it at checkout on {provider}.',
     promoSavingTemplate: 'saves {amount}',
   },
   details: {
@@ -708,9 +709,8 @@ export const en: Dictionary = {
 
   beforeYouGo: {
     titleTemplate: 'Before you go to {provider}',
-    pasteAtTemplate: 'Paste the code at checkout on {provider}.',
     continueTemplate: 'Continue to the plan at {provider}',
-    copiesOnContinue: 'The buttons that go on to the plan copy the code too',
+    codeCopiedOnContinueTemplate: 'Discount code {code} is copied for you when you go on to the plan.',
     carYes: 'Yes, compare cars',
     carNoTemplate: 'No, continue to the plan at {provider}',
     carOpened: 'The car comparison opened in a new tab. You can go on to the plan from here.',

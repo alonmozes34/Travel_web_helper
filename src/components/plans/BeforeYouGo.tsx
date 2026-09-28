@@ -13,7 +13,7 @@ import { track } from '@/lib/analytics/events';
 import { defaultRentalQuery, rentalQueryToParams } from '@/lib/carRental/query';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import type { Discount } from '@/lib/types/discount';
-import { CopyCodeButton, copyText } from './CopyCodeButton';
+import { copyText } from './CopyCodeButton';
 
 /** How long "continue, and don't show this again" holds. The owner's figure. */
 const SNOOZE_MS = 10 * 60 * 1000;
@@ -40,9 +40,10 @@ function snooze(now = Date.now()) {
 }
 
 /**
- * Between "see this plan" and the provider's page, when there is something
- * worth a moment first: a discount code to type at the provider's checkout,
- * or — once a real rental network is connected — whether they need a car.
+ * Between "see this plan" and the provider's page, to ask one thing: whether
+ * they need a rental car too. It opens only once a real rental network is
+ * connected. A discount code is not asked about here — it is copied on the
+ * way out, and the dialog says so in a line.
  *
  * The owner's design, 28 September 2026:
  * - **Yes** (a car): the rental comparison opens in a new tab, and the dialog
@@ -125,7 +126,6 @@ export function BeforeYouGo({
       closeLabel={dict.common.close}
     >
       <div className="grid gap-4">
-        {discount ? <CodeBox discount={discount} provider={provider} dict={dict} /> : null}
 
         {askCar && carHref ? (
           <div className="rounded-md border border-line p-4">
@@ -160,7 +160,12 @@ export function BeforeYouGo({
 
         {/* With the car question, "no" is the way on; without it, this is. */}
         {askCar ? null : toPlan(interpolate(copy.continueTemplate, { provider }), 'primary')}
-        {discount ? <p className="-mt-2 text-center text-sm text-ink-2">{copy.copiesOnContinue}</p> : null}
+        {discount ? (
+          <p className="text-sm text-teal-ink">
+            <span aria-hidden="true">🏷️ </span>
+            {interpolate(copy.codeCopiedOnContinueTemplate, { code: discount.code })}
+          </p>
+        ) : null}
 
         <div className="grid gap-2 border-t border-line-soft pt-4 sm:grid-cols-2">
           {toPlan(copy.continueAndSnooze, 'secondary', true)}
@@ -173,29 +178,3 @@ export function BeforeYouGo({
   );
 }
 
-function CodeBox({ discount, provider, dict }: { discount: Discount; provider: string; dict: Dictionary }) {
-  const promo = interpolate(
-    discount.audience === 'everyone' ? dict.plan.sitePromoTemplate : dict.plan.firstPurchasePromoTemplate,
-    // Isolated, or the bidi algorithm puts the % sign on the wrong side of
-    // the number in a Hebrew sentence ("%17").
-    { percent: `⁨${discount.percent}%⁩` },
-  );
-  return (
-    <div className="rounded-md bg-teal-50 p-4">
-      <p className="font-head font-semibold text-teal-ink">
-        <span aria-hidden="true">🏷️ </span>
-        {promo}
-      </p>
-      <div className="mt-3 flex flex-wrap items-center gap-3">
-        <span
-          dir="ltr"
-          className="rounded-sm border border-dashed border-teal-ink bg-surface px-3 py-2 font-mono text-lg font-bold tracking-wider select-all"
-        >
-          {discount.code}
-        </span>
-        <CopyCodeButton code={discount.code} label={dict.plan.copyCode} copiedLabel={dict.plan.codeCopied} />
-      </div>
-      <p className="mt-2 text-sm text-ink-2">{interpolate(dict.beforeYouGo.pasteAtTemplate, { provider })}</p>
-    </div>
-  );
-}

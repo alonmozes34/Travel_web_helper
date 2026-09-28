@@ -370,6 +370,7 @@ export const he = {
     promoSavingTemplate: 'חיסכון {amount}',
     copyCode: 'העתקת הקוד',
     codeCopied: 'הקוד הועתק',
+    codeCopiedOnTheWayTemplate: '✓ קוד ההנחה {code} הועתק — הדביקו אותו בשלב התשלום באתר {provider}.',
   },
   details: {
     title: 'פרטי החבילה',
@@ -742,9 +743,8 @@ export const he = {
    */
   beforeYouGo: {
     titleTemplate: 'רגע לפני שממשיכים ל־{provider}',
-    pasteAtTemplate: 'מדביקים את הקוד בשלב התשלום באתר {provider}.',
     continueTemplate: 'להמשך לחבילה באתר {provider}',
-    copiesOnContinue: 'הכפתורים שממשיכים לחבילה מעתיקים את הקוד גם בעצמם',
+    codeCopiedOnContinueTemplate: 'קוד ההנחה {code} יועתק אוטומטית כשממשיכים לחבילה.',
     carYes: 'כן, להשוואת רכבים',
     carNoTemplate: 'לא, להמשך לחבילה באתר {provider}',
     carOpened: 'השוואת הרכבים נפתחה בלשונית חדשה. אפשר להמשיך לחבילה מכאן.',
