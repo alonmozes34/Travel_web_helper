@@ -161,8 +161,12 @@ export function ResultsView({
   // Mixing them put a 3GB plan three rows under an unlimited one for a
   // traveller tethering a laptop, which reads as a broken site rather than as
   // a cheaper option.
-  const fits = visible.filter((row) => !row.isBelowEstimatedNeed);
-  const short = visible.filter((row) => row.isBelowEstimatedNeed);
+  // Both ways of running out: too little data, or too few days. A three-day
+  // unlimited plan for a thirty-day trip sat in the main list on 14 of 360
+  // audited pages, among plans that cover the whole trip.
+  const fitsTrip = (row: ComparisonRow) => row.coversTrip && !row.isBelowEstimatedNeed;
+  const fits = visible.filter(fitsTrip);
+  const short = visible.filter((row) => !fitsTrip(row));
 
   const shown = showAll ? fits : fits.slice(0, SHORTLIST_SIZE);
   const hidden = fits.length - shown.length;

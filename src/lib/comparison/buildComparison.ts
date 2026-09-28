@@ -15,7 +15,7 @@ import {
   type Recommendation,
   type RecommendationKey,
 } from './recommend';
-import { browsingScore, scorePlans, type ScoreBreakdown } from './scorePlan';
+import { browsingScore, coverageSpecificity, networkScore, scorePlans, type ScoreBreakdown } from './scorePlan';
 
 export type ComparisonRow = {
   plan: Plan;
@@ -126,7 +126,10 @@ export function buildComparison({
     priceByPlanId.set(plan.id, price.amountMinor);
   }
 
-  const scored = scorePlans(withoutRedundant(candidates, estimate.days, priceByPlanId), { estimate, priceByPlanId });
+  const scored = scorePlans(withoutRedundant(candidates, estimate.days, priceByPlanId, countryCodes), {
+    estimate,
+    priceByPlanId,
+  });
   const recommendations = recommend(scored, { estimate, priceByPlanId, countryCodes });
 
   const badgesByPlanId = new Map<string, RecommendationKey[]>();
@@ -197,8 +200,13 @@ function fallbackProvider(id: string): Provider {
 }
 
 /**
- * Drops a plan when the same provider sells another for the same places that
- * lasts the whole trip, gives at least as much data, and costs no more.
+ * Drops a plan when the same provider sells another that also covers this
+ * trip, lasts the whole of it, gives at least as much data, and costs no more.
+ *
+ * Its places need not match: every candidate already covers the trip, and a
+ * Japan plan and the same provider's Asia plan at the same price, days and
+ * data were listed one under the other on 158 of 360 audited pages. The
+ * narrower one stays.
  *
  * Some providers sell a plan for every length from one day to thirty. For a
  * ten-day trip the eleven-, twelve- and thirteen-day versions of the same
@@ -209,8 +217,12 @@ function fallbackProvider(id: string): Provider {
  * different providers are never compared this way — that is the comparison
  * itself.
  */
-export function withoutRedundant(plans: Plan[], tripDays: number, priceByPlanId: Map<string, number>): Plan[] {
-  const places = (plan: Plan) => [...plan.coverage.countries].sort().join(',');
+export function withoutRedundant(
+  plans: Plan[],
+  tripDays: number,
+  priceByPlanId: Map<string, number>,
+  countryCodes: string[] = [],
+): Plan[] {
   const price = (plan: Plan) => priceByPlanId.get(plan.id) ?? Infinity;
   const sameKindOfData = (a: Plan, b: Plan) =>
     a.isUnlimited === b.isUnlimited &&
@@ -218,8 +230,10 @@ export function withoutRedundant(plans: Plan[], tripDays: number, priceByPlanId:
 
   const coversAsWell = (a: Plan, b: Plan) =>
     a.providerId === b.providerId &&
-    places(a) === places(b) &&
     a.validityDays >= tripDays &&
+    // No worse a network where the traveller is going: an Asia plan with three
+    // Thai networks is not the same offer as a Thailand plan with one.
+    networkScore(a, countryCodes) >= networkScore(b, countryCodes) &&
     sameKindOfData(a, b) &&
     price(a) <= price(b);
 
@@ -227,8 +241,13 @@ export function withoutRedundant(plans: Plan[], tripDays: number, priceByPlanId:
     (b) =>
       !plans.some((a) => {
         if (a === b || !coversAsWell(a, b)) return false;
-        // Two plans that each cover the other exactly as well: keep one.
-        return coversAsWell(b, a) ? a.id < b.id : true;
+        // Two plans that each cover the other exactly as well: keep one — the
+        // narrower, since a Japan plan is the plainer answer for Japan than
+        // the same provider's Asia plan at the same price.
+        if (!coversAsWell(b, a)) return true;
+        return (
+          coverageSpecificity(a) - coverageSpecificity(b) || (a.id < b.id ? -1 : 1)
+        ) < 0;
       }),
   );
 }

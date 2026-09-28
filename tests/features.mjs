@@ -79,7 +79,7 @@ try {
   // purpose, each shortlisted separately — so counting every CTA on the page
   // measures both and proves nothing about either.
   const split = await p.evaluate(() => {
-    const heading = [...document.querySelectorAll('h2, h3')].find((h) => h.innerText.includes('חבילות קטנות מהצריכה'));
+    const heading = [...document.querySelectorAll('h2, h3')].find((h) => h.innerText.includes('חבילות שלא מספיקות'));
     const ctas = [...document.querySelectorAll('a, button')].filter((el) => /^לחבילה באתר /.test(el.innerText.trim()));
     if (!heading) return { fits: ctas.length, short: 0 };
     const after = (el) => heading.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING;

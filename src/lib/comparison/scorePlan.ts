@@ -178,8 +178,27 @@ export function fairUsageFactor(plan: Plan, estimate: DataNeedEstimate): number 
 function relativePriceScore(price: number, min: number): number {
   if (!Number.isFinite(price) || price <= 0) return 0;
   if (min <= 0) return 1;
-  return Math.min(1, min / price);
+  const ratio = price / min;
+  if (ratio <= 1) return 1;
+  return Math.max(0, 1 - Math.log(ratio) / Math.log(PRICE_ZERO_RATIO));
 }
+
+/**
+ * At what multiple of the cheapest adequate price a plan's price is worth
+ * nothing, on a logarithmic scale: 1.0 at the cheapest, about 0.57 at double,
+ * 0.43 at two and a half times, 0 at five times and beyond.
+ *
+ * A straight ratio (min / price) let a plan at five times the cheapest keep a
+ * fifth of the price weight, enough for extra data nobody needs to lift it
+ * over sensible plans: a 100GB, 180-day Asia plan at ₪561 sat in the top three
+ * for a thirty-day trip to Japan that a 50GB plan at ₪105 covered (audit of
+ * 360 live pages, 28 September 2026). Squaring the ratio fixed that but
+ * flattened every expensive plan to nearly zero, so between two of them extra
+ * data decided — $185 for 100GB over $100 for 50GB. On a log scale a few
+ * percent still costs little (3% dearer for twice the data still wins, as the
+ * worked example above says) and the gaps between expensive plans remain.
+ */
+export const PRICE_ZERO_RATIO = 5;
 
 /**
  * Whether a plan does the job at all: it lasts the trip and it carries the
@@ -223,7 +242,7 @@ export function scorePlans(plans: Plan[], context: ScoringContext): ScoredPlan[]
   const baseline = adequatePrices.length ? adequatePrices : allPrices;
   const min = baseline.length ? Math.min(...baseline) : 0;
 
-  return plans
+  const scored = plans
     .map((plan) => {
       const price = priceByPlanId.get(plan.id);
       const breakdown: ScoreBreakdown = {
@@ -268,6 +287,66 @@ export function scorePlans(plans: Plan[], context: ScoringContext): ScoredPlan[]
         (priceOf(a.plan) ?? Infinity) - (priceOf(b.plan) ?? Infinity) ||
         coverageSpecificity(a.plan) - coverageSpecificity(b.plan),
     );
+
+  return dominanceOrder(scored, (entry) => priceOf(entry.plan) ?? Infinity, estimate);
+}
+
+/**
+ * Whether `b` is at least as good as `a` for this trip on everything the
+ * traveller is choosing on — price, days and data — and better on one.
+ *
+ * `b` must last the trip. Data: more gigabytes, or unlimited against a capped
+ * plan only when its cap does not bite at this usage, or both unlimited with a
+ * cap at least as generous. 5G, the network, hotspot are not part of it: they
+ * still move the score, but they may not put a dearer plan with the same days
+ * and data above a cheaper one — the audit found aloSIM's 3GB at ₪27 above
+ * Yesim's 3GB at ₪24 for the same thirty days, on the strength of a published
+ * 5G network.
+ */
+export function dominates(b: Plan, a: Plan, priceB: number, priceA: number, estimate: DataNeedEstimate): boolean {
+  if (b.validityDays < estimate.days) return false;
+  if (!(priceB <= priceA)) return false;
+  let dataAtLeast: boolean;
+  let dataMore = false;
+  if (b.isUnlimited && a.isUnlimited) {
+    const fb = fairUsageFactor(b, estimate);
+    const fa = fairUsageFactor(a, estimate);
+    dataAtLeast = fb >= fa;
+    dataMore = fb > fa;
+  } else if (b.isUnlimited) {
+    dataAtLeast = fairUsageFactor(b, estimate) === 1;
+    dataMore = dataAtLeast;
+  } else if (a.isUnlimited) {
+    dataAtLeast = false;
+  } else {
+    dataAtLeast = b.dataAmountMb >= a.dataAmountMb;
+    dataMore = b.dataAmountMb > a.dataAmountMb;
+  }
+  if (!dataAtLeast) return false;
+  const longer = b.validityDays > a.validityDays && a.validityDays < estimate.days;
+  return priceB < priceA || dataMore || longer;
+}
+
+/**
+ * The score order, repaired so that no plan sits below one it dominates.
+ * Each plan is placed above the first plan it dominates; everything else keeps
+ * its score order. Small lists (a destination has tens of plans), so the
+ * quadratic pass costs nothing.
+ */
+function dominanceOrder<T extends { plan: Plan }>(
+  entries: T[],
+  priceOf: (entry: T) => number,
+  estimate: DataNeedEstimate,
+): T[] {
+  const ordered: T[] = [];
+  for (const entry of entries) {
+    const at = ordered.findIndex((placed) =>
+      dominates(entry.plan, placed.plan, priceOf(entry), priceOf(placed), estimate),
+    );
+    if (at === -1) ordered.push(entry);
+    else ordered.splice(at, 0, entry);
+  }
+  return ordered;
 }
 
 /**

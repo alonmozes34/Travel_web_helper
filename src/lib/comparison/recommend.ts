@@ -54,7 +54,13 @@ export function recommend(
     isBelowEstimatedNeed: entry.isBelowEstimatedNeed,
   });
 
-  const best = scored[0];
+  // The best-scoring plan that does the job: lasts the trip and carries the
+  // data. Scores multiply penalties, so a plan 11% short on data can outscore
+  // an unlimited plan with an unstated cap — and then "best value" sat on a
+  // card in the "not enough for the trip" section while the first card of the
+  // main list had no label (audit, 28 September 2026). Only when nothing does
+  // the job does the best overall stand in, flagged as short.
+  const best = scored.find((entry) => entry.coversTrip && !entry.isBelowEstimatedNeed) ?? scored[0];
   if (best) result.bestValue = entryFor('bestValue', best);
 
   // Cheapest still has to last the trip; if nothing does, we say nothing. And

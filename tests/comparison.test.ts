@@ -233,7 +233,10 @@ describe('recommendations', () => {
   });
 
   test('counts are derived from the data', () => {
-    assert.equal(comparison.planCount, getPlansForCountry('TH').length);
+    // What is listed: the catalogue less a provider's plans another of its
+    // plans covers at least as well (`withoutRedundant`).
+    assert.equal(comparison.planCount, comparison.rows.length);
+    assert.ok(comparison.planCount <= getPlansForCountry('TH').length);
     assert.equal(
       comparison.providerCount,
       new Set(getPlansForCountry('TH').map((entry) => entry.providerId)).size,

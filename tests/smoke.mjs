@@ -177,7 +177,7 @@ const fitting = await page
 ok('the list opens as a shortlist', fitting <= 5 && fitting > 0, `${fitting} rows`);
 ok(
   'plans that run out are separated, not mixed in',
-  (await page.locator('h3', { hasText: 'חבילות קטנות מהצריכה שלכם' }).count()) <= 1,
+  (await page.locator('h3', { hasText: 'חבילות שלא מספיקות לכל הטיול' }).count()) <= 1,
 );
 const showAll = page.getByRole('button', { name: /הצגת עוד/ });
 ok('the remaining plans are offered', (await showAll.count()) === 1);

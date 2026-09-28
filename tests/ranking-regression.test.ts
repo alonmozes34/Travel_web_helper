@@ -63,22 +63,103 @@ const comparison = buildComparison({
 });
 const pick = (key: keyof typeof comparison.recommendations) => comparison.recommendations[key]?.planId;
 
+// The Thailand and Asia unlimited plans are the same price, days and cap from
+// the same provider; the Asia one reaches three Thai networks to the Thailand
+// one's one, so the Thailand one is not listed twice over (`withoutRedundant`).
 test('best value is priced against plans that do the job, not a 2GB plan', () => {
-  assert.equal(pick('bestValue'), 'th-unlimited-10d');
+  assert.equal(pick('bestValue'), 'asia-unlimited-10d');
   const order = comparison.rows.map((row) => row.plan.id);
   assert.ok(order.indexOf('asia-100gb-180d') > order.indexOf('asia-50gb-90d'), '$185 for 100GB is not better value than $100 for 50GB here');
 });
 
 test('cheapest carries the data when anything does', () => {
-  assert.equal(pick('cheapest'), 'th-unlimited-10d');
+  assert.equal(pick('cheapest'), 'asia-unlimited-10d');
 });
 
-test('at the same price, the plan for this country comes before the regional one', () => {
-  assert.equal(pick('bestUnlimited'), 'th-unlimited-10d');
+test("the same provider's plan with fewer networks here, at the same price, is not listed twice", () => {
   const order = comparison.rows.map((row) => row.plan.id);
-  assert.ok(order.indexOf('th-unlimited-10d') < order.indexOf('asia-unlimited-10d'));
+  assert.ok(!order.includes('th-unlimited-10d'));
+  assert.equal(pick('bestUnlimited'), 'asia-unlimited-10d');
+});
+
+test('at the same price, days, data and networks, the plan for this country is the one kept', () => {
+  const tie = buildComparison({
+    profile: { destinations: [{ countryCode: 'TH', days: 10 }], usage: 'hotspot' },
+    currency: 'USD',
+    plans: [plans[2], { ...plans[3], networks: plans[2].networks }],
+    rates: mockFxRates,
+  });
+  assert.deepEqual(tie.rows.map((row) => row.plan.id), ['th-unlimited-10d']);
 });
 
 test('best for browsing: most networks at the destination, then the cheapest of those', () => {
   assert.equal(pick('bestForBrowsing'), 'asia-unlimited-10d', 'three Thai networks for $35, not $100');
+});
+
+// From the audit of 360 live pages on 28 September 2026.
+test('the same days and data for less is never ranked below, whatever the network', () => {
+  const uae = { kind: 'country' as const, countries: ['AE'], regionId: null, publishedDestinationCount: null };
+  const withFiveG = plan('alosim-ae-3gb', {
+    coverage: uae,
+    dataAmountMb: 3 * MB_PER_GB,
+    networks: [{ countryCode: 'AE', operator: 'du', mccMnc: null, technologies: ['5G'], coverage: null }],
+    ...price(9),
+  });
+  const cheaperNoNetwork = plan('yesim-ae-3gb', { providerId: 'yesim', coverage: uae, dataAmountMb: 3 * MB_PER_GB, networks: [], ...price(8) });
+  const cheapest = plan('alosim-ae-1gb', { coverage: uae, dataAmountMb: 1 * MB_PER_GB, networks: [], ...price(3) });
+  const rows = buildComparison({
+    profile: { destinations: [{ countryCode: 'AE', days: 7 }], usage: 'navigation' },
+    currency: 'USD',
+    plans: [withFiveG, cheaperNoNetwork, cheapest],
+    rates: mockFxRates,
+  }).rows.map((row) => row.plan.id);
+  assert.ok(rows.indexOf('yesim-ae-3gb') < rows.indexOf('alosim-ae-3gb'), rows.join(' > '));
+});
+
+test('five times the price for data the trip does not use does not outrank a cheaper unlimited plan', () => {
+  const japan = { kind: 'country' as const, countries: ['JP'], regionId: null, publishedDestinationCount: null };
+  const asiaJp = { kind: 'region' as const, countries: ['JP', 'TH'], regionId: 'asia', publishedDestinationCount: null };
+  const ranked = buildComparison({
+    profile: { destinations: [{ countryCode: 'JP', days: 30 }], usage: 'heavy' },
+    currency: 'USD',
+    plans: [
+      plan('jp-50gb-30d', { coverage: japan, networks: [], dataAmountMb: 50 * MB_PER_GB, ...price(35) }),
+      plan('asia-100gb-180d', { coverage: asiaJp, networks: [], dataAmountMb: 100 * MB_PER_GB, validityDays: 180, ...price(185) }),
+      plan('jp-unlimited-30d', {
+        providerId: 'yesim',
+        coverage: japan,
+        networks: [],
+        isUnlimited: true,
+        fairUsage: { thresholdMb: null, per: null, throttledToKbps: null },
+        ...price(48),
+      }),
+    ],
+    rates: mockFxRates,
+  }).rows.map((row) => row.plan.id);
+  assert.equal(ranked[0], 'jp-50gb-30d');
+  assert.ok(ranked.indexOf('jp-unlimited-30d') < ranked.indexOf('asia-100gb-180d'), ranked.join(' > '));
+});
+
+test('"best value" goes to a plan that does the job, not one in the "not enough" section', () => {
+  const th = { kind: 'country' as const, countries: ['TH'], regionId: null, publishedDestinationCount: null };
+  const comparison = buildComparison({
+    profile: { destinations: [{ countryCode: 'TH', days: 14 }], usage: 'hotspot' },
+    currency: 'USD',
+    plans: [
+      plan('th-50gb-30d', { providerId: 'yesim', coverage: th, networks: [], dataAmountMb: 50 * MB_PER_GB, ...price(32) }),
+      plan('th-unlimited-14d', {
+        providerId: 'yesim',
+        coverage: th,
+        networks: [],
+        isUnlimited: true,
+        validityDays: 14,
+        fairUsage: { thresholdMb: null, per: null, throttledToKbps: null },
+        ...price(28),
+      }),
+    ],
+    rates: mockFxRates,
+  });
+  const best = comparison.rows.find((row) => row.plan.id === comparison.recommendations.bestValue?.planId);
+  assert.equal(best?.plan.id, 'th-unlimited-14d');
+  assert.equal(best?.isBelowEstimatedNeed, false);
 });
