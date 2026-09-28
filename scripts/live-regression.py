@@ -27,7 +27,7 @@ Exit status 1 when anything is found. Written 28 September 2026 after the
 owner asked for "a full regression, so we don't fall into this again".
 """
 import concurrent.futures as cf, json, re, html, subprocess, sys, itertools, statistics, collections as C, urllib.parse as U
-import os, datetime
+import os, datetime, time
 BASE=(sys.argv[1] if len(sys.argv)>1 else 'https://www.yeshklita.com').rstrip('/')
 OUT=os.environ.get('REGRESSION_OUT','/tmp/live-regression.json')
 YESIM=json.loads(subprocess.run(['curl','-sS','-m','90','https://api.yesim.app/api_v0.1/api/prices?partner=5581'],capture_output=True,text=True).stdout)
@@ -117,15 +117,19 @@ for p in res:
 # redirect is where plan_id got lost), and on a sample of pages the plan must
 # be the one the page opens on. Only our own links are requested.
 UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
+# One request at a time: in parallel, aloSIM's server leaves some unanswered
+# (33 of 200 on 28 September 2026, all fine when asked again one by one).
 def alosim_status(link):
-    for _ in range(2):
+    out=''
+    for attempt in range(3):
+        if attempt: time.sleep(5)
         out=subprocess.run(['curl','-sS','-o','/dev/null','-I','-m','30','-A',UA,'-w','%{http_code} %{redirect_url}',link],capture_output=True,text=True).stdout
         if out and not out.startswith('000'): return out
     return out or '000'
-with cf.ThreadPoolExecutor(3) as ex:
-    for (path,link),out in zip(alosim_links.items(),ex.map(alosim_status,alosim_links.values())):
-        code=out.split(' ')[0]
-        if code!='200': issues['alosim-link-does-not-open-page'].append(f"HTTP {out.strip()} ← {link}")
+for path,link in alosim_links.items():
+    out=alosim_status(link); code=out.split(' ')[0]
+    if code=='000': issues['alosim-no-answer (3 tries)'].append(link)
+    elif code!='200': issues['alosim-link-does-not-open-page'].append(f"HTTP {out.strip()} ← {link}")
 sample=sorted(alosim_links.items())[datetime.date.today().toordinal()%7::max(1,len(alosim_links)//25)][:25]
 for path,link in sample:
     page=subprocess.run(['curl','-sS','-L','-m','60','-A',UA,link],capture_output=True,text=True).stdout
