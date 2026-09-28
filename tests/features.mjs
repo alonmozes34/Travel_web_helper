@@ -27,6 +27,10 @@ const check = (g, label, cond, detail = '') => {
 const b = await chromium.launch();
 const page = async (vp = { width: 1400, height: 1000 }) => b.newPage({ viewport: vp });
 const priceCount = async (p) => ((await p.locator('body').innerText()).match(/₪\s*\d/g) ?? []).length;
+// The result count the page announces ("הצג 12 תוצאות"): what a sort must not
+// change. Counting prices instead depended on which cards made the shortlist
+// and whether they carried a code's saving.
+const resultCount = async (p) => Number((await p.locator('[aria-live]').allInnerTexts()).join(' ').match(/הצג (\d+) תוצאות/)?.[1] ?? NaN);
 
 // ══ search & autocomplete ════════════════════════════════════════════════
 try {
@@ -104,14 +108,16 @@ try {
   const firstAfter = await p.locator('h3, [class*=planName]').first().innerText().catch(() => '');
   check('results', 'switching tab reorders', firstBefore !== firstAfter || true, 'order changed or already cheapest');
 
-  const before = await priceCount(p);
-  await p.selectOption('select:below(:text("מיון"))', 'price').catch(async () => {
+  const before = await resultCount(p);
+  // Price is the default order and is not written into the URL; any other
+  // order is.
+  await p.selectOption('select:below(:text("מיון"))', 'data').catch(async () => {
     const sel = p.locator('select').filter({ hasNot: p.locator('option[value="ILS"]') }).first();
-    await sel.selectOption('price');
+    await sel.selectOption('data');
   });
   await p.waitForTimeout(700);
-  check('results', 'sort applies without losing rows', (await priceCount(p)) === before, `${before} prices`);
-  check('results', 'sort is written into the URL', p.url().includes('sort=price'), p.url().split('?')[1] ?? '');
+  check('results', 'sort applies without losing rows', (await resultCount(p)) === before && before > 0, `${before} results`);
+  check('results', 'sort is written into the URL', p.url().includes('sort=data'), p.url().split('?')[1] ?? '');
   await p.close();
 } catch (e) { check('run', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
@@ -407,7 +413,8 @@ try {
 // an unverifiable claim.
 try {
   const p = await page();
-  await p.goto(B + '/esim/france?to=FR:5&usage=regular', { waitUntil: 'domcontentloaded' });
+  // The list opens by price; the explainer belongs to the "recommended" order.
+  await p.goto(B + '/esim/france?to=FR:5&usage=regular&sort=recommended', { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1600);
   const explainer = p.locator('details').filter({ hasText: 'מומלץ' }).first();
   check('categories', 'the recommended order says what it ranks by', (await explainer.count()) > 0);

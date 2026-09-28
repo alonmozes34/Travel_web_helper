@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { Ltr } from '@/components/ui/Bdi';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonClasses } from '@/components/ui/Button';
+import { outboundLink } from '@/lib/affiliate/link';
+import { copyText } from '@/components/plans/CopyCodeButton';
 import { countries } from '@/data/countries';
 import { getProvider } from '@/data/providers';
 import type { Locale } from '@/i18n/config';
@@ -86,31 +88,23 @@ export function CombinationCard({
                 <Ltr className="tnum block font-head font-semibold">
                   {formatPrice(leg.priceMinor, combination.currency, locale)}
                 </Ltr>
-                {leg.sourceCurrency === combination.currency ? null : (
-                  <span className="block text-xs text-ink-3">
-                    {interpolate(dict.combination.legChargedTemplate, {
-                      amount: formatPrice(leg.sourcePriceMinor, leg.sourceCurrency, locale),
-                    })}
-                  </span>
-                )}
               </span>
-              {/* Each leg is a separate purchase, so each one needs its own way out. */}
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
-                  track({
-                    name: 'provider_clicked',
-                    planId: leg.plan.id,
-                    providerId: leg.plan.providerId,
-                  });
+              {/* Each leg is a separate purchase, so each one needs its own way
+                  out — a real link to that plan, as on every plan card. It was a
+                  button that did nothing, left over from the prototype, and on a
+                  multi-country trip it was the only way out of the page. */}
+              <LegLink
+                leg={leg}
+                locale={locale}
+                label={interpolate(dict.plan.viewAtTemplate, { provider: provider?.name ?? leg.plan.providerId })}
+                opensInNewTab={dict.plan.opensInNewTab}
+                onChosen={() => {
+                  track({ name: 'provider_clicked', planId: leg.plan.id, providerId: leg.plan.providerId });
                   // A leg of a combination is a chosen plan like any other.
                   tripExtras?.choose(leg.plan.id);
                   setNoted(true);
                 }}
-              >
-                {dict.plan.view}
-              </Button>
+              />
             </li>
           );
         })}
@@ -132,7 +126,7 @@ export function CombinationCard({
       </div>
 
       <p className="mt-2 text-sm text-ink-3" aria-live="polite">
-        {noted ? dict.plan.prototypeLink : dict.combination.note}
+        {noted && combination.legs.some((leg) => !leg.plan.affiliateUrl) ? dict.plan.prototypeLink : dict.combination.note}
       </p>
 
       {/* When no single plan covers the trip this card is the whole page, and
@@ -143,5 +137,46 @@ export function CombinationCard({
         <p className="mt-1 text-sm text-ink-3">{dict.plan.conversionNote}</p>
       ) : null}
     </article>
+  );
+}
+
+function LegLink({
+  leg,
+  locale,
+  label,
+  opensInNewTab,
+  onChosen,
+}: {
+  leg: Combination['legs'][number];
+  locale: Locale;
+  label: string;
+  opensInNewTab: string;
+  onChosen: () => void;
+}) {
+  const link = outboundLink(leg.plan, locale);
+  const { discount } = leg.plan;
+  const code = discount && discount.source === 'affiliate' && !discount.appliedByLink ? discount.code : null;
+  if (!link) {
+    // The demo catalogue has no links; its button says so when pressed.
+    return (
+      <Button size="sm" variant="secondary" onClick={onChosen}>
+        {label}
+      </Button>
+    );
+  }
+  return (
+    <a
+      href={link.href}
+      rel={link.rel}
+      target={link.target}
+      onClick={() => {
+        if (code) void copyText(code);
+        onChosen();
+      }}
+      className={buttonClasses('secondary', 'sm')}
+    >
+      {label}
+      <span className="sr-only"> {opensInNewTab}</span>
+    </a>
   );
 }

@@ -28,6 +28,9 @@ async function get(path) {
 }
 const text = (html) => html.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 const prices = (html) => (text(html).match(/₪\s*\d/g) ?? []).length;
+// The result count the page announces ("הצג 12 תוצאות"). The number of prices
+// rendered is capped by the shortlist, so it cannot show a filter narrowing.
+const resultCount = (html) => Number(text(html).match(/הצג (\d+) תוצאות/)?.[1] ?? NaN);
 
 // ── negative: routes that must not exist ──────────────────────────────────
 for (const [p, want] of [
@@ -144,7 +147,7 @@ for (const [p, want, loc] of [
   const b = await get('/esim/thailand?days=14&usage=regular&5g=1');
   check('regression', 'a filtered link is deterministic', prices(a.body) === prices(b.body), `${prices(a.body)} vs ${prices(b.body)}`);
   const unfiltered = await get('/esim/thailand?days=14&usage=regular');
-  check('regression', 'the 5G filter actually narrows', prices(a.body) < prices(unfiltered.body), `${prices(a.body)} vs ${prices(unfiltered.body)}`);
+  check('regression', 'the 5G filter actually narrows', resultCount(a.body) < resultCount(unfiltered.body), `${resultCount(a.body)} vs ${resultCount(unfiltered.body)}`);
 }
 
 // ══ no link on the site may lead nowhere ═════════════════════════════════

@@ -3,6 +3,13 @@ import type { ComparisonRow } from './buildComparison';
 export const sortKeys = ['recommended', 'price', 'pricePerGb', 'data', 'validity'] as const;
 export type SortKey = (typeof sortKeys)[number];
 
+/**
+ * The order a list opens in: cheapest first. The owner, 28 September 2026:
+ * "the plans are ordered by price, not by provider, unless the traveller has
+ * filtered otherwise." "Recommended" (the value score) is one choice away.
+ */
+export const DEFAULT_SORT: SortKey = 'price';
+
 export function isSortKey(value: string): value is SortKey {
   return (sortKeys as readonly string[]).includes(value);
 }
@@ -17,7 +24,9 @@ export function sortRows(rows: ComparisonRow[], key: SortKey): ComparisonRow[] {
 
   switch (key) {
     case 'price':
-      return sorted.sort((a, b) => a.price.amountMinor - b.price.amountMinor);
+      // Ties, which are common within a provider, go to the better-scoring
+      // plan, so the order does not depend on the order plans arrived in.
+      return sorted.sort((a, b) => a.price.amountMinor - b.price.amountMinor || b.score - a.score);
     case 'pricePerGb':
       return sorted.sort((a, b) => {
         const left = a.pricePerGbMinor ?? Number.POSITIVE_INFINITY;

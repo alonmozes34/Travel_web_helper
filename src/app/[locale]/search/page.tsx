@@ -17,7 +17,8 @@ import { buildComparison } from "@/lib/comparison/buildComparison";
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { filtersFromParams } from "@/lib/comparison/filter";
 import type { RecommendationKey } from "@/lib/comparison/recommend";
-import { isSortKey } from "@/lib/comparison/sort";
+import { isSortKey, DEFAULT_SORT } from "@/lib/comparison/sort";
+import { shouldOfferCombination } from "@/lib/comparison/buildCombination";
 import { getDisplayCurrency } from "@/lib/currencyServer";
 import { tripProfileFromParams } from "@/lib/types/trip";
 import { coverageOf } from "@/lib/comparison/catalogueCoverage";
@@ -86,9 +87,9 @@ export default async function SearchPage({
         destination.countryCode,
     );
 
-  const cheapestSingleMinor = comparison.rows.length
-    ? Math.min(...comparison.rows.map((row) => row.price.amountMinor))
-    : null;
+  // Two purchases and two installations are only worth offering when they
+  // cost less than one plan that covers the whole trip.
+  const { offer: showCombination, cheapestSingleMinor } = shouldOfferCombination(combination, comparison.rows);
 
   return (
     <>
@@ -220,7 +221,7 @@ export default async function SearchPage({
               countryCode={comparison.countryCodes[0]}
               tripDays={estimate.days}
             >
-              {combination ? (
+              {combination && showCombination ? (
                 <div className="mb-8">
                   <CombinationCard
                     combination={combination}
@@ -248,7 +249,7 @@ export default async function SearchPage({
                   }
                   initialFilters={filtersFromParams(queryParams)}
                   initialSort={
-                    sortParam && isSortKey(sortParam) ? sortParam : "recommended"
+                    sortParam && isSortKey(sortParam) ? sortParam : DEFAULT_SORT
                   }
                 />
               ) : null}

@@ -125,3 +125,19 @@ export function buildCombination({
 }
 
 export type { DataNeedEstimate };
+
+/**
+ * Whether a combination is worth offering beside the single plans: only when
+ * no single plan does the job, or when it costs less than the cheapest one
+ * that does. "Does the job" means lasting the trip and carrying the data — the
+ * cheapest row on a page is often a 1GB plan that covers nothing.
+ */
+export function shouldOfferCombination(
+  combination: Combination | null,
+  rows: Array<{ coversTrip: boolean; isBelowEstimatedNeed: boolean; price: { amountMinor: number } }>,
+): { offer: boolean; cheapestSingleMinor: number | null } {
+  const fitting = rows.filter((row) => row.coversTrip && !row.isBelowEstimatedNeed);
+  const cheapestSingleMinor = fitting.length ? Math.min(...fitting.map((row) => row.price.amountMinor)) : null;
+  const offer = combination !== null && (cheapestSingleMinor === null || combination.totalMinor < cheapestSingleMinor);
+  return { offer, cheapestSingleMinor };
+}

@@ -185,3 +185,20 @@ test('an unlimited month slowed to a usable 1Mbps beats a far dearer 80GB, 365-d
   }).rows.map((row) => row.plan.id);
   assert.ok(ranked.indexOf('fr-unlimited-30d') < ranked.indexOf('global-80gb-365d'), ranked.join(' > '));
 });
+
+test('a combination is offered only when it is cheaper than one plan that does the job', async () => {
+  const { shouldOfferCombination } = await import('@/lib/comparison/buildCombination');
+  const combination = { totalMinor: 5000 } as Parameters<typeof shouldOfferCombination>[0];
+  const row = (amountMinor: number, fits = true) => ({ coversTrip: fits, isBelowEstimatedNeed: false, price: { amountMinor } });
+  assert.equal(shouldOfferCombination(combination, [row(4000)]).offer, false, 'dearer than a plan that covers the trip');
+  assert.equal(shouldOfferCombination(combination, [row(6000)]).offer, true, 'cheaper than every plan that covers the trip');
+  assert.equal(shouldOfferCombination(combination, [row(900, false)]).offer, true, 'a 1GB plan that covers nothing is not the yardstick');
+  assert.equal(shouldOfferCombination(combination, []).offer, true, 'nothing else does the job');
+});
+
+test('the list opens by price, cheapest first, and ties go to the better-scoring plan', async () => {
+  const { DEFAULT_SORT, sortRows } = await import('@/lib/comparison/sort');
+  assert.equal(DEFAULT_SORT, 'price');
+  const ids = sortRows(comparison.rows, DEFAULT_SORT).map((row) => row.price.amountMinor);
+  assert.deepEqual(ids, [...ids].sort((a, b) => a - b));
+});

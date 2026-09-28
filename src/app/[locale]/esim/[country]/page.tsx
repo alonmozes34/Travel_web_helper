@@ -26,7 +26,7 @@ import { buildCountryFacts } from "@/lib/comparison/countryFacts";
 import type { RecommendationKey } from "@/lib/comparison/recommend";
 import { filtersFromParams } from "@/lib/comparison/filter";
 import { coverageOf } from "@/lib/comparison/catalogueCoverage";
-import { isSortKey } from "@/lib/comparison/sort";
+import { isSortKey, DEFAULT_SORT } from "@/lib/comparison/sort";
 
 /**
  * Pre-rendered at build: the popular destinations. Every other page renders on
@@ -98,7 +98,7 @@ export default async function CountryPage({
   const initialFilters = filtersFromParams(queryParams);
   const sortParam = queryParams.get("sort");
   const initialSort =
-    sortParam && isSortKey(sortParam) ? sortParam : "recommended";
+    sortParam && isSortKey(sortParam) ? sortParam : DEFAULT_SORT;
   const name = country.names[locale];
 
   // The traveller's chosen currency comes from the cookie, so prices render in

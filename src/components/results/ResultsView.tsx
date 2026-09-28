@@ -30,7 +30,7 @@ import {
   type PlanFilters,
 } from "@/lib/comparison/filter";
 import type { RecommendationKey } from "@/lib/comparison/recommend";
-import { sortRows, sortKeys, type SortKey } from "@/lib/comparison/sort";
+import { DEFAULT_SORT, sortRows, sortKeys, type SortKey } from "@/lib/comparison/sort";
 import { useTripExtras } from "@/components/extras/TripExtrasProvider";
 import { RecommendationTabs } from "./RecommendationTabs";
 
@@ -76,7 +76,9 @@ export function ResultsView({
   );
   const [filters, setFilters] = useState<PlanFilters>(initialFilters);
   const [sort, setSort] = useState<SortKey>(initialSort);
-  const [tab, setTab] = useState<RecommendationKey>("bestValue");
+  // The highlighted category follows the opening order: "cheapest" when the
+  // list opens by price (the default), "best value" when it opens by score.
+  const [tab, setTab] = useState<RecommendationKey>(initialSort === "recommended" ? "bestValue" : "cheapest");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
@@ -93,7 +95,7 @@ export function ResultsView({
       const value = existing.get(key);
       if (value) params.set(key, value);
     }
-    if (nextSort !== "recommended") params.set("sort", nextSort);
+    if (nextSort !== DEFAULT_SORT) params.set("sort", nextSort);
     const query = params.toString();
     window.history.replaceState(
       null,
