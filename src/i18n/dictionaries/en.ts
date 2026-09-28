@@ -892,7 +892,7 @@ export const en: Dictionary = {
       heading: 'Links to providers',
       body: [
         'When you follow a button through to a provider, you leave this site. From that point the provider’s privacy policy applies, not ours.',
-        'The link carries an affiliate identifier telling the provider the click came from us. It says nothing about you — not a name, not an email, not what you searched for.',
+        'The link carries an affiliate identifier telling the provider the click came from us, along with the plan you chose and its destination, so the provider opens that exact plan. It carries nothing that identifies you: no name, no email, no IP address from us, and not the trip length or data use you entered here.',
         'The provider may set cookies of their own on their site. We have no control over those and no access to them.',
       ],
     },
