@@ -11,19 +11,23 @@ Checks, per page:
 - the list is in price order, cheapest first (the default), in each section;
 - every card has a link, and no link appears twice on a page;
 - aloSIM links carry a plan id, our affiliate and offer ids, a source id and
-  the Hebrew path;
+  the page's current Hebrew address (/he/destinations/…);
 - Yesim links have the plan-page shape, match the card's days and data, exist
   in Yesim's Prices API, and the shekel price matches the API's euro price at
   one exchange rate for the whole run (catches a wrong price or a wrong plan);
 - the multi-country "combination" card links to each plan, not to nothing.
 
-It cannot open aloSIM's or Yesim's own pages — both block automated clients —
-so whether a link opens the right plan on their side is checked by hand.
+Then, once per aloSIM page linked (about 200): the link opens that page with
+no redirect — aloSIM's redirect from the old addresses drops the plan and our
+affiliate id in Hebrew (found 28 September 2026). On a sample of 25 pages,
+the page is loaded and the plan in the link must be the one it opens on
+(aria-pressed on that plan). Yesim's pages cannot be checked this way; they
+answer automated clients with an empty page, so Yesim is checked by hand.
 Exit status 1 when anything is found. Written 28 September 2026 after the
 owner asked for "a full regression, so we don't fall into this again".
 """
 import concurrent.futures as cf, json, re, html, subprocess, sys, itertools, statistics, collections as C, urllib.parse as U
-import os
+import os, datetime
 BASE=(sys.argv[1] if len(sys.argv)>1 else 'https://www.yeshklita.com').rstrip('/')
 OUT=os.environ.get('REGRESSION_OUT','/tmp/live-regression.json')
 YESIM=json.loads(subprocess.run(['curl','-sS','-m','90','https://api.yesim.app/api_v0.1/api/prices?partner=5581'],capture_output=True,text=True).stdout)
@@ -73,7 +77,7 @@ res=[]
 with cf.ThreadPoolExecutor(6) as ex:
     for r in ex.map(get,jobs): res.append(r)
 json.dump(res,open(OUT,'w'),ensure_ascii=False)
-issues=C.defaultdict(list); rates=[]
+issues=C.defaultdict(list); rates=[]; alosim_links={}
 for p in res:
     key=f"{p['q']} {p['u']}"
     if not p['len']: issues['fetch-failed'].append(key); continue
@@ -96,6 +100,10 @@ for p in res:
             if not re.fullmatch(r'[0-9a-f]{24}',(qs.get('plan_id') or [''])[0]) or qs.get('affid')!=['1810'] or qs.get('oid')!=['9'] or not qs.get('source_id'):
                 issues['alosim-link-params'].append(f"{key}: {r['link']}")
             if not u.path.startswith('/he/'): issues['alosim-not-hebrew-on-he-page'].append(f"{key}: {r['link']}")
+            # The old addresses (/he/japan-esim) redirect, and in Hebrew the
+            # redirect drops plan_id and affid (28 September 2026).
+            elif not u.path.startswith('/he/destinations/'): issues['alosim-old-address'].append(f"{key}: {r['link']}")
+            alosim_links.setdefault(u.path,r['link'])
         else:
             m=re.fullmatch(r'(/(?:country|regions|global)/[a-z0-9-]+)/(\d+)days-([0-9a-z]+)-esim-data-plan/',u.path)
             if not m or qs.get('partner_id')!=['5581']: issues['yesim-link-shape'].append(f"{key}: {r['link']}"); continue
@@ -105,6 +113,28 @@ for p in res:
             eur=yes_by_key.get((base,days,allow))
             if eur is None: issues['yesim-link-not-in-api'].append(f"{key}: {r['link']}")
             else: rates.append((r['ils']/eur,key,r['link'],eur,r['ils']))
+# aloSIM's pages, one link per page: the link must open the page itself (a
+# redirect is where plan_id got lost), and on a sample of pages the plan must
+# be the one the page opens on. Only our own links are requested.
+UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
+def alosim_status(link):
+    for _ in range(2):
+        out=subprocess.run(['curl','-sS','-o','/dev/null','-I','-m','30','-A',UA,'-w','%{http_code} %{redirect_url}',link],capture_output=True,text=True).stdout
+        if out and not out.startswith('000'): return out
+    return out or '000'
+with cf.ThreadPoolExecutor(3) as ex:
+    for (path,link),out in zip(alosim_links.items(),ex.map(alosim_status,alosim_links.values())):
+        code=out.split(' ')[0]
+        if code!='200': issues['alosim-link-does-not-open-page'].append(f"HTTP {out.strip()} ← {link}")
+sample=sorted(alosim_links.items())[datetime.date.today().toordinal()%7::max(1,len(alosim_links)//25)][:25]
+for path,link in sample:
+    page=subprocess.run(['curl','-sS','-L','-m','60','-A',UA,link],capture_output=True,text=True).stdout
+    pid=U.parse_qs(U.urlparse(link).query).get('plan_id',[''])[0]
+    m=re.search(r'<[^>]*data-package-id="'+re.escape(pid)+r'"[^>]*>',page)
+    if not page: issues['alosim-page-fetch-failed'].append(link)
+    elif not m: issues['alosim-plan-not-on-page'].append(link)
+    elif 'aria-pressed="true"' not in m.group(0): issues['alosim-page-opens-another-plan'].append(link)
+print(f'alosim: {len(alosim_links)} pages checked, {len(sample)} opened')
 if rates:
     med=statistics.median(x[0] for x in rates)
     for rate,key,link,eur,ils in rates:

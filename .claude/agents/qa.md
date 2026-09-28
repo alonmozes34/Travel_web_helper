@@ -124,9 +124,19 @@ labels the results "הערכה כללית בלבד".
 **Buy links.** Every buy button must open the exact plan the visitor chose on
 the provider's site (`buyLinkLandsOnPlan`); a plan whose link does not is not
 listed. The multi-country combination card once had buttons with no link at
-all — the live regression now checks every leg. Provider sites block
-automated clients, so whether a link opens the right plan on their side is
-checked by hand; say so in the report rather than implying it was tested.
+all — the live regression now checks every leg.
+
+aloSIM links go to each page's current address (`/he/destinations/…`), from
+`src/data/alosim-pages.generated.ts`: their redirect from the old addresses
+the Store API still returns drops `plan_id` and `affid` in Hebrew, and
+visitors landed on the page's default plan (28 September 2026). The live
+regression requests every aloSIM page once (it must answer 200, not
+redirect) and loads a sample of 25 to check the plan in the link is the one
+that opens. When it reports `alosim-link-does-not-open-page`, aloSIM moved
+pages again: re-run `NODE_USE_ENV_PROXY=1 npx tsx
+scripts/resolve-alosim-pages.ts <slugs>` and review the diff. Yesim's pages
+answer automated clients with an empty page, so Yesim landing is checked by
+hand; say so in the report rather than implying it was tested.
 
 **Order.** Lists open cheapest first (`DEFAULT_SORT = 'price'`), in two
 sections: plans that last the trip and carry the data, then the rest. No plan

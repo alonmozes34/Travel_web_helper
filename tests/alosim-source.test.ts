@@ -4,6 +4,7 @@ import { describe, test } from 'node:test';
 
 import { alosimLink } from '@/data/alosim';
 import { outboundLink } from '@/lib/affiliate/link';
+import { buyLinkLandsOnPlan } from '@/lib/catalogue/getCatalogue';
 import { buildComparison } from '@/lib/comparison/buildComparison';
 import { applyPromotions } from '@/lib/pricing/promotions';
 import { planPrice } from '@/lib/pricing/convert';
@@ -133,8 +134,10 @@ describe('the buy link', () => {
     assert.equal(LINK_TO_PLAN, true, 'confirmed by a test click in Everflow on 25 September 2026');
     const plan = planOf(thai5gb);
     assert.equal(plan.affiliateLandsOn, 'plan');
-    assert.match(plan.affiliateUrl!, /^https:\/\/alosim\.com\/thailand-esim\?plan_id=/);
-    assert.match(plan.affiliateUrlByLocale!.he!, /^https:\/\/alosim\.com\/he\/thailand-esim\?plan_id=/);
+    // At the page's current address, from the generated map: aloSIM's
+    // redirect from the old one drops the plan in Hebrew.
+    assert.match(plan.affiliateUrl!, /^https:\/\/alosim\.com\/destinations\/asia-esim\/thailand-esim\/\?plan_id=/);
+    assert.match(plan.affiliateUrlByLocale!.he!, /^https:\/\/alosim\.com\/he\/destinations\/asia-esim\/thailand-esim\/\?plan_id=/);
   });
 
   // A plan whose page has no main-site tracking link, only a store-app one —
@@ -176,7 +179,7 @@ describe('the buy link', () => {
   });
 
   test('with LINK_TO_PLAN on, that case goes to the plan through their own link instead', () => {
-    const link = alosimLinkFor(qatar, ['QA'], { toPlan: true })!;
+    const link = alosimLinkFor(qatar, ['QA'], { toPlan: true, pagePaths: {} })!;
     const url = new URL(link.href);
     assert.equal(link.landsOn, 'plan');
     assert.equal(url.origin + url.pathname, 'https://alosim.com/qatar-esim');
@@ -186,14 +189,18 @@ describe('the buy link', () => {
     assert.equal(url.searchParams.get('source_id'), 'QA');
   });
 
+  const pagePaths = { 'thailand-esim': '/destinations/asia-esim/thailand-esim/' };
+
   test('with LINK_TO_PLAN on, every plan goes to its own page, in Hebrew for a Hebrew reader', () => {
-    const link = alosimLinkFor(thai5gb, ['TH'], { toPlan: true })!;
+    const link = alosimLinkFor(thai5gb, ['TH'], { toPlan: true, pagePaths })!;
     const planId = new URL(thai5gb.url).searchParams.get('plan_id');
     assert.equal(link.landsOn, 'plan');
+    // Straight to the page's current address: aloSIM's redirect from
+    // /he/thailand-esim drops the query, plan and affiliate id with it.
     const en = new URL(link.href);
-    assert.equal(en.origin + en.pathname, 'https://alosim.com/thailand-esim');
+    assert.equal(en.origin + en.pathname, 'https://alosim.com/destinations/asia-esim/thailand-esim/');
     const he = new URL(link.byLocale!.he!);
-    assert.equal(he.origin + he.pathname, 'https://alosim.com/he/thailand-esim', 'the form their API returns for Hebrew');
+    assert.equal(he.origin + he.pathname, 'https://alosim.com/he/destinations/asia-esim/thailand-esim/');
     for (const url of [en, he]) {
       assert.equal(url.searchParams.get('plan_id'), planId);
       assert.equal(url.searchParams.get('affid'), '1810');
@@ -203,10 +210,30 @@ describe('the buy link', () => {
   });
 
   test('the button takes the link in the visitor\'s language', () => {
-    const plan = mapAlosimPlan(thai5gb, 'T', (item, codes) => alosimLinkFor(item, codes, { toPlan: true }));
+    const plan = mapAlosimPlan(thai5gb, 'T', (item, codes) => alosimLinkFor(item, codes, { toPlan: true, pagePaths }));
     assert.ok('plan' in plan);
-    assert.match(outboundLink(plan.plan, 'he')!.href, /^https:\/\/alosim\.com\/he\/thailand-esim\?/);
-    assert.match(outboundLink(plan.plan, 'en')!.href, /^https:\/\/alosim\.com\/thailand-esim\?/);
+    assert.match(outboundLink(plan.plan, 'he')!.href, /^https:\/\/alosim\.com\/he\/destinations\/asia-esim\/thailand-esim\/\?plan_id=/);
+    assert.match(outboundLink(plan.plan, 'en')!.href, /^https:\/\/alosim\.com\/destinations\/asia-esim\/thailand-esim\/\?plan_id=/);
+  });
+
+  test('a plan whose page is gone, or now opens a different page, gets no link — and so is not shown', () => {
+    const deadPages = { 'thailand-esim': 'redirects to /destinations/asia-esim/' };
+    assert.equal(alosimLinkFor(thai5gb, ['TH'], { toPlan: true, pagePaths: {}, deadPages }), null);
+    const plan = mapAlosimPlan(thai5gb, 'T', (item, codes) => alosimLinkFor(item, codes, { toPlan: true, pagePaths: {}, deadPages }));
+    assert.ok('plan' in plan);
+    assert.equal(plan.plan.affiliateUrl, null);
+    assert.equal(buyLinkLandsOnPlan(plan.plan), false);
+  });
+
+  test('where the page\'s current address is not known, a Hebrew reader gets the English link, which keeps the plan', () => {
+    const link = alosimLinkFor(thai5gb, ['TH'], { toPlan: true, pagePaths: {} })!;
+    assert.equal(link.byLocale?.he, undefined);
+    const plan = mapAlosimPlan(thai5gb, 'T', (item, codes) => alosimLinkFor(item, codes, { toPlan: true, pagePaths: {} }));
+    assert.ok('plan' in plan);
+    const he = new URL(outboundLink(plan.plan, 'he')!.href);
+    assert.equal(he.origin + he.pathname, 'https://alosim.com/thailand-esim');
+    assert.equal(he.searchParams.get('plan_id'), new URL(thai5gb.url).searchParams.get('plan_id'));
+    assert.equal(he.searchParams.get('affid'), '1810');
   });
 
   test('with no tracking page at all, their own plan link', () => {

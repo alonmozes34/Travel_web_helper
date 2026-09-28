@@ -1,6 +1,7 @@
 import { ALOSIM_OFFER_ID } from '@/data/alosim';
 import type { Locale } from '@/i18n/config';
 import { alosimDestinations, alosimPageLinks } from '@/data/alosim.generated';
+import { alosimDeadPages, alosimPagePaths } from '@/data/alosim-pages.generated';
 import { cached } from '@/lib/catalogue/cache';
 import type { Plan } from '@/lib/types/plan';
 import { sourceResult, type ProviderSource, type SkippedRecord, type SourceResult } from '../ProviderSource';
@@ -174,7 +175,11 @@ const ALOSIM_LANGUAGES: Partial<Record<Locale, string>> = { he: 'he' };
 export function alosimLinkFor(
   item: AlosimPlan,
   countryCodes: string[],
-  { toPlan = LINK_TO_PLAN }: { toPlan?: boolean } = {},
+  {
+    toPlan = LINK_TO_PLAN,
+    pagePaths = alosimPagePaths,
+    deadPages = alosimDeadPages,
+  }: { toPlan?: boolean; pagePaths?: Record<string, string>; deadPages?: Record<string, string> } = {},
 ): AlosimLink | null {
   const slug = pageSlug(item.url);
   const single = countryCodes.length === 1 && item.locations.length === 1 ? countryCodes[0] : null;
@@ -184,12 +189,14 @@ export function alosimLinkFor(
   const ownPlanLink = (): AlosimLink => {
     const byLocale: Partial<Record<Locale, string>> = {};
     for (const [locale, segment] of Object.entries(ALOSIM_LANGUAGES) as Array<[Locale, string]>) {
-      const localised = inLanguage(item.url, segment);
+      const localised = atCurrentAddress(item.url, pagePaths, segment);
       if (localised) byLocale[locale] = tagged(localised);
     }
-    return { href: tagged(item.url), landsOn: 'plan', byLocale };
+    return { href: tagged(atCurrentAddress(item.url, pagePaths) ?? item.url), landsOn: 'plan', byLocale };
   };
 
+  // A page that is gone, or now opens a different page, cannot open the plan.
+  if (toPlan && slug && deadPages[slug]) return null;
   if (toPlan) return ownPlanLink();
 
   const planId = planIdOf(item.url);
@@ -204,12 +211,26 @@ export function alosimLinkFor(
   return ownPlanLink();
 }
 
-/** alosim.com/japan-esim → alosim.com/he/japan-esim, the form their API returns for Hebrew. */
-function inLanguage(url: string, segment: string): string | null {
+/**
+ * The plan on its page's current address, in a language (`segment`) or in
+ * English; null when that address is not known.
+ *
+ * Their Store API links the old addresses (alosim.com/japan-esim), which now
+ * redirect to /destinations/…. In Hebrew that redirect drops the query — the
+ * visitor lands on the country's default plan, without our affiliate id —
+ * and on a few pages it does so in English too (found 28 September 2026). So
+ * the link goes straight to the current address, from
+ * `alosim-pages.generated.ts`. Where it is not known there is no Hebrew link,
+ * and the English one is aloSIM's own, whose redirect keeps the plan on
+ * nearly every page.
+ */
+function atCurrentAddress(url: string, pagePaths: Record<string, string>, segment?: string): string | null {
   try {
     const parsed = new URL(url);
     if (parsed.hostname !== 'alosim.com') return null;
-    parsed.pathname = `/${segment}${parsed.pathname}`;
+    const current = pagePaths[parsed.pathname.replace(/^\/+|\/+$/g, '')];
+    if (!current) return null;
+    parsed.pathname = segment ? `/${segment}${current}` : current;
     return parsed.toString();
   } catch {
     return null;

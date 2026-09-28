@@ -44,20 +44,34 @@ step() {
   fi
 }
 
-# A server on a fresh port, killed by its own PID — `pkill -f next` also kills
-# the shell running it.
+# A server on a fresh port, in its own process group, and stopped by that
+# group. `npx next start` runs the server as a child: killing npx alone left
+# the server running, and the next night's server could not take the port —
+# the suites then tested the old build (found 28 September 2026). A port that
+# already answers is a failure, not something to test against.
 SERVER_PID=""
 start_server() {
   local port="$1"; shift
-  env "$@" PORT="$port" npx next start -p "$port" > "$LOGS/server-$port.log" 2>&1 &
+  if curl -s -o /dev/null -m 2 "http://localhost:$port/"; then
+    echo "port $port is already serving — refusing to test an unknown server" >> "$LOGS/server-$port.log"
+    return 1
+  fi
+  setsid env "$@" PORT="$port" npx next start -p "$port" > "$LOGS/server-$port.log" 2>&1 &
   SERVER_PID=$!
   for _ in $(seq 1 60); do
+    kill -0 "$SERVER_PID" 2>/dev/null || return 1
     curl -s -o /dev/null "http://localhost:$port/" && return 0
     sleep 1
   done
   return 1
 }
-stop_server() { [ -n "$SERVER_PID" ] && kill "$SERVER_PID" 2>/dev/null; wait "$SERVER_PID" 2>/dev/null; SERVER_PID=""; }
+stop_server() {
+  [ -n "$SERVER_PID" ] || return 0
+  kill -- "-$SERVER_PID" 2>/dev/null
+  wait "$SERVER_PID" 2>/dev/null
+  SERVER_PID=""
+}
+trap stop_server EXIT
 
 line "# Nightly QA — $(date -u '+%Y-%m-%d %H:%M UTC')"
 line ""
@@ -82,7 +96,7 @@ if DEMO_CATALOGUE=true npm run build > "$LOGS/build-demo.log" 2>&1 && start_serv
   step "negative" npm run test:negative
   stop_server
 else
-  FAILED=1; line "- ❌ demo build or server did not start"; tail -20 "$LOGS/build-demo.log" >> "$REPORT"
+  FAILED=1; line "- ❌ demo build or server did not start"; tail -20 "$LOGS/build-demo.log" "$LOGS/server-7101.log" >> "$REPORT" 2>/dev/null; stop_server
 fi
 
 line ""
@@ -92,13 +106,13 @@ if YESIM_PARTNER_ID=5581 npm run build > "$LOGS/build-yesim.log" 2>&1 && start_s
   step "accessibility (real Yesim data)" npm run test:a11y
   stop_server
 else
-  FAILED=1; line "- ❌ Yesim build or server did not start"; tail -20 "$LOGS/build-yesim.log" >> "$REPORT"
+  FAILED=1; line "- ❌ Yesim build or server did not start"; tail -20 "$LOGS/build-yesim.log" "$LOGS/server-7102.log" >> "$REPORT" 2>/dev/null; stop_server
 fi
 
 line ""
 line "## Live site"
 step "live regression (940 searches)" env REGRESSION_OUT="$LOGS/live.json" python3 scripts/live-regression.py https://www.yeshklita.com
-grep -E '^## |^yesim ILS/EUR|pages,' "$LOGS/live_regression_(940_searches).log" 2>/dev/null | sed 's/^## /  - /' >> "$REPORT" || true
+grep -E '^## |^yesim ILS/EUR|^alosim: |pages,' "$LOGS/live_regression_(940_searches).log" 2>/dev/null | sed 's/^## /  - /' >> "$REPORT" || true
 
 line ""
 if [ "$FAILED" = 0 ]; then line "**Result: all green.**"; else line "**Result: failures above.** Logs: $LOGS"; fi
