@@ -20,7 +20,8 @@
     "generate:brand": "tsx scripts/generate-brand-assets.ts",
     "fetch:impact": "tsx scripts/fetch-impact.ts",
     "import:alosim": "tsx scripts/import-alosim-links.ts",
-    "test:live": "python3 scripts/live-regression.py"
+    "test:live": "python3 scripts/live-regression.py",
+    "test:nightly": "bash scripts/nightly.sh"
   },
   "dependencies": {
     "next": "16.3.4",
