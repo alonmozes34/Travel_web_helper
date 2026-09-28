@@ -140,7 +140,11 @@ export function catalogueLoader(
       return {
         // Applied on every read rather than when the plans were fetched, so a
         // code stops the day it expires even if the cache is older than that.
-        plans: applyPromotions(p.value.merged.plans, promotions, new Date(now()).toISOString().slice(0, 10)),
+        plans: applyPromotions(
+          p.value.merged.plans.filter(buyLinkLandsOnPlan),
+          promotions,
+          new Date(now()).toISOString().slice(0, 10),
+        ),
         rates: r.value.rates,
         sources: [...p.value.status, ...r.value.status],
         skipped: p.value.merged.skipped,
@@ -153,6 +157,20 @@ export function catalogueLoader(
       rates.clear();
     },
   };
+}
+
+/**
+ * The owner's rule, 28 September 2026: "every link must go to the specific
+ * plan — if the customer starts searching on the provider's site, we have
+ * done nothing." A real plan is listed only when its buy link opens that exact
+ * plan. One whose link lands on a destination page (Yesim's, today) or that
+ * has no link at all is left out, and comes back by itself when its source
+ * starts issuing plan-level links. The demo catalogue has no links by design
+ * and is exempt; it never reaches production.
+ */
+export function buyLinkLandsOnPlan(plan: Plan): boolean {
+  if (plan.source === 'mock') return true;
+  return Boolean(plan.affiliateUrl) && plan.affiliateLandsOn === 'plan';
 }
 
 const defaultLoader = catalogueLoader();

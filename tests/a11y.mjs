@@ -91,7 +91,7 @@ await extras.context().route((url) => !url.href.startsWith(BASE), (route) => rou
 await extras.goto(`${BASE}/esim/france?to=FR:5&usage=regular`, { waitUntil: 'domcontentloaded' });
 await extras.waitForTimeout(900);
 const firstCard = extras.locator('article').first();
-await firstCard.getByRole('button', { name: /מעבר לאתר/ }).or(firstCard.getByRole('link', { name: /מעבר לאתר/ })).first().click();
+await firstCard.getByRole('button', { name: /לחבילה באתר/ }).or(firstCard.getByRole('link', { name: /לחבילה באתר/ })).first().click();
 await extras.waitForTimeout(400);
 const crossSell = await audit(extras, 'trip extra offer shown');
 console.log(`trip extra offer shown: ${crossSell.violations.length} violation types`);
@@ -126,6 +126,8 @@ console.log(`destination list open, nothing typed: ${suggestions.violations.leng
 await page.setViewportSize({ width: 1400, height: 1000 });
 await page.goto(`${BASE}/esim/thailand`, { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(700);
+// The compare checkbox lives under each card's "more details".
+for (let i = 0; i < 4; i += 1) await page.locator('article').nth(i).getByRole('button', { name: 'עוד פרטים' }).click();
 for (let i = 0; i < 3; i += 1) {
   await page.locator('article label:has-text("להשוואה")').first().click();
   await page.waitForTimeout(120);

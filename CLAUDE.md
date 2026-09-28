@@ -50,6 +50,16 @@ Rules that follow from that, and hold for every change:
    closed. Phone, postal address and response window stay empty and marked
    until the owner supplies them; do not fill them.
 
+## Every buy link opens the plan the visitor chose
+
+The owner's rule (28 September 2026): "every link must go to the specific
+plan — if the customer starts searching on the provider's site, we have done
+nothing." `buyLinkLandsOnPlan` in `src/lib/catalogue/getCatalogue.ts` drops
+any real plan whose link lands anywhere else. Yesim is connected
+(`YESIM_PARTNER_ID`) and hidden by this rule, because their links open the
+country page; it returns by itself if they issue plan-level links. Do not
+weaken the rule to show a provider — ask the provider for plan links.
+
 ## Versions
 
 The owner asked to be able to follow what changed. Every change that reaches

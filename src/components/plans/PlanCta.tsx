@@ -25,6 +25,7 @@ export function PlanCta({
   locale,
   size = "sm",
   detailsOpen,
+  detailsId,
   onToggleDetails,
   onChosen,
 }: {
@@ -34,6 +35,8 @@ export function PlanCta({
   size?: "sm" | "md";
   /** The desktop list states this once beneath the rows instead. */
   detailsOpen: boolean;
+  /** The id of the panel the details button opens. */
+  detailsId?: string;
   onToggleDetails: () => void;
   /**
    * Called when the traveller leaves for the provider. This site has no
@@ -60,7 +63,7 @@ export function PlanCta({
 
   return (
     <div className="grid gap-1.5">
-      <div className="flex flex-wrap items-center gap-1">
+      <div className="flex flex-wrap items-center gap-2">
         {link ? (
           // A plain anchor, not next/link: this leaves the site, and the
           // router has no business prefetching a provider's checkout.
@@ -69,7 +72,7 @@ export function PlanCta({
             rel={link.rel}
             target={link.target}
             onClick={recordClick}
-            className={buttonClasses("primary", size)}
+            className={buttonClasses("primary", size, "grow sm:grow-0")}
           >
             {label}
             <span className="sr-only"> {dict.plan.opensInNewTab}</span>
@@ -89,6 +92,7 @@ export function PlanCta({
           variant="quiet"
           size={size}
           aria-expanded={detailsOpen}
+          aria-controls={detailsOpen ? detailsId : undefined}
           onClick={() => {
             if (!detailsOpen) {
               track({
@@ -121,8 +125,10 @@ export function PlanCta({
           })}
         </p>
       ) : null}
-      <p className="text-sm text-ink-2" aria-live="polite">
-        {!link && noted ? dict.plan.prototypeLink : dict.plan.buyAtProvider}
+      {/* "You don't pay here" is said once under the list, not on every
+          card; only the demo's dead button needs a word of its own. */}
+      <p className="text-sm text-ink-2 empty:hidden" aria-live="polite">
+        {!link && noted ? dict.plan.prototypeLink : null}
       </p>
     </div>
   );

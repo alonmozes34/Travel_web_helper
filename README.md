@@ -425,6 +425,10 @@ their store and matched to the cent. What their API does not state — hotspot,
 calls, SMS, top-up, installation method, whether an unlimited plan's cap is per
 day — is shown as "not stated", never as "no".
 
+**A plan is listed only when its buy link opens that exact plan**
+(`buyLinkLandsOnPlan`, the owner's rule). Yesim's links open the destination
+page, so Yesim is fetched but not shown until they issue plan-level links.
+
 Yesim's Prices API is the one their partner dashboard documents for
 affiliates (Integrations → "Yesim Prices API"). Their prices have not yet been
 checked by hand against their store. Their links land on the destination's

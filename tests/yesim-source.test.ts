@@ -220,3 +220,14 @@ describe('the data filter', () => {
     assert.equal(applyFilters(rows, { ...emptyFilters, data: ['0'] }).length, 0);
   });
 });
+
+describe('only plans whose buy link opens the plan are listed', () => {
+  test('a Yesim plan, whose link lands on the country page, is left out; a plan-level link and the demo stay', async () => {
+    const { buyLinkLandsOnPlan } = await import('@/lib/catalogue/getCatalogue');
+    const yesim = planOf(japan10GB);
+    assert.equal(buyLinkLandsOnPlan(yesim), false);
+    assert.equal(buyLinkLandsOnPlan({ ...yesim, affiliateLandsOn: 'plan' }), true);
+    assert.equal(buyLinkLandsOnPlan({ ...yesim, affiliateUrl: null, affiliateLandsOn: 'plan' }), false, 'no link, no listing');
+    assert.equal(buyLinkLandsOnPlan({ ...yesim, source: 'mock', affiliateUrl: null }), true);
+  });
+});

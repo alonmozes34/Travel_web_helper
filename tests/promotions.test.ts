@@ -138,7 +138,14 @@ describe('the catalogue', () => {
     const source: ProviderSource = {
       id: 'coded',
       label: 'Coded',
-      fetch: async () => sourceResult('coded', [plan({ id: 'a' })], [], '2026-09-24T07:00:00Z'),
+      // A link that opens the plan: the catalogue lists no other kind.
+      fetch: async () =>
+        sourceResult(
+          'coded',
+          [plan({ id: 'a', affiliateUrl: 'https://example.com/plan/a', affiliateLandsOn: 'plan' })],
+          [],
+          '2026-09-24T07:00:00Z',
+        ),
     };
     let clock = Date.parse('2026-09-30T23:59:50Z');
     const loader = catalogueLoader(

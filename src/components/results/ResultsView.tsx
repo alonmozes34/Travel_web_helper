@@ -386,7 +386,7 @@ export function ResultsView({
                 </p>
               ) : (
                 <>
-                  <div className="grid gap-3 lg:block lg:gap-0 lg:overflow-hidden lg:rounded-lg lg:border lg:border-line lg:bg-surface">
+                  <div className="grid gap-3">
                     {shown.map((row) => (
                       <PlanListItem key={row.plan.id} {...planRowProps(row)} />
                     ))}
@@ -415,7 +415,7 @@ export function ResultsView({
                   <p className="mt-1 mb-3 max-w-[70ch] text-sm text-ink-2">
                     {dict.results.shortSectionBody}
                   </p>
-                  <div className="grid gap-3 lg:block lg:gap-0 lg:overflow-hidden lg:rounded-lg lg:border lg:border-line lg:bg-surface">
+                  <div className="grid gap-3">
                     {shortShown.map((row) => (
                       <PlanListItem key={row.plan.id} {...planRowProps(row)} />
                     ))}

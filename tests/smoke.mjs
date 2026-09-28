@@ -262,6 +262,8 @@ ok(
 
 // Comparison, capped at three plans.
 await page.goto(results, { waitUntil: 'networkidle' });
+// The compare checkbox lives under each card's "more details".
+for (let i = 0; i < 4; i += 1) await page.locator('article').nth(i).getByRole('button', { name: 'עוד פרטים' }).click();
 for (let i = 0; i < 3; i += 1) {
   await page.locator('article label:has-text("סמנו להשוואה")').first().click();
   await page.waitForTimeout(120);
@@ -323,7 +325,7 @@ let reachedCta = false;
 for (let i = 0; i < 150 && !reachedCta; i += 1) {
   await page.keyboard.press('Tab');
   const focused = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
-  if (focused.startsWith('מעבר לאתר')) reachedCta = true;
+  if (focused.startsWith('לחבילה באתר')) reachedCta = true;
 }
 ok('the first plan action is reachable by keyboard alone', reachedCta);
 
@@ -331,6 +333,10 @@ ok('the first plan action is reachable by keyboard alone', reachedCta);
 await page.goto(`${BASE}/esim/brazil`, { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(800);
 {
+  // The network sits under "more details"; open every card so the checks
+  // below read what a traveller who looks would read.
+  const cardCount = await page.locator('article').count();
+  for (let i = 0; i < cardCount; i += 1) await page.locator('article').nth(i).getByRole('button', { name: 'עוד פרטים' }).click();
   const body = await page.locator('main, body').first().innerText();
   ok('a country with no plan of its own says so', body.includes('אין חבילה שנמכרת לברזיל בלבד'));
   ok('and still lists the global plans that cover it', (await page.locator('article').count()) > 0);

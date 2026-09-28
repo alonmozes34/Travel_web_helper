@@ -8,7 +8,7 @@ import type { ComparisonRow } from '@/lib/comparison/buildComparison';
  * and a search read — and the exact plan name is shown so a traveller can
  * find it on the provider's own site.
  */
-export function ProviderCell({ row }: { row: ComparisonRow }) {
+export function ProviderCell({ row, showPlanName = true }: { row: ComparisonRow; showPlanName?: boolean }) {
   const { provider } = row;
   return (
     <div className="flex items-center gap-3">
@@ -39,7 +39,7 @@ export function ProviderCell({ row }: { row: ComparisonRow }) {
       )}
       <span className="min-w-0">
         <span className="block font-head font-semibold">{provider.name}</span>
-        <span className="block truncate text-sm text-ink-3">{row.plan.planName}</span>
+        {showPlanName ? <span className="block truncate text-sm text-ink-3">{row.plan.planName}</span> : null}
       </span>
     </div>
   );

@@ -80,7 +80,7 @@ try {
   // measures both and proves nothing about either.
   const split = await p.evaluate(() => {
     const heading = [...document.querySelectorAll('h2, h3')].find((h) => h.innerText.includes('חבילות קטנות מהצריכה'));
-    const ctas = [...document.querySelectorAll('a, button')].filter((el) => /^מעבר לאתר /.test(el.innerText.trim()));
+    const ctas = [...document.querySelectorAll('a, button')].filter((el) => /^לחבילה באתר /.test(el.innerText.trim()));
     if (!heading) return { fits: ctas.length, short: 0 };
     const after = (el) => heading.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING;
     return { fits: ctas.filter((el) => !after(el)).length, short: ctas.filter(after).length };
@@ -93,7 +93,7 @@ try {
   if (await showAll.count()) {
     const before = ctas;
     await showAll.first().click(); await p.waitForTimeout(600);
-    const after = await p.getByRole('button', { name: /^מעבר לאתר / }).count();
+    const after = await p.getByRole('button', { name: /^לחבילה באתר / }).count();
     check('results', '"show all" expands the list', after > before, `${before} -> ${after}`);
   } else check('results', '"show all" present when there is more', false, 'button missing');
 
@@ -127,6 +127,9 @@ try {
   // an unscoped getByRole('checkbox') hits the sidebar filters instead, which
   // is how an earlier version of this test ticked "3GB" and reported success.
   const toggle = (name) => p.locator(`label:has-text("${name}")`);
+  // The compare checkbox lives under each card's "more details".
+  const cards = await p.locator('article').count();
+  for (let i = 0; i < cards; i++) await p.locator('article').nth(i).getByRole('button', { name: 'עוד פרטים' }).click();
   const n = await toggle('סמנו להשוואה').count();
   check('compare', 'each plan row offers a compare toggle', n >= 4, `${n} toggles`);
   for (let i = 0; i < 3; i++) { await toggle('סמנו להשוואה').first().click(); await p.waitForTimeout(280); }
@@ -522,7 +525,7 @@ try {
   check('extras', 'no offer before a plan is chosen', (await offers()) === 0);
 
   const urlBefore = p.url();
-  await p.locator('article').first().getByRole('button', { name: /מעבר לאתר/ }).first().click();
+  await p.locator('article').first().getByRole('button', { name: /לחבילה באתר/ }).first().click();
   await p.waitForTimeout(400);
 
   check('extras', 'the offer appears after the eSIM click', (await offers()) === 1);
@@ -533,7 +536,7 @@ try {
   check('extras', 'the offer says the link opens elsewhere', body.includes('נפתח בלשונית חדשה'));
 
   // A second plan must not stack a second offer.
-  await p.locator('article').nth(1).getByRole('button', { name: /מעבר לאתר/ }).first().click();
+  await p.locator('article').nth(1).getByRole('button', { name: /לחבילה באתר/ }).first().click();
   await p.waitForTimeout(300);
   check('extras', 'a second eSIM click does not stack a second offer', (await offers()) === 1);
 
@@ -547,7 +550,7 @@ try {
   await p.getByRole('button', { name: 'לא תודה' }).click();
   await p.waitForTimeout(300);
   check('extras', '"no thanks" hides the offer', (await offers()) === 0);
-  await p.locator('article').first().getByRole('button', { name: /מעבר לאתר/ }).first().click();
+  await p.locator('article').first().getByRole('button', { name: /לחבילה באתר/ }).first().click();
   await p.waitForTimeout(400);
   check('extras', 'and it stays hidden for the rest of the session', (await offers()) === 0);
 
@@ -555,7 +558,7 @@ try {
   const multi = await ctx.newPage();
   await multi.goto(B + '/search?to=FR:4,IT:6&usage=regular', { waitUntil: 'domcontentloaded' });
   await multi.waitForTimeout(1100);
-  await multi.getByRole('button', { name: /להצגה|מעבר לאתר|הצגה/ }).first().click();
+  await multi.getByRole('button', { name: /להצגה|לחבילה באתר|הצגה/ }).first().click();
   await multi.waitForTimeout(400);
   check('extras', 'a combination leg raises the offer too',
     (await multi.locator('section').filter({ hasText: OFFER }).count()) === 1);

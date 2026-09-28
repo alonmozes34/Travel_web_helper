@@ -147,7 +147,7 @@ await thumb.goto(`${BASE}/esim/thailand?days=14&usage=regular`, { waitUntil: 'do
 await thumb.waitForTimeout(700);
 const undersized = await thumb.evaluate(() => {
   // Matched on the accessible name so the check survives a restyle.
-  const wanted = [/^מעבר לאתר /, /^עוד פרטים$/, /^סינון ומיון$/, /הכי /, /^מטבע$/];
+  const wanted = [/^לחבילה באתר /, /^עוד פרטים$/, /^סינון ומיון$/, /הכי /, /^מטבע$/];
   const bad = [];
   for (const el of document.querySelectorAll('button, a[href], select')) {
     const name = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim();
