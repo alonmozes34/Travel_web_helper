@@ -6,6 +6,7 @@ import { getProvider } from '@/data/providers';
 import { mockFxRates } from '@/data/fxRates';
 import { outboundLink } from '@/lib/affiliate/link';
 import { buildComparison } from '@/lib/comparison/buildComparison';
+import { applyFilters, deriveFilterOptions, emptyFilters } from '@/lib/comparison/filter';
 import { planSourcesFromEnv } from '@/lib/catalogue/getCatalogue';
 import { mapYesimPlan } from '@/lib/sources/yesim/mapPlan';
 import type { YesimPlan } from '@/lib/sources/yesim/types';
@@ -202,5 +203,20 @@ describe('what the page may say about the Yesim price', () => {
   test('it is their listed price, not "what your card is charged", until the charge currency is confirmed', () => {
     assert.equal(getProvider('yesim')?.billingCurrency, 'not-confirmed');
     assert.equal(getProvider('alosim')?.billingCurrency, 'as-listed');
+  });
+});
+
+describe('the data filter', () => {
+  test('offers 500MB as 500MB, never as "0GB", and filters on the exact amount', () => {
+    const rows = buildComparison({
+      profile: { destinations: [{ countryCode: 'FR', days: 1 }], usage: 'light' },
+      currency: 'EUR',
+      plans: [planOf(europe)],
+      rates: mockFxRates,
+    }).rows;
+    const options = deriveFilterOptions(rows);
+    assert.deepEqual(options.dataMb, [500]);
+    assert.equal(applyFilters(rows, { ...emptyFilters, data: ['500'] }).length, 1);
+    assert.equal(applyFilters(rows, { ...emptyFilters, data: ['0'] }).length, 0);
   });
 });

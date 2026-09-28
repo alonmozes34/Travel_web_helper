@@ -1,4 +1,3 @@
-import { MB_PER_GB } from "@/lib/formatters/data";
 import { networksForDestinations } from "@/lib/types/network";
 import type { ComparisonRow } from "./buildComparison";
 
@@ -6,7 +5,7 @@ export const featureKeys = ["hotspot", "calls", "sms", "topUp"] as const;
 export type FeatureKey = (typeof featureKeys)[number];
 
 export type PlanFilters = {
-  /** GB values, plus 'unlimited'. */
+  /** Data amounts in MB, as strings, plus 'unlimited'. */
   data: string[];
   /** Validity in days. */
   validity: number[];
@@ -32,7 +31,11 @@ export const emptyFilters: PlanFilters = {
  * never offers a choice that returns nothing.
  */
 export type FilterOptions = {
-  dataGb: number[];
+  /**
+   * Exact amounts in MB. Not rounded to whole gigabytes: that made 500MB
+   * plans a "0GB" option, and put 1.5GB and 2GB under one "2GB" box.
+   */
+  dataMb: number[];
   hasUnlimited: boolean;
   validity: number[];
   operators: string[];
@@ -47,7 +50,7 @@ export function deriveFilterOptions(
   rows: ComparisonRow[],
   countryCodes: string[] = [],
 ): FilterOptions {
-  const dataGb = new Set<number>();
+  const dataMb = new Set<number>();
   const validity = new Set<number>();
   const operators = new Set<string>();
   const providers = new Map<string, string>();
@@ -55,8 +58,7 @@ export function deriveFilterOptions(
   let max = 0;
 
   for (const row of rows) {
-    if (!row.plan.isUnlimited)
-      dataGb.add(Math.round(row.plan.dataAmountMb / MB_PER_GB));
+    if (!row.plan.isUnlimited && row.plan.dataAmountMb > 0) dataMb.add(row.plan.dataAmountMb);
     validity.add(row.plan.validityDays);
     // Only operators the traveller can actually get at their destination. A
     // global plan's Thai operator is not a filter for a trip to Brazil.
@@ -72,7 +74,7 @@ export function deriveFilterOptions(
   }
 
   return {
-    dataGb: [...dataGb].sort((a, b) => a - b),
+    dataMb: [...dataMb].sort((a, b) => a - b),
     hasUnlimited: rows.some((row) => row.plan.isUnlimited),
     validity: [...validity].sort((a, b) => a - b),
     operators: [...operators].sort(),
@@ -96,9 +98,7 @@ export function applyFilters(
     const networks = networksForDestinations(plan.networks, countryCodes);
 
     if (filters.data.length > 0) {
-      const key = plan.isUnlimited
-        ? "unlimited"
-        : String(Math.round(plan.dataAmountMb / MB_PER_GB));
+      const key = plan.isUnlimited ? "unlimited" : String(plan.dataAmountMb);
       if (!filters.data.includes(key)) return false;
     }
 

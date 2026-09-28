@@ -12,6 +12,7 @@ import type {
 } from "@/lib/comparison/filter";
 import { featureKeys } from "@/lib/comparison/filter";
 import { formatPrice } from "@/lib/formatters/price";
+import { formatData } from "@/lib/formatters/data";
 import type { CurrencyCode } from "@/i18n/config";
 
 function Group({
@@ -63,13 +64,13 @@ export function FilterControls({
     <div>
       <Group title={dict.filters.data}>
         <div className="flex flex-col">
-          {options.dataGb.map((gb) => (
+          {options.dataMb.map((mb) => (
             <Checkbox
-              key={gb}
-              label={<Ltr className="tnum">{gb}GB</Ltr>}
-              checked={filters.data.includes(String(gb))}
+              key={mb}
+              label={<Ltr className="tnum">{formatData(mb, locale)}</Ltr>}
+              checked={filters.data.includes(String(mb))}
               onChange={() =>
-                onChange({ ...filters, data: toggle(filters.data, String(gb)) })
+                onChange({ ...filters, data: toggle(filters.data, String(mb)) })
               }
             />
           ))}
