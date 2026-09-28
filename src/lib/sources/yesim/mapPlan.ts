@@ -63,6 +63,7 @@ export function mapYesimPlan(item: YesimPlan, fetchedAt: string): MappedYesimPla
   const priceMinor = toMinor(item.price);
   if (priceMinor === null) return skip('missing-price', `price "${item.price}"`);
 
+  const planLink = yesimPlanLink(item);
   const allowance = unlimited ? 'Unlimited' : megabytes >= 1024 ? `${round1(megabytes / 1024)}GB` : `${megabytes}MB`;
 
   return {
@@ -86,14 +87,63 @@ export function mapYesimPlan(item: YesimPlan, fetchedAt: string): MappedYesimPla
       calls: null,
       sms: null,
       topUp: null,
-      // Their link lands on the destination's page, not the plan: the button
-      // says what to pick there.
-      affiliateUrl: item.url || null,
-      affiliateLandsOn: 'destination',
+      // The plan's own page where its address is known (`yesimPlanLink`);
+      // otherwise the destination page, which the catalogue does not list.
+      ...(planLink
+        ? { affiliateUrl: planLink, affiliateLandsOn: 'plan' as const }
+        : { affiliateUrl: item.url || null, affiliateLandsOn: 'destination' as const }),
       source: 'api',
       lastUpdatedAt: fetchedAt,
     },
   };
+}
+
+/**
+ * Off until the owner has opened a few built addresses for other countries
+ * and lengths (asked for on 28 September 2026) and seen each open on its
+ * plan: one address, for Japan, is the whole evidence so far. While off,
+ * every Yesim plan keeps its destination link and stays off the site.
+ */
+export const YESIM_PLAN_PAGES = false;
+
+/**
+ * The address of a plan's own page on yesim.app, with our partner id — or
+ * null where that address is not known.
+ *
+ * Their API gives only the destination page. Their plan pages follow a
+ * pattern the owner found on their site on 28 September 2026:
+ *
+ *   https://yesim.app/country/japan/10days-unlimited-esim-data-plan/
+ *
+ * which opened on Japan, unlimited, 10 days at the API's €28.81, and did the
+ * same with `?partner_id=` added (their dashboard: "add your partner ID to any
+ * URL on yesim.app"). Only that shape is built: a single-country unlimited
+ * plan of two days or more. One day ("1day" or "1days"?), plans with a data
+ * cap, regions and global plans have not been seen, so they get null and stay
+ * off the site rather than send someone to a page that may not exist.
+ */
+export function yesimPlanLink(
+  item: YesimPlan,
+  { enabled = YESIM_PLAN_PAGES }: { enabled?: boolean } = {},
+): string | null {
+  if (!enabled) return null;
+  if (!item.country_code || item.capacity.trim() !== '-1') return null;
+  const days = Number(item.period);
+  if (!(Number.isInteger(days) && days >= 2)) return null;
+
+  let destination: URL;
+  let partnerId: string | null;
+  try {
+    destination = new URL(item.directLink);
+    partnerId = new URL(item.url).searchParams.get('partner_id');
+  } catch {
+    return null;
+  }
+  if (destination.hostname !== 'yesim.app' || !/^\/country\/[a-z0-9-]+\/?$/.test(destination.pathname)) return null;
+  if (!partnerId || !/^\d+$/.test(partnerId)) return null;
+
+  const base = destination.pathname.replace(/\/+$/, '');
+  return `https://yesim.app${base}/${days}days-unlimited-esim-data-plan/?partner_id=${partnerId}`;
 }
 
 function coverageFor(item: YesimPlan): PlanCoverage | null {
