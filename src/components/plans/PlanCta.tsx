@@ -10,7 +10,9 @@ import { outboundLink } from "@/lib/affiliate/link";
 import { track } from "@/lib/analytics/events";
 import type { ComparisonRow } from "@/lib/comparison/buildComparison";
 import { isPresentableDiscount } from "@/lib/types/discount";
-import { BeforeYouGo } from "./BeforeYouGo";
+import { useTripExtras } from "@/components/extras/TripExtrasProvider";
+import { BeforeYouGo, beforeYouGoSnoozed } from "./BeforeYouGo";
+import { copyText } from "./CopyCodeButton";
 
 /**
  * Primary call to action.
@@ -58,6 +60,9 @@ export function PlanCta({
   const { discount } = row.plan;
   const codeToType =
     discount && !discount.appliedByLink && isPresentableDiscount(discount, demoDataEnabled) ? discount : null;
+  // The car question, when a real rental network is connected.
+  const askCar = Boolean(useTripExtras()?.carRentalOffer);
+  const hasDialog = Boolean(codeToType || askCar);
   const link = outboundLink(row.plan, locale);
   const label = interpolate(dict.plan.viewAtTemplate, {
     provider: row.provider.name,
@@ -83,9 +88,16 @@ export function PlanCta({
             rel={link.rel}
             target={link.target}
             onClick={(event) => {
-              if (codeToType) {
+              if (hasDialog && !beforeYouGoSnoozed()) {
                 event.preventDefault();
                 setBeforeYouGo(true);
+                return;
+              }
+              if (hasDialog) {
+                // Snoozed: straight through, with the code in hand, and no car
+                // question on the page either — "not for ten minutes" means it.
+                if (codeToType) void copyText(codeToType.code);
+                track({ name: "provider_clicked", planId: row.plan.id, providerId: row.plan.providerId });
                 return;
               }
               recordClick();
@@ -143,7 +155,7 @@ export function PlanCta({
           })}
         </p>
       ) : null}
-      {link && codeToType ? (
+      {link && hasDialog ? (
         <BeforeYouGo
           open={beforeYouGo}
           onClose={() => setBeforeYouGo(false)}

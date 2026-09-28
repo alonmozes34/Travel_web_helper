@@ -710,7 +710,12 @@ export const en: Dictionary = {
     titleTemplate: 'Before you go to {provider}',
     pasteAtTemplate: 'Paste the code at checkout on {provider}.',
     continueTemplate: 'Continue to the plan at {provider}',
-    copiesOnContinue: 'The button copies the code too',
+    copiesOnContinue: 'The buttons that go on to the plan copy the code too',
+    carYes: 'Yes, compare cars',
+    carNoTemplate: 'No, continue to the plan at {provider}',
+    carOpened: 'The car comparison opened in a new tab. You can go on to the plan from here.',
+    continueAndSnooze: "Continue, and don't show this for 10 minutes",
+    cancel: 'Cancel',
   },
   tripExtras: {
     heading: 'One more thing for your trip',

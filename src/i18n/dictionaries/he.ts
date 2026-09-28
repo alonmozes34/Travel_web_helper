@@ -744,7 +744,12 @@ export const he = {
     titleTemplate: 'רגע לפני שממשיכים ל־{provider}',
     pasteAtTemplate: 'מדביקים את הקוד בשלב התשלום באתר {provider}.',
     continueTemplate: 'להמשך לחבילה באתר {provider}',
-    copiesOnContinue: 'הכפתור מעתיק את הקוד גם בעצמו',
+    copiesOnContinue: 'הכפתורים שממשיכים לחבילה מעתיקים את הקוד גם בעצמם',
+    carYes: 'כן, להשוואת רכבים',
+    carNoTemplate: 'לא, להמשך לחבילה באתר {provider}',
+    carOpened: 'השוואת הרכבים נפתחה בלשונית חדשה. אפשר להמשיך לחבילה מכאן.',
+    continueAndSnooze: 'להמשך, ובלי החלון הזה ב־10 הדקות הקרובות',
+    cancel: 'ביטול',
   },
   tripExtras: {
     heading: 'עוד דבר אחד לטיול',

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
-import { buttonClasses } from '@/components/ui/Button';
+import { useEffect, useState } from 'react';
+import { Button, buttonClasses } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { useTripExtras } from '@/components/extras/TripExtrasProvider';
 import { getCountryByCode } from '@/data/countries';
@@ -15,19 +15,45 @@ import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import type { Discount } from '@/lib/types/discount';
 import { CopyCodeButton, copyText } from './CopyCodeButton';
 
+/** How long "continue, and don't show this again" holds. The owner's figure. */
+const SNOOZE_MS = 10 * 60 * 1000;
+const SNOOZE_KEY = 'yeshklita.beforeYouGo.snoozedUntil';
+
 /**
- * Between "see this plan" and the provider's page, when there is a code to
- * type there.
+ * Whether the dialog is snoozed. Browser storage may be missing or refuse
+ * (a private window, blocked site data); then it is simply not snoozed.
+ */
+export function beforeYouGoSnoozed(now = Date.now()): boolean {
+  try {
+    return Number(window.localStorage.getItem(SNOOZE_KEY) ?? 0) > now;
+  } catch {
+    return false;
+  }
+}
+
+function snooze(now = Date.now()) {
+  try {
+    window.localStorage.setItem(SNOOZE_KEY, String(now + SNOOZE_MS));
+  } catch {
+    // Not remembered; the dialog will simply ask again.
+  }
+}
+
+/**
+ * Between "see this plan" and the provider's page, when there is something
+ * worth a moment first: a discount code to type at the provider's checkout,
+ * or — once a real rental network is connected — whether they need a car.
  *
- * The owner's ask: a traveller who leaves without the code pays full price,
- * and one who has to come back for it may not. So the button opens this
- * instead of the provider: the code, a button that copies it, and the way on —
- * which copies it as well, so nobody arrives at the provider's checkout
- * without it. When a real rental network is connected, the car question is
- * asked here too, once, rather than on the page afterwards.
+ * The owner's design, 28 September 2026:
+ * - **Yes** (a car): the rental comparison opens in a new tab, and the dialog
+ *   stays, so the plan is still one tap away.
+ * - **No, go to the plan**: the dialog closes and the plan opens.
+ * - **Cancel**: nothing happens; the click is undone.
+ * - **Continue, and not again for ten minutes**: the plan opens, and the next
+ *   ten minutes of clicks go straight through.
  *
- * It never stands in the way: the way on is the first control after the code,
- * and closing the dialog leaves the traveller exactly where they were.
+ * Every way on to the plan copies the discount code as well, so nobody
+ * arrives at the provider's checkout without it.
  */
 export function BeforeYouGo({
   open,
@@ -42,15 +68,17 @@ export function BeforeYouGo({
   open: boolean;
   onClose: () => void;
   row: ComparisonRow;
-  discount: Discount;
+  /** A code to type at the provider's checkout, if there is one. */
+  discount: Discount | null;
   link: OutboundLink;
   dict: Dictionary;
   locale: Locale;
-  /** Raised as the traveller goes on; says whether the car was asked about here. */
+  /** Raised as the traveller goes on to the plan; says whether the car was asked about here. */
   onContinue: (askedAboutCar: boolean) => void;
 }) {
   const extras = useTripExtras();
   const askCar = Boolean(extras?.carRentalOffer);
+  const [carOpened, setCarOpened] = useState(false);
   const copy = dict.beforeYouGo;
   const provider = row.provider.name;
 
@@ -64,47 +92,43 @@ export function BeforeYouGo({
   const carHref = extras
     ? `${localePath(locale, '/car-rental')}${rentalQueryToParams(defaultRentalQuery(extras.countryCode ?? '', extras.tripDays))}`
     : null;
-  const promo = interpolate(
-    discount.audience === 'everyone' ? dict.plan.sitePromoTemplate : dict.plan.firstPurchasePromoTemplate,
-    // Isolated, or the bidi algorithm puts the % sign on the wrong side of
-    // the number in a Hebrew sentence ("%17").
-    { percent: `\u2068${discount.percent}%\u2069` },
+
+  const goOn = (thenSnooze: boolean) => {
+    if (discount) void copyText(discount.code);
+    if (thenSnooze) snooze();
+    if (askCar && !carOpened) {
+      track({ name: 'car_rental_offer_no', countryCode: extras?.countryCode ?? '', planId: row.plan.id });
+    }
+    onContinue(askCar);
+  };
+
+  // The way on to the plan, as a real link: it opens the provider in a new
+  // tab from the traveller's own click, which no popup blocker stops.
+  const toPlan = (label: string, variant: 'primary' | 'secondary', thenSnooze = false) => (
+    <a
+      href={link.href}
+      rel={link.rel}
+      target={link.target}
+      onClick={() => goOn(thenSnooze)}
+      className={buttonClasses(variant, 'md', 'w-full py-2 text-center')}
+    >
+      {label}
+      <span className="sr-only"> {dict.plan.opensInNewTab}</span>
+    </a>
   );
 
   return (
-    <Sheet open={open} onClose={onClose} title={interpolate(copy.titleTemplate, { provider })} closeLabel={dict.common.close}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={interpolate(copy.titleTemplate, { provider })}
+      closeLabel={dict.common.close}
+    >
       <div className="grid gap-4">
-        <div className="rounded-md bg-teal-50 p-4">
-          <p className="font-head font-semibold text-teal-ink">
-            <span aria-hidden="true">🏷️ </span>
-            {promo}
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <span dir="ltr" className="rounded-sm border border-dashed border-teal-ink bg-surface px-3 py-2 font-mono text-lg font-bold tracking-wider select-all">
-              {discount.code}
-            </span>
-            <CopyCodeButton code={discount.code} label={dict.plan.copyCode} copiedLabel={dict.plan.codeCopied} />
-          </div>
-          <p className="mt-2 text-sm text-ink-2">{interpolate(copy.pasteAtTemplate, { provider })}</p>
-        </div>
-
-        <a
-          href={link.href}
-          rel={link.rel}
-          target={link.target}
-          onClick={() => {
-            void copyText(discount.code);
-            onContinue(askCar);
-          }}
-          className={buttonClasses('primary', 'md', 'w-full')}
-        >
-          {interpolate(copy.continueTemplate, { provider })}
-          <span className="sr-only"> {dict.plan.opensInNewTab}</span>
-        </a>
-        <p className="-mt-2 text-center text-sm text-ink-2">{copy.copiesOnContinue}</p>
+        {discount ? <CodeBox discount={discount} provider={provider} dict={dict} /> : null}
 
         {askCar && carHref ? (
-          <div className="border-t border-line-soft pt-4">
+          <div className="rounded-md border border-line p-4">
             <p className="font-head font-semibold">
               <span aria-hidden="true">🚗 </span>
               {country
@@ -112,21 +136,66 @@ export function BeforeYouGo({
                 : dict.tripExtras.carRental.questionGeneric}
             </p>
             <p className="mt-1 text-sm text-ink-2">{dict.tripExtras.carRental.body}</p>
-            <a
-              href={carHref}
-              target="_blank"
-              rel="noopener"
-              onClick={() =>
-                track({ name: 'car_rental_offer_yes', countryCode: extras?.countryCode ?? '', planId: row.plan.id })
-              }
-              className={buttonClasses('secondary', 'md', 'mt-3')}
-            >
-              {dict.tripExtras.carRental.accept}
-              <span className="sr-only"> {dict.tripExtras.carRental.opensInNewTab}</span>
-            </a>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <a
+                href={carHref}
+                target="_blank"
+                rel="noopener"
+                onClick={() => {
+                  setCarOpened(true);
+                  track({ name: 'car_rental_offer_yes', countryCode: extras?.countryCode ?? '', planId: row.plan.id });
+                }}
+                className={buttonClasses('secondary', 'md', 'w-full border-brand py-2 text-center')}
+              >
+                {copy.carYes}
+                <span className="sr-only"> {dict.tripExtras.carRental.opensInNewTab}</span>
+              </a>
+              {toPlan(interpolate(copy.carNoTemplate, { provider }), 'primary')}
+            </div>
+            <p className="mt-2 text-sm text-ink-2" aria-live="polite">
+              {carOpened ? copy.carOpened : ''}
+            </p>
           </div>
         ) : null}
+
+        {/* With the car question, "no" is the way on; without it, this is. */}
+        {askCar ? null : toPlan(interpolate(copy.continueTemplate, { provider }), 'primary')}
+        {discount ? <p className="-mt-2 text-center text-sm text-ink-2">{copy.copiesOnContinue}</p> : null}
+
+        <div className="grid gap-2 border-t border-line-soft pt-4 sm:grid-cols-2">
+          {toPlan(copy.continueAndSnooze, 'secondary', true)}
+          <Button variant="quiet" onClick={onClose} className="w-full">
+            {copy.cancel}
+          </Button>
+        </div>
       </div>
     </Sheet>
+  );
+}
+
+function CodeBox({ discount, provider, dict }: { discount: Discount; provider: string; dict: Dictionary }) {
+  const promo = interpolate(
+    discount.audience === 'everyone' ? dict.plan.sitePromoTemplate : dict.plan.firstPurchasePromoTemplate,
+    // Isolated, or the bidi algorithm puts the % sign on the wrong side of
+    // the number in a Hebrew sentence ("%17").
+    { percent: `⁨${discount.percent}%⁩` },
+  );
+  return (
+    <div className="rounded-md bg-teal-50 p-4">
+      <p className="font-head font-semibold text-teal-ink">
+        <span aria-hidden="true">🏷️ </span>
+        {promo}
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <span
+          dir="ltr"
+          className="rounded-sm border border-dashed border-teal-ink bg-surface px-3 py-2 font-mono text-lg font-bold tracking-wider select-all"
+        >
+          {discount.code}
+        </span>
+        <CopyCodeButton code={discount.code} label={dict.plan.copyCode} copiedLabel={dict.plan.codeCopied} />
+      </div>
+      <p className="mt-2 text-sm text-ink-2">{interpolate(dict.beforeYouGo.pasteAtTemplate, { provider })}</p>
+    </div>
   );
 }

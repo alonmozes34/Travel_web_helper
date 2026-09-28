@@ -110,41 +110,41 @@ export const YESIM_PLAN_PAGES = true;
  * The address of a plan's own page on yesim.app, with our partner id — or
  * null where that address is not known.
  *
- * Their API gives only the destination page. Their plan pages follow a
- * pattern the owner found on their site on 28 September 2026:
+ * Their API gives only the destination page. Their plan pages follow one
+ * pattern, which the owner read off their site on 28 September 2026 for every
+ * kind of plan they sell — the destination page, then days, then allowance:
  *
- *   https://yesim.app/country/japan/10days-unlimited-esim-data-plan/
+ *   /country/japan/10days-unlimited-esim-data-plan/
+ *   /country/japan/1days-unlimited-esim-data-plan/          ("1days", not "1day")
+ *   /country/japan/30days-10gb-esim-data-plan/
+ *   /regions/europe-esim/1days-500mb-esim-data-plan/        (under 1GB in MB)
+ *   /regions/asia-pacific-esim/7days-unlimited-esim-data-plan/
+ *   /global/global-package-esim/30days-10gb-esim-data-plan/
  *
- * which opened on Japan, unlimited, 10 days at the API's €28.81, and did the
- * same with `?partner_id=` added (their dashboard: "add your partner ID to any
- * URL on yesim.app"). The same day the owner sent the capped shape, days
- * first and whole gigabytes after:
- *
- *   https://yesim.app/country/japan/30days-10gb-esim-data-plan/
- *   https://yesim.app/country/turkey/30days-1gb-esim-data-plan/
- *
- * Only those two shapes are built, for single-country plans of two days or
- * more. One day ("1day" or "1days"?), amounts under a gigabyte or not a whole
- * number of them ("500mb"? "0.5gb"?), regions and global plans have not been
- * seen, so they get null and stay off the site rather than send someone to a
- * page that may not exist.
+ * The first opened on Japan, unlimited, 10 days at the API's €28.81, and did
+ * the same with `?partner_id=` added (their dashboard: "add your partner ID to
+ * any URL on yesim.app"). What has not been seen is not built: an allowance
+ * over 1GB that is not a whole number of gigabytes, and the "Unlim Day Pass",
+ * whose page is a different product. Those get null and stay off the site.
  */
 export function yesimPlanLink(
   item: YesimPlan,
   { enabled = YESIM_PLAN_PAGES }: { enabled?: boolean } = {},
 ): string | null {
   if (!enabled) return null;
-  if (!item.country_code) return null;
   const days = Number(item.period);
-  if (!(Number.isInteger(days) && days >= 2)) return null;
+  if (!(Number.isInteger(days) && days >= 1)) return null;
   const capacity = item.capacity.trim();
   const megabytes = Number(capacity);
+  const whole = item.capacityUnit === 'MB' && Number.isInteger(megabytes) && megabytes > 0;
   const allowance =
     capacity === '-1'
       ? 'unlimited'
-      : item.capacityUnit === 'MB' && Number.isInteger(megabytes) && megabytes > 0 && megabytes % 1024 === 0
+      : whole && megabytes % 1024 === 0
         ? `${megabytes / 1024}gb`
-        : null;
+        : whole && megabytes < 1024
+          ? `${megabytes}mb`
+          : null;
   if (!allowance) return null;
 
   let destination: URL;
@@ -155,10 +155,11 @@ export function yesimPlanLink(
   } catch {
     return null;
   }
-  if (destination.hostname !== 'yesim.app' || !/^\/country\/[a-z0-9-]+\/?$/.test(destination.pathname)) return null;
+  const base = destination.pathname.replace(/\/+$/, '');
+  if (destination.hostname !== 'yesim.app' || !/^\/(country|regions|global)\/[a-z0-9-]+$/.test(base)) return null;
+  if (base === '/global/daypass-esim') return null;
   if (!partnerId || !/^\d+$/.test(partnerId)) return null;
 
-  const base = destination.pathname.replace(/\/+$/, '');
   return `https://yesim.app${base}/${days}days-${allowance}-esim-data-plan/?partner_id=${partnerId}`;
 }
 
