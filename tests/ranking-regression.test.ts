@@ -163,3 +163,25 @@ test('"best value" goes to a plan that does the job, not one in the "not enough"
   assert.equal(best?.plan.id, 'th-unlimited-14d');
   assert.equal(best?.isBelowEstimatedNeed, false);
 });
+
+test("the page keeps the comparison's order under 'recommended', repairs included", async () => {
+  const { sortRows } = await import('@/lib/comparison/sort');
+  const rows = comparison.rows;
+  assert.deepEqual(sortRows(rows, 'recommended').map((row) => row.plan.id), rows.map((row) => row.plan.id));
+});
+
+test('an unlimited month slowed to a usable 1Mbps beats a far dearer 80GB, 365-day plan for heavy use', () => {
+  const fr = { kind: 'country' as const, countries: ['FR'], regionId: null, publishedDestinationCount: null };
+  const world = { kind: 'global' as const, countries: ['FR', 'US', 'JP'], regionId: null, publishedDestinationCount: null };
+  const ranked = buildComparison({
+    profile: { destinations: [{ countryCode: 'FR', days: 30 }], usage: 'heavy' },
+    currency: 'USD',
+    plans: [
+      plan('fr-50gb-30d', { coverage: fr, networks: [], dataAmountMb: 50 * MB_PER_GB, ...price(50) }),
+      plan('fr-unlimited-30d', { coverage: fr, networks: [], isUnlimited: true, fairUsage: capped, ...price(68) }),
+      plan('global-80gb-365d', { providerId: 'yesim', coverage: world, networks: [], dataAmountMb: 80 * MB_PER_GB, validityDays: 365, ...price(124) }),
+    ],
+    rates: mockFxRates,
+  }).rows.map((row) => row.plan.id);
+  assert.ok(ranked.indexOf('fr-unlimited-30d') < ranked.indexOf('global-80gb-365d'), ranked.join(' > '));
+});

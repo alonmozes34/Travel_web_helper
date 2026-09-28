@@ -156,13 +156,36 @@ export function fairUsageFactor(plan: Plan, estimate: DataNeedEstimate): number 
   // A cap the provider mentions without a figure could be anything down to
   // nothing, so it scores as the least generous cap. Otherwise a provider that
   // says less would rank above one that states its terms.
-  if (plan.isUnlimited && plan.fairUsage && !plan.fairUsage.thresholdMb && estimate.dailyMb > 0) return 0.6;
+  if (plan.isUnlimited && plan.fairUsage && !plan.fairUsage.thresholdMb && estimate.dailyMb > 0) {
+    return fairUsageFloor(plan);
+  }
   const threshold = dailyFullSpeedMb(plan.fairUsage, plan.validityDays);
   if (!plan.isUnlimited || !threshold || estimate.dailyMb <= 0) return 1;
   const ratio = threshold / estimate.dailyMb;
   if (ratio >= 1) return 1;
-  // 0.6 at a cap of zero, rising to 1 at a cap that meets the daily need.
-  return 0.6 + 0.4 * Math.max(0, ratio);
+  // The floor at a cap of zero, rising to 1 at a cap that meets the daily need.
+  const floor = fairUsageFloor(plan);
+  return floor + (1 - floor) * Math.max(0, ratio);
+}
+
+/**
+ * What an unlimited plan keeps at its worst reading — a cap of nothing, then
+ * the slowed speed for the whole trip — which depends on that speed.
+ *
+ * At a stated 1Mbps or more, maps, messaging and email still work, and the
+ * plan keeps three quarters of its value: at a flat 0.6, an 80GB, 365-day plan
+ * at ₪377 ranked above aloSIM's unlimited month at ₪206 (1Mbps after the cap)
+ * for heavy use in France (audit of 360 live searches, 28 September 2026).
+ * Slower than that (256kbps barely loads a page), or not stated, 0.6 — so a
+ * provider that says nothing still never scores above one that states a
+ * usable speed.
+ */
+export const FAIR_USAGE_FLOOR = { usable: 0.75, other: 0.6 } as const;
+const USABLE_THROTTLE_KBPS = 1000;
+
+function fairUsageFloor(plan: Plan): number {
+  const speed = plan.fairUsage?.throttledToKbps ?? 0;
+  return speed >= USABLE_THROTTLE_KBPS ? FAIR_USAGE_FLOOR.usable : FAIR_USAGE_FLOOR.other;
 }
 
 /**

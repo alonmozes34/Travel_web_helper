@@ -33,6 +33,10 @@ export function sortRows(rows: ComparisonRow[], key: SortKey): ComparisonRow[] {
       return sorted.sort((a, b) => b.plan.validityDays - a.plan.validityDays);
     case 'recommended':
     default:
-      return sorted.sort((a, b) => b.score - a.score);
+      // The order the comparison already put them in: by score, then repaired
+      // so that no plan sits below a cheaper one with the same days and data
+      // (`dominates`). Re-sorting by score here undid that repair on the page
+      // — 27 of 360 audited searches after it shipped.
+      return sorted;
   }
 }
