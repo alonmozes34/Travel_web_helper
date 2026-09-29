@@ -33,6 +33,8 @@ import type { RecommendationKey } from "@/lib/comparison/recommend";
 import { DEFAULT_SORT, sortRows, sortKeys, type SortKey } from "@/lib/comparison/sort";
 import { useTripExtras } from "@/components/extras/TripExtrasProvider";
 import { RecommendationTabs } from "./RecommendationTabs";
+import { TagLegend } from "./TagLegend";
+import type { BestValueWhy } from "@/lib/comparison/explainBestValue";
 
 /** Each category is an ordering preset; unlimited also narrows the list. */
 const tabSort: Record<RecommendationKey, SortKey> = {
@@ -52,6 +54,7 @@ export function ResultsView({
   demoDataEnabled,
   demoDataMixed,
   availableRecommendations,
+  bestValueWhy = null,
   initialFilters,
   initialSort,
 }: {
@@ -65,6 +68,8 @@ export function ResultsView({
   /** Real and demo plans share this page, so each demo row is marked. */
   demoDataMixed: boolean;
   availableRecommendations: RecommendationKey[];
+  /** What the extra money buys, when "best value" is not the cheapest plan. */
+  bestValueWhy?: BestValueWhy | null;
   /** Parsed on the server from the URL, so a shared filtered link renders
       the same markup on both sides and needs no post-hydration correction. */
   initialFilters: PlanFilters;
@@ -243,6 +248,15 @@ export function ResultsView({
     canSelect: selectedIds.length < MAX_COMPARE,
     onSelect: (isSelected: boolean) => toggleSelected(row.plan.id, isSelected),
     onChosen: () => tripExtras?.choose(row.plan.id),
+    bestValueWhy:
+      bestValueWhy && row.badges.includes("bestValue")
+        ? {
+            ...bestValueWhy,
+            cheapestProvider:
+              rows.find((other) => other.plan.id === bestValueWhy.cheapestPlanId)?.provider.name ?? null,
+            currency: row.price.currency,
+          }
+        : null,
   });
 
   return (
@@ -323,6 +337,8 @@ export function ResultsView({
           </p>
         </details>
       ) : null}
+
+      <TagLegend available={availableRecommendations} dict={dict} />
 
       {tab === "bestForBrowsing" ? (
         <p className="mb-4 rounded-sm bg-brand-50 px-3 py-2 text-sm text-ink-2">

@@ -8,7 +8,9 @@ import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
+import type { BestValueWhy } from '@/lib/comparison/explainBestValue';
 import { recommendationKeys, type RecommendationKey } from '@/lib/comparison/recommend';
+import type { CurrencyCode } from '@/i18n/config';
 import { formatData } from '@/lib/formatters/data';
 import { formatPrice } from '@/lib/formatters/price';
 import { CompareToggle } from './CompareToggle';
@@ -53,6 +55,7 @@ export function PlanListItem({
   canSelect,
   onSelect,
   onChosen,
+  bestValueWhy = null,
 }: {
   row: ComparisonRow;
   locale: Locale;
@@ -67,6 +70,8 @@ export function PlanListItem({
   onSelect: (selected: boolean) => void;
   /** Raised when this row's outbound link is followed. */
   onChosen?: () => void;
+  /** On the "best value" card only, when it is not the cheapest: what the extra buys. */
+  bestValueWhy?: (BestValueWhy & { cheapestProvider: string | null; currency: CurrencyCode }) | null;
 }) {
   const { plan } = row;
   const isBestValue = row.badges.includes('bestValue');
@@ -116,6 +121,23 @@ export function PlanListItem({
           ) : null}
         </div>
       </div>
+      {/* A badge on a dearer plan says what the extra money buys, in facts the
+          providers published — otherwise it reads as a mistake, or as a paid
+          placement. */}
+      {bestValueWhy ? (
+        <p className="mt-2 text-sm text-ink-2">
+          {interpolate(
+            bestValueWhy.cheapestProvider ? dict.recommendations.whyTemplate : dict.recommendations.whyTemplateNoProvider,
+            {
+              extra: formatPrice(bestValueWhy.extraMinor, bestValueWhy.currency, locale),
+              provider: bestValueWhy.cheapestProvider ?? '',
+            },
+          )}{' '}
+          {bestValueWhy.reasons.length
+            ? bestValueWhy.reasons.map((reason) => dict.recommendations.reasons[reason]).join(' · ')
+            : dict.recommendations.whyNoFact}
+        </p>
+      ) : null}
       <CoverageNote coverage={plan.coverage} locale={locale} dict={dict} />
 
       <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:gap-6">

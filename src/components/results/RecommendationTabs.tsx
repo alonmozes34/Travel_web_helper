@@ -4,7 +4,7 @@ import { cn } from '@/components/ui/cn';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { recommendationKeys, type RecommendationKey } from '@/lib/comparison/recommend';
 
-const icons: Record<RecommendationKey, string> = {
+export const recommendationIcons: Record<RecommendationKey, string> = {
   bestValue: '🏆',
   cheapest: '💰',
   bestForBrowsing: '📶',
@@ -56,7 +56,7 @@ export function RecommendationTabs({
               : 'border-line bg-surface text-ink-2 hover:border-brand hover:text-brand',
           )}
         >
-          <span aria-hidden="true">{icons[key]}</span>
+          <span aria-hidden="true">{recommendationIcons[key]}</span>
           {dict.recommendations[key]}
         </button>
       ))}
