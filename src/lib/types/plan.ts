@@ -97,11 +97,13 @@ export type Plan = {
    */
   affiliateUrl: string | null;
   /**
-   * Where that link lands: on this plan, or on the provider's page for the
-   * destination, where the traveller still has to pick it out. Only in the
-   * second case does the button say which plan to pick.
+   * Where that link lands: on this plan; on the provider's page for the
+   * destination with this plan's duration already chosen, so the plan is one
+   * of the few on screen (`'duration'`); or on the destination page, where the
+   * traveller still has to find it. Unless it lands on the plan, the button
+   * says which plan to pick.
    */
-  affiliateLandsOn?: 'plan' | 'destination';
+  affiliateLandsOn?: 'plan' | 'duration' | 'destination';
   /**
    * The same link in the visitor's language, where the provider has a page in
    * it: a Hebrew reader lands on the provider's Hebrew page for the plan.

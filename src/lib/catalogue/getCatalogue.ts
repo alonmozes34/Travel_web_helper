@@ -7,6 +7,7 @@ import type { RateSource } from '@/lib/sources/RateSource';
 import { ecbRateSource } from '@/lib/sources/ecb/ecbRateSource';
 import { alosimCredentialsFromEnv, alosimSource } from '@/lib/sources/alosim/alosimSource';
 import { yesimPartnerIdFromEnv, yesimSource } from '@/lib/sources/yesim/yesimSource';
+import { zensimAffiliateIdFromEnv, zensimSource } from '@/lib/sources/zensim/zensimSource';
 import { mockPlanSource, mockRateSource } from '@/lib/sources/mockPlanSource';
 import { cached } from './cache';
 
@@ -48,7 +49,8 @@ export type CatalogueSources = { plans: ProviderSource[]; rates: RateSource[] };
  * The sources in play.
  *
  * Plans come from every provider configured in the environment — aloSIM
- * (`ALOSIM_CLIENT_ID`/`ALOSIM_CLIENT_SECRET`) and Yesim (`YESIM_PARTNER_ID`). The demo catalogue is never mixed in with them: a real price beside
+ * (`ALOSIM_CLIENT_ID`/`ALOSIM_CLIENT_SECRET`), Yesim (`YESIM_PARTNER_ID`) and
+ * ZenSim (`ZENSIM_AFFILIATE_ID`). The demo catalogue is never mixed in with them: a real price beside
  * an invented one tells a traveller nothing, and a search engine would index
  * the invented one as an offer. It runs only where it is asked for by name
  * (`DEMO_CATALOGUE=true`), for development and the test suites, and only when
@@ -62,9 +64,11 @@ export type CatalogueSources = { plans: ProviderSource[]; rates: RateSource[] };
 export function planSourcesFromEnv(env: Record<string, string | undefined> = process.env): ProviderSource[] {
   const alosim = alosimCredentialsFromEnv(env);
   const yesim = yesimPartnerIdFromEnv(env);
+  const zensim = zensimAffiliateIdFromEnv(env);
   const real = [
     ...(alosim ? [alosimSource({ credentials: alosim })] : []),
     ...(yesim ? [yesimSource({ partnerId: yesim })] : []),
+    ...(zensim ? [zensimSource({ affiliateId: zensim })] : []),
   ];
   if (real.length > 0) return real;
   return env.DEMO_CATALOGUE === 'true' ? [mockPlanSource()] : [];
@@ -167,10 +171,21 @@ export function catalogueLoader(
  * has no link at all is left out, and comes back by itself when its source
  * starts issuing plan-level links. The demo catalogue has no links by design
  * and is exempt; it never reaches production.
+ *
+ * One exception, the owner's own (29 September 2026), for the providers in
+ * `DURATION_LINK_ALLOWED` only: a link that opens the destination's page with
+ * the plan's duration already chosen, the plan among the three or four on
+ * screen — "if the links bring me to where I can choose the right plan for the
+ * region and the number of days, that's great". ZenSim issue no plan-level
+ * link. No other provider gets this without the owner saying so.
  */
+export const DURATION_LINK_ALLOWED: ReadonlySet<string> = new Set(['zensim']);
+
 export function buyLinkLandsOnPlan(plan: Plan): boolean {
   if (plan.source === 'mock') return true;
-  return Boolean(plan.affiliateUrl) && plan.affiliateLandsOn === 'plan';
+  if (!plan.affiliateUrl) return false;
+  if (plan.affiliateLandsOn === 'plan') return true;
+  return plan.affiliateLandsOn === 'duration' && DURATION_LINK_ALLOWED.has(plan.providerId);
 }
 
 const defaultLoader = catalogueLoader();

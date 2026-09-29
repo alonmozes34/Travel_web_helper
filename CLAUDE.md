@@ -60,6 +60,22 @@ any real plan whose link lands anywhere else. Yesim is connected
 country page; it returns by itself if they issue plan-level links. Do not
 weaken the rule to show a provider — ask the provider for plan links.
 
+**The one exception is ZenSim, and it is the owner's own (29 September
+2026).** ZenSim have no plan-level link and no price feed. The owner allowed,
+for ZenSim only:
+
+- a link that opens their country page on the plan's duration, with the plan
+  among the three or four on screen (`affiliateLandsOn: 'duration'`, allowed
+  only for providers in `DURATION_LINK_ALLOWED`). The card says which plan to
+  pick there. "If the links bring me to where I can choose the right plan for
+  the region and the number of days, that's great."
+- reading their prices from their own country pages — only the schema.org
+  data they publish for search engines, every six hours
+  (`src/lib/sources/zensim/`). Their private GraphQL backend is not used.
+
+Neither extends to any other provider without the owner saying so. If ZenSim
+ever offer a feed or plan links, switch to those.
+
 ## Versions
 
 The owner asked to be able to follow what changed. Every change that reaches

@@ -36,6 +36,19 @@ export const providers: Provider[] = [
     // Yesim price in pounds.
     billingCurrency: 'not-confirmed',
   },
+  {
+    id: 'zensim',
+    name: 'ZenSim',
+    slug: 'zensim',
+    // No logo yet; the tile shows the initial on this colour. Their site is
+    // lime and lilac, neither of which carries white text; this is the lilac
+    // darkened until white on it reads above 7:1.
+    brandColor: '#6B21A8',
+    activation: null,
+    // Their pages price in US dollars. What an Israeli card is charged in has
+    // not been confirmed.
+    billingCurrency: 'not-confirmed',
+  },
 ];
 
 /** A real provider first; the demo ones exist only for the demo catalogue. */

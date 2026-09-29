@@ -150,7 +150,7 @@ export function PlanCta({
       {/* The link opens the provider's page for the destination, where this
           plan sits among the others; say which one to pick, in the terms the
           provider's own page uses. */}
-      {link && row.plan.affiliateLandsOn === "destination" ? (
+      {link && (row.plan.affiliateLandsOn === "destination" || row.plan.affiliateLandsOn === "duration") ? (
         <p className="text-sm font-semibold text-ink">
           {interpolate(dict.plan.pickThereTemplate, {
             provider: row.provider.name,

@@ -47,4 +47,21 @@ export const promotions: readonly Promotion[] = [
     confirmedBy: 'Adam Bednarek, aloSIM partnerships, by email',
     confirmedOn: '2026-09-24',
   },
+  {
+    // The ZenSim affiliate dashboard lists YESHKLITA10 as "10% off on the
+    // first payment" (the owner's screenshot, 29 September 2026). Their
+    // affiliate page says the link "comes with a built-in discount" of 10%,
+    // and the owner, arriving through our link, saw every price 10% below the
+    // list price — so the link applies it and there is nothing to type. First
+    // payment only: a returning customer pays the list price, which is what
+    // the card shows and what ranks. The dashboard shows no end date.
+    providerId: 'zensim',
+    code: 'YESHKLITA10',
+    percent: 10,
+    audience: 'newCustomers',
+    appliedByLink: true,
+    validUntil: null,
+    confirmedBy: 'ZenSim affiliate dashboard and zensim.com/affiliates, read by the owner',
+    confirmedOn: '2026-09-29',
+  },
 ];

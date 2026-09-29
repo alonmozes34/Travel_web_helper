@@ -134,7 +134,10 @@ regression requests every aloSIM page once (it must answer 200, not
 redirect) and loads a sample of 25 to check the plan in the link is the one
 that opens. When it reports `alosim-link-does-not-open-page`, aloSIM moved
 pages again: re-run `NODE_USE_ENV_PROXY=1 npx tsx
-scripts/resolve-alosim-pages.ts <slugs>` and review the diff. Yesim's pages
+scripts/resolve-alosim-pages.ts <slugs>` and review the diff. ZenSim is the owner's one exception (CLAUDE.md): its link opens
+the country page on the plan's duration, not the plan, and its prices are read
+from the schema.org data on its own pages; the live regression re-reads 25 of
+those pages and compares every card's price. Yesim's pages
 answer automated clients with an empty page, so Yesim landing is checked by
 hand; say so in the report rather than implying it was tested.
 

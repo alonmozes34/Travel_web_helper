@@ -8,7 +8,7 @@
 #   1. lint, typecheck, unit tests
 #   2. a build on the demo catalogue, and the browser suites against it:
 #      accessibility (axe + manual), smoke, features, negative
-#   3. a build on Yesim's real catalogue (their Prices API needs no key) and
+#   3. a build on Yesim's and ZenSim's real catalogues (no keys needed) and
 #      the accessibility suite against it — real data breaks layouts that the
 #      demo does not (it found a 4px overflow on 28 September 2026)
 #   4. the live regression against the production site: 940 searches, every
@@ -100,10 +100,17 @@ else
 fi
 
 line ""
-line "## Yesim's real catalogue"
-if YESIM_PARTNER_ID=5581 npm run build > "$LOGS/build-yesim.log" 2>&1 && start_server 7102 YESIM_PARTNER_ID=5581; then
+line "## Real catalogues (Yesim + ZenSim)"
+REAL_ENV="YESIM_PARTNER_ID=5581 ZENSIM_AFFILIATE_ID=yeshklita"
+if env $REAL_ENV npm run build > "$LOGS/build-yesim.log" 2>&1 && start_server 7102 $REAL_ENV; then
   export BASE_URL=http://localhost:7102
-  step "accessibility (real Yesim data)" npm run test:a11y
+  # ZenSim's first read takes ~20s and the page does not wait for it; wait
+  # until a search shows ZenSim cards, so the suite sees both providers.
+  for _ in $(seq 1 30); do
+    curl -s -m 30 "$BASE_URL/search?to=JP:7&usage=regular" | grep -q 'zensim.com' && break
+    sleep 5
+  done
+  step "accessibility (real Yesim + ZenSim data)" npm run test:a11y
   stop_server
 else
   FAILED=1; line "- ❌ Yesim build or server did not start"; tail -20 "$LOGS/build-yesim.log" "$LOGS/server-7102.log" >> "$REPORT" 2>/dev/null; stop_server

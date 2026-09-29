@@ -23,6 +23,9 @@ affiliate id in Hebrew (found 28 September 2026). On a sample of 25 pages,
 the page is loaded and the plan in the link must be the one it opens on
 (aria-pressed on that plan). Yesim's pages cannot be checked this way; they
 answer automated clients with an empty page, so Yesim is checked by hand.
+ZenSim cards: the link has our affiliate id and the card's data and days; on a
+sample of 25 of their pages, the list price is read again and every card from
+that page must show it, at one exchange rate for the run.
 Exit status 1 when anything is found. Written 28 September 2026 after the
 owner asked for "a full regression, so we don't fall into this again".
 """
@@ -53,16 +56,16 @@ def parse(s):
         a=m.group(0)
         if '🧩' in a:
             # The combination card: one link per leg, no plan headline.
-            legs=len(re.findall(r'<li',a)); links=len(re.findall(r'href="https://(?:yesim\.app|alosim\.com)',a))
+            legs=len(re.findall(r'<li',a)); links=len(re.findall(r'href="https://(?:yesim\.app|alosim\.com|zensim\.com)',a))
             rows.append({'combo':True,'legs':legs,'links':links,'ok':True}); continue
         face=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',a.split('עוד פרטים')[0])))
         h=re.search(r'(ללא הגבלה|([\d.]+)(GB|MB))\s*·\s*,?\s*(\d+)\s*(ימים|יום)',face)
         pr=re.search(r'בערך\s*₪\s?([\d,]+(?:\.\d+)?)',face) or re.search(r'₪\s?([\d,]+(?:\.\d+)?)',face)
-        link=re.search(r'href="(https://(?:yesim\.app|alosim\.com)[^"]*)"',a)
+        link=re.search(r'href="(https://(?:yesim\.app|alosim\.com|zensim\.com)[^"]*)"',a)
         rows.append({'unl':bool(h) and h.group(1)=='ללא הגבלה','mb':(float(h.group(2))*(1024 if h.group(3)=='GB' else 1)) if h and h.group(2) else None,
             'days':int(h.group(4)) if h else None,'ils':float(pr.group(1).replace(',','')) if pr else None,
             'status':'fits' if 'מספיק לכל הטיול' in face else 'short','link':html.unescape(link.group(1)) if link else None,
-            'prov':'yesim' if link and 'yesim.app' in link.group(1) else ('alosim' if link else None),'ok':bool(h and pr)})
+            'prov':(None if not link else 'yesim' if 'yesim.app' in link.group(1) else 'zensim' if 'zensim.com' in link.group(1) else 'alosim'),'ok':bool(h and pr)})
     return rows
 def get(job):
     legs,u=job
@@ -77,7 +80,7 @@ res=[]
 with cf.ThreadPoolExecutor(6) as ex:
     for r in ex.map(get,jobs): res.append(r)
 json.dump(res,open(OUT,'w'),ensure_ascii=False)
-issues=C.defaultdict(list); rates=[]; alosim_links={}
+issues=C.defaultdict(list); rates=[]; alosim_links={}; zensim_cards=[]
 for p in res:
     key=f"{p['q']} {p['u']}"
     if not p['len']: issues['fetch-failed'].append(key); continue
@@ -104,6 +107,17 @@ for p in res:
             # redirect drops plan_id and affid (28 September 2026).
             elif not u.path.startswith('/he/destinations/'): issues['alosim-old-address'].append(f"{key}: {r['link']}")
             alosim_links.setdefault(u.path,r['link'])
+        elif r['prov']=='zensim':
+            # ZenSim: the country page on the plan's duration (the owner's
+            # exception, 29 September 2026), with our affiliate id.
+            pid=(qs.get('id') or [''])[0]
+            m=re.fullmatch(r'USD-([A-Z]{2})-(UNLIMITED|\d+(?:\.\d+)?(?:GB|MB))-(\d+)-days?',pid)
+            if not re.fullmatch(r'/travel-esims/[a-z0-9-]+/',u.path) or not m or qs.get('via')!=['yeshklita'] or qs.get('duration')!=[m.group(3) if m else '']:
+                issues['zensim-link-shape'].append(f"{key}: {r['link']}"); continue
+            allow=m.group(2)
+            card_allow='UNLIMITED' if r['unl'] else (f"{int(r['mb'])//1024}GB" if r['mb'] and r['mb']>=1024 else f"{int(r['mb'] or 0)}MB")
+            if int(m.group(3))!=r['days'] or allow!=card_allow: issues['zensim-link≠card'].append(f"{key}: card {card_allow}/{r['days']}d link {allow}/{m.group(3)}d")
+            zensim_cards.append((u.path,pid,r['ils'],key,r['link']))
         else:
             m=re.fullmatch(r'(/(?:country|regions|global)/[a-z0-9-]+)/(\d+)days-([0-9a-z]+)-esim-data-plan/',u.path)
             if not m or qs.get('partner_id')!=['5581']: issues['yesim-link-shape'].append(f"{key}: {r['link']}"); continue
@@ -139,6 +153,36 @@ for path,link in sample:
     elif not m: issues['alosim-plan-not-on-page'].append(link)
     elif 'aria-pressed="true"' not in m.group(0): issues['alosim-page-opens-another-plan'].append(link)
 print(f'alosim: {len(alosim_links)} pages checked, {len(sample)} opened')
+
+# ZenSim: their prices are read from their pages (the owner's exception). On a
+# sample of 25 of their pages, read the same schema.org data again and check
+# every card from that page shows that list price, at one USD rate for the run.
+if zensim_cards:
+    zpaths=sorted({c[0] for c in zensim_cards})
+    zsample=zpaths[datetime.date.today().toordinal()%5::max(1,len(zpaths)//25)][:25]
+    zprice={}
+    for path in zsample:
+        page=subprocess.run(['curl','-sS','-m','60','-r','0-307200','-A',UA,'https://zensim.com'+path],capture_output=True,text=True).stdout
+        def walk(o):
+            if isinstance(o,list): [walk(x) for x in o]
+            elif isinstance(o,dict):
+                if o.get('@type')=='Offer' and isinstance(o.get('url'),str):
+                    pid=U.parse_qs(U.urlparse(o['url']).query).get('id',[''])[0]
+                    if pid: zprice[pid]=float(o.get('price') or 0)
+                [walk(x) for x in o.values()]
+        for blk in re.findall(r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>',page,re.S):
+            try: walk(json.loads(blk))
+            except ValueError: pass
+    zrates=[]
+    for path,pid,ils,key,link in zensim_cards:
+        if path not in zsample: continue
+        if pid not in zprice: issues['zensim-plan-not-on-page'].append(f"{key}: {link}"); continue
+        zrates.append((ils/zprice[pid],key,link,zprice[pid],ils))
+    if zrates:
+        zmed=statistics.median(x[0] for x in zrates)
+        for rate,key,link,usd,ils in zrates:
+            if abs(rate/zmed-1)>0.02: issues['zensim-price≠page'].append(f"{key}: ${usd} shown as ₪{ils} (rate {rate:.3f} vs {zmed:.3f}) {link}")
+        print(f'zensim ILS/USD median {zmed:.4f} over {len(zrates)} cards from {len(zsample)} pages')
 if rates:
     med=statistics.median(x[0] for x in rates)
     for rate,key,link,eur,ils in rates:
