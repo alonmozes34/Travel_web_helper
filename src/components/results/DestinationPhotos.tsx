@@ -10,11 +10,12 @@ const MAX_TILES = 4;
 
 /**
  * A photograph of the destination at the top of its results — for one country
- * a wide one, for a trip through several the first four side by side, each
- * named. The owner asked for warmth: "a famous picture from there"
- * (29 September 2026).
+ * one photograph, named for what it shows; for a trip through several the
+ * first four side by side, each named for its country. The owner asked for
+ * warmth, "a famous picture from there" — the landmark everyone knows, or the
+ * capital (29 September 2026).
  *
- * Each is Wikivoyage's banner for the country, from Wikimedia Commons under a
+ * Each is from Wikimedia Commons under a
  * free licence, kept on our own site (`scripts/fetch-destination-images.ts`,
  * public/destinations/) so a visitor's browser contacts nobody else; credited below it as
  * the licence asks: photographer, licence, and a link to the file's page. The
@@ -45,6 +46,7 @@ export function DestinationPhotos({
       <div
         className={cn(
           'grid gap-1 overflow-hidden rounded-lg',
+          single && 'md:max-w-xl',
           tiles.length === 2 && 'grid-cols-2',
           tiles.length === 3 && 'grid-cols-3',
           tiles.length === 4 && 'grid-cols-2 md:grid-cols-4',
@@ -53,19 +55,19 @@ export function DestinationPhotos({
         {tiles.map((tile, index) => (
           <div
             key={tile.code}
-            className={cn('relative bg-surface-2', single ? 'h-36 md:h-52' : 'h-24 md:h-36')}
+            className={cn('relative bg-surface-2', single ? 'aspect-video' : 'aspect-[4/3] md:aspect-auto md:h-48')}
           >
             <Image
               src={tile.image.src}
               alt=""
               fill
-              sizes={single ? '(min-width: 1200px) 1152px, 100vw' : `(min-width: 768px) ${Math.round(100 / tiles.length)}vw, 50vw`}
+              sizes={single ? '(min-width: 768px) 576px, 100vw' : `(min-width: 768px) ${Math.round(100 / tiles.length)}vw, 50vw`}
               className="object-cover"
               fetchPriority={index === 0 ? 'high' : undefined}
             />
-            {single ? null : (
+            {single && !tile.image.subject[locale] ? null : (
               <span className="absolute start-2 bottom-2 rounded-full bg-surface/95 px-2.5 py-0.5 text-sm font-semibold text-ink shadow-sm">
-                {tile.country?.names[locale] ?? tile.code}
+                {single ? tile.image.subject[locale] : (tile.country?.names[locale] ?? tile.code)}
               </span>
             )}
           </div>
@@ -76,7 +78,7 @@ export function DestinationPhotos({
           <span key={tile.code}>
             {index > 0 ? ' · ' : null}
             {interpolate(single ? copy.creditTemplate : copy.creditMultiTemplate, {
-              country: tile.country?.names[locale] ?? tile.code,
+              country: tile.image.subject[locale] ?? tile.country?.names[locale] ?? tile.code,
               artist: tile.image.artist || tile.image.licence,
             })}
             {', '}

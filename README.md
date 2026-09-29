@@ -410,8 +410,9 @@ the page changing under the reader after hydration. Changing it calls
 
 ## Plan data
 
-**Destination photographs** are Wikivoyage's banner for each country, from
-Wikimedia Commons, free licences only (CC0, public domain, CC BY, CC BY-SA,
+**Destination photographs** are the landmark everyone knows for the popular
+destinations (chosen by hand in the script), otherwise the capital's
+photograph, otherwise Wikivoyage's banner — from Wikimedia Commons, free licences only (CC0, public domain, CC BY, CC BY-SA,
 FAL), each credited under the photo as its licence requires. They are
 downloaded once by `scripts/fetch-destination-images.ts` into
 `public/destinations/` and served from our own site; re-run it to pick up a
