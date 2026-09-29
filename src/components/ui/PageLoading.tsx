@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { isLocale } from '@/i18n/config';
 import { loadingCopy } from '@/i18n/loadingCopy';
-import { estimatedProgress } from '@/lib/loadingProgress';
+import { estimatedProgress, noteLoadingProgress } from '@/lib/loadingProgress';
 import { Container } from './Container';
 
 /** How often the bar moves. Slower under reduced motion: fewer, larger steps. */
@@ -35,11 +35,19 @@ export function PageLoading() {
   useEffect(() => {
     const started = performance.now();
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    const timer = window.setInterval(
-      () => setPercent(estimatedProgress(performance.now() - started)),
-      reduced ? TICK_MS_REDUCED : TICK_MS,
-    );
-    return () => window.clearInterval(timer);
+    const tick = () => {
+      const next = estimatedProgress(performance.now() - started);
+      noteLoadingProgress(next);
+      setPercent(next);
+    };
+    noteLoadingProgress(0);
+    const timer = window.setInterval(tick, reduced ? TICK_MS_REDUCED : TICK_MS);
+    // Where the bar stopped is handed to the page that replaces this one,
+    // which runs it on to 100 (`LoadingComplete`).
+    return () => {
+      window.clearInterval(timer);
+      noteLoadingProgress(estimatedProgress(performance.now() - started));
+    };
   }, []);
 
   return (

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LoadingComplete } from '@/components/ui/LoadingComplete';
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { HeroSearch } from "@/components/search/HeroSearch";
@@ -93,6 +94,7 @@ export default async function SearchPage({
 
   return (
     <>
+      <LoadingComplete />
       <section className="bg-surface pt-10 pb-8">
         <Container>
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
