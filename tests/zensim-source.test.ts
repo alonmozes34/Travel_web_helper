@@ -5,7 +5,7 @@ import { buyLinkLandsOnPlan, DURATION_LINK_ALLOWED, planSourcesFromEnv } from '@
 import { promotions } from '@/data/promotions';
 import { applyPromotions } from '@/lib/pricing/promotions';
 import { mapZensimOffer, offersInPage, type ZensimOffer } from '@/lib/sources/zensim/mapOffer';
-import { zensimAffiliateIdFromEnv, zensimSource } from '@/lib/sources/zensim/zensimSource';
+import { zensimAffiliateIdFromEnv, zensimSource, type ZensimPersist, type ZensimSnapshot } from '@/lib/sources/zensim/zensimSource';
 import type { Plan } from '@/lib/types/plan';
 
 const japan = readFileSync(new URL('./fixtures/zensim-japan.html', import.meta.url), 'utf8');
@@ -173,6 +173,29 @@ describe('the source', () => {
     release();
     await new Promise((resolve) => setTimeout(resolve, 20));
     assert.equal((await source.fetch()).plans.length, 13, 'once read, it is served');
+  });
+
+  test('a new server takes the catalogue from the shared copy, without reading ZenSim again', async () => {
+    let reads = 0;
+    let store: Promise<ZensimSnapshot> | null = null;
+    const persist: ZensimPersist = (load) => () => (store ??= load());
+    const make = () =>
+      zensimSource({
+        affiliateId: 'yeshklita',
+        minPlans: 1,
+        minPages: 1,
+        persist,
+        fetchText: async (url) => {
+          reads += 1;
+          return url.endsWith('/sitemap.xml') ? sitemap(['japan']) : japan;
+        },
+      });
+    assert.equal((await make().fetch()).plans.length, 13);
+    const readsByFirst = reads;
+    const second = await make().fetch();
+    assert.equal(second.plans.length, 13);
+    assert.equal(reads, readsByFirst, 'the second server read nothing');
+    assert.ok(second.plans.every((plan) => new URL(plan.affiliateUrl!).searchParams.get('via') === 'yeshklita'));
   });
 
   test('on only when the affiliate id is in the environment', () => {

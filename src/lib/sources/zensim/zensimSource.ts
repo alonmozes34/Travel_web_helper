@@ -1,8 +1,9 @@
+import { unstable_cache } from 'next/cache';
 import { after } from 'next/server';
 import { cached } from '@/lib/catalogue/cache';
 import type { Plan } from '@/lib/types/plan';
 import { sourceResult, type ProviderSource, type SkippedRecord, type SourceResult } from '../ProviderSource';
-import { mapZensimOffer, offersInPage } from './mapOffer';
+import { mapZensimOffer, offersInPage, type ZensimOffer } from './mapOffer';
 
 export const ZENSIM_SITE = 'https://zensim.com';
 
@@ -16,11 +17,17 @@ export const ZENSIM_SITE = 'https://zensim.com';
  *  - on each country page, only the schema.org data they publish for search
  *    engines, which sits in the first ~140KB of a ~650KB page — the read
  *    stops there;
- *  - four pages at a time, every six hours.
+ *  - four pages at a time, every six hours — once for the whole site, not
+ *    once per server: the offers read are kept in the host's shared cache
+ *    (`unstable_cache`, Vercel's data cache), so a server that starts has
+ *    them at once. Without that, every new server read all 189 pages again
+ *    and its first minute of visitors saw no ZenSim (29 September 2026).
  *
  * Their private GraphQL backend, which their own site calls, is not used.
  */
-const REFRESH_MS = 6 * 60 * 60 * 1000;
+const REFRESH_S = 6 * 60 * 60;
+/** How often a server looks at the shared copy again. The read itself happens at most every REFRESH_S. */
+const LOCAL_TTL_MS = 10 * 60 * 1000;
 const CONCURRENCY = 4;
 /** Enough to hold every schema.org block on the pages read on 29 September 2026 (the last ended at 138KB). */
 const READ_LIMIT_BYTES = 300 * 1024;
@@ -44,6 +51,15 @@ const USER_AGENT = 'Mozilla/5.0 (compatible; yeshklita/1.0; +https://www.yeshkli
 
 export type ZensimFetchText = (url: string, limitBytes?: number) => Promise<string>;
 
+/** What is kept in the shared cache: the offers as read, and when. Small — about 350KB. */
+export type ZensimSnapshot = {
+  fetchedAt: string;
+  offers: Array<Pick<ZensimOffer, 'url' | 'price' | 'priceCurrency'>>;
+};
+
+/** Keeps `load`'s result for the whole deployment. Injected in tests, where there is no host cache. */
+export type ZensimPersist = (load: () => Promise<ZensimSnapshot>) => () => Promise<ZensimSnapshot>;
+
 /**
  * Our ZenSim affiliate id (their `?via=`) from the environment, or null when
  * it is not set — which keeps ZenSim off a deployment, and off every test run.
@@ -60,6 +76,7 @@ export function zensimSource({
   firstLoadWaitMs = FIRST_LOAD_WAIT_MS,
   minPlans = MIN_PLANS,
   minPages = MIN_PAGES,
+  persist = sharedAcrossServers,
 }: {
   affiliateId: string;
   fetchText?: ZensimFetchText;
@@ -68,10 +85,12 @@ export function zensimSource({
   /** For tests with a small fixture; the defaults are the real catalogue's floor. */
   minPlans?: number;
   minPages?: number;
+  persist?: ZensimPersist;
 }): ProviderSource {
+  const snapshot = persist(() => readOffers(fetchText, new Date(now()).toISOString(), { minPlans, minPages }));
   const catalogue = cached<SourceResult>({
-    load: () => loadCatalogue(affiliateId, fetchText, new Date(now()).toISOString(), { minPlans, minPages }),
-    ttlMs: REFRESH_MS,
+    load: async () => toResult(await snapshot(), affiliateId),
+    ttlMs: LOCAL_TTL_MS,
     now,
     staleWhileRevalidate: true,
   });
@@ -82,8 +101,9 @@ export function zensimSource({
     label: 'ZenSim country pages (schema.org data)',
     async fetch() {
       if (loaded) return (await catalogue.get()).value;
-      // The first read takes 20–40 seconds. Nobody waits for it: the page
-      // goes out without ZenSim, and the read finishes after the response.
+      // From the shared cache this takes a moment. Only the very first read
+      // of all — 20–40 seconds — is not waited for: the page goes out without
+      // ZenSim, and the read finishes after the response.
       const first = catalogue.get().then((state) => {
         loaded = true;
         return state;
@@ -108,12 +128,28 @@ function keepAliveUntil(work: Promise<unknown>) {
   }
 }
 
-async function loadCatalogue(
-  affiliateId: string,
+/** The host's shared cache, or — outside a Next server (tests, scripts), where there is none — the read itself. */
+function sharedAcrossServers(load: () => Promise<ZensimSnapshot>): () => Promise<ZensimSnapshot> {
+  const shared = unstable_cache(load, ['zensim-offers-v1'], { revalidate: REFRESH_S });
+  return async () => {
+    try {
+      return await shared();
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('incrementalCache missing')) return load();
+      throw error;
+    }
+  };
+}
+
+/**
+ * Every country page's offers. Throws rather than return a thin read, so the
+ * shared cache keeps the last complete one.
+ */
+async function readOffers(
   fetchText: ZensimFetchText,
   fetchedAt: string,
   { minPlans, minPages }: { minPlans: number; minPages: number },
-): Promise<SourceResult> {
+): Promise<ZensimSnapshot> {
   const sitemap = await fetchText(`${ZENSIM_SITE}/sitemap.xml`);
   const pages = [
     ...new Set(
@@ -124,8 +160,7 @@ async function loadCatalogue(
   ];
   if (pages.length < minPages) throw new Error(`ZenSim sitemap: only ${pages.length} country pages`);
 
-  const plans = new Map<string, Plan>();
-  const skipped: SkippedRecord[] = [];
+  const offers = new Map<string, ZensimSnapshot['offers'][number]>();
   let failedPages = 0;
   let next = 0;
   const worker = async () => {
@@ -139,18 +174,28 @@ async function loadCatalogue(
         continue;
       }
       for (const offer of offersInPage(html)) {
-        const mapped = mapZensimOffer(offer, affiliateId, fetchedAt);
-        if ('plan' in mapped) plans.set(mapped.plan.id, mapped.plan);
-        else skipped.push(mapped.skipped);
+        offers.set(String(offer.url), { url: offer.url, price: offer.price, priceCurrency: offer.priceCurrency });
       }
     }
   };
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
 
-  // A partial read is a failed refresh: the last complete catalogue stays.
   if (failedPages > pages.length * 0.05) throw new Error(`ZenSim: ${failedPages} of ${pages.length} pages could not be read`);
-  if (plans.size < minPlans) throw new Error(`ZenSim: only ${plans.size} plans from ${pages.length} pages`);
-  return sourceResult('zensim', [...plans.values()], skipped, fetchedAt);
+  const snapshot = { fetchedAt, offers: [...offers.values()] };
+  const usable = toResult(snapshot, 'check').plans.length;
+  if (usable < minPlans) throw new Error(`ZenSim: only ${usable} plans from ${pages.length} pages`);
+  return snapshot;
+}
+
+function toResult(snapshot: ZensimSnapshot, affiliateId: string): SourceResult {
+  const plans = new Map<string, Plan>();
+  const skipped: SkippedRecord[] = [];
+  for (const offer of snapshot.offers) {
+    const mapped = mapZensimOffer(offer, affiliateId, snapshot.fetchedAt);
+    if ('plan' in mapped) plans.set(mapped.plan.id, mapped.plan);
+    else skipped.push(mapped.skipped);
+  }
+  return sourceResult('zensim', [...plans.values()], skipped, snapshot.fetchedAt);
 }
 
 /** GET, reading at most `limitBytes` of the body. */
