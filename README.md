@@ -410,6 +410,14 @@ the page changing under the reader after hydration. Changing it calls
 
 ## Plan data
 
+**Destination photographs** are Wikivoyage's banner for each country, from
+Wikimedia Commons, free licences only (CC0, public domain, CC BY, CC BY-SA,
+FAL), each credited under the photo as its licence requires. They are
+downloaded once by `scripts/fetch-destination-images.ts` into
+`public/destinations/` and served from our own site; re-run it to pick up a
+new banner (`--refresh` to fetch all again). Never images from a search
+engine: those belong to someone who has not allowed their use.
+
 Where plans come from is decided in one place, `planSourcesFromEnv` in
 `src/lib/catalogue/getCatalogue.ts`:
 

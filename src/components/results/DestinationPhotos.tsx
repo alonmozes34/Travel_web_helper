@@ -1,0 +1,101 @@
+import Image from 'next/image';
+import { cn } from '@/components/ui/cn';
+import { getCountryByCode } from '@/data/countries';
+import { destinationImages } from '@/data/destinationImages.generated';
+import type { Locale } from '@/i18n/config';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { interpolate } from '@/i18n/interpolate';
+
+const MAX_TILES = 4;
+
+/**
+ * A photograph of the destination at the top of its results — for one country
+ * a wide one, for a trip through several the first four side by side, each
+ * named. The owner asked for warmth: "a famous picture from there"
+ * (29 September 2026).
+ *
+ * Each is Wikivoyage's banner for the country, from Wikimedia Commons under a
+ * free licence, kept on our own site (`scripts/fetch-destination-images.ts`,
+ * public/destinations/) so a visitor's browser contacts nobody else; credited below it as
+ * the licence asks: photographer, licence, and a link to the file's page. The
+ * pictures are decoration — the page says where the trip goes in its heading
+ * — so they carry no alternative text; the credits are ordinary links.
+ */
+export function DestinationPhotos({
+  countryCodes,
+  locale,
+  dict,
+  className,
+}: {
+  countryCodes: string[];
+  locale: Locale;
+  dict: Dictionary;
+  className?: string;
+}) {
+  const tiles = [...new Set(countryCodes)]
+    .map((code) => ({ code, image: destinationImages[code], country: getCountryByCode(code) }))
+    .filter((tile): tile is typeof tile & { image: NonNullable<typeof tile.image> } => Boolean(tile.image))
+    .slice(0, MAX_TILES);
+  if (tiles.length === 0) return null;
+  const single = tiles.length === 1;
+  const copy = dict.destinationPhoto;
+
+  return (
+    <figure className={cn('m-0', className)}>
+      <div
+        className={cn(
+          'grid gap-1 overflow-hidden rounded-lg',
+          tiles.length === 2 && 'grid-cols-2',
+          tiles.length === 3 && 'grid-cols-3',
+          tiles.length === 4 && 'grid-cols-2 md:grid-cols-4',
+        )}
+      >
+        {tiles.map((tile, index) => (
+          <div
+            key={tile.code}
+            className={cn('relative bg-surface-2', single ? 'h-36 md:h-52' : 'h-24 md:h-36')}
+          >
+            <Image
+              src={tile.image.src}
+              alt=""
+              fill
+              sizes={single ? '(min-width: 1200px) 1152px, 100vw' : `(min-width: 768px) ${Math.round(100 / tiles.length)}vw, 50vw`}
+              className="object-cover"
+              fetchPriority={index === 0 ? 'high' : undefined}
+            />
+            {single ? null : (
+              <span className="absolute start-2 bottom-2 rounded-full bg-surface/95 px-2.5 py-0.5 text-sm font-semibold text-ink shadow-sm">
+                {tile.country?.names[locale] ?? tile.code}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+      <figcaption className="mt-1 text-xs leading-6 text-ink-3">
+        {tiles.map((tile, index) => (
+          <span key={tile.code}>
+            {index > 0 ? ' · ' : null}
+            {interpolate(single ? copy.creditTemplate : copy.creditMultiTemplate, {
+              country: tile.country?.names[locale] ?? tile.code,
+              artist: tile.image.artist || tile.image.licence,
+            })}
+            {', '}
+            {tile.image.licenceUrl ? (
+              <a href={tile.image.licenceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-6 items-center underline">
+                {tile.image.licence}
+                <span className="sr-only"> {copy.opensInNewTab}</span>
+              </a>
+            ) : (
+              tile.image.licence
+            )}
+            {', '}
+            <a href={tile.image.page} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-6 items-center underline">
+              {copy.source}
+              <span className="sr-only"> {copy.opensInNewTab}</span>
+            </a>
+          </span>
+        ))}
+      </figcaption>
+    </figure>
+  );
+}

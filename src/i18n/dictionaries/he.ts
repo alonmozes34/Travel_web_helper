@@ -390,6 +390,12 @@ export const he = {
     noCommission: 'הדירוג מחושב מהנתונים שלמעלה בלבד. גובה העמלה אינו אחד מהם.',
     close: 'סגירת הפרטים',
   },
+  destinationPhoto: {
+    creditTemplate: 'צילום: {artist}',
+    creditMultiTemplate: '{country}: {artist}',
+    source: 'ויקישיתוף',
+    opensInNewTab: '(נפתח בלשונית חדשה)',
+  },
   recommendations: {
     bestValue: 'הכי משתלם',
     cheapest: 'הכי זול',

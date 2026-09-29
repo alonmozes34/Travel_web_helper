@@ -371,6 +371,12 @@ export const en: Dictionary = {
     noCommission: 'The ranking is calculated from the facts above and nothing else. Commission is not one of them.',
     close: 'Close details',
   },
+  destinationPhoto: {
+    creditTemplate: 'Photo: {artist}',
+    creditMultiTemplate: '{country}: {artist}',
+    source: 'Wikimedia Commons',
+    opensInNewTab: '(opens in a new tab)',
+  },
   recommendations: {
     bestValue: 'Best value',
     cheapest: 'Cheapest',

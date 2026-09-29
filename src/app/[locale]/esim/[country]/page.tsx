@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoadingComplete } from '@/components/ui/LoadingComplete';
+import { DestinationPhotos } from '@/components/results/DestinationPhotos';
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { HeroSearch } from "@/components/search/HeroSearch";
@@ -144,8 +145,9 @@ export default async function CountryPage({
   return (
     <>
       <LoadingComplete />
-      <section className="bg-surface pt-10 pb-8">
+      <section className="bg-surface pt-6 pb-8 md:pt-8">
         <Container>
+          <DestinationPhotos countryCodes={[country.code]} locale={locale} dict={dict} className="mb-6" />
           <h1 className="flex flex-wrap items-center gap-3 text-3xl font-bold tracking-tight md:text-4xl">
             <span aria-hidden="true">{country.flag}</span>
             {interpolate(dict.country.titleTemplate, { country: name })}
