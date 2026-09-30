@@ -127,4 +127,10 @@ export const REJECTED_PHOTO_PAGES = new Set<string>([
   "https://commons.wikimedia.org/wiki/File:Northern_Mariana_Islands_banner.jpg", // MP dark and blurred
   "https://commons.wikimedia.org/wiki/File:Plymouth_Montserrat_Heli.jpg", // MS the town buried in ash
   "https://commons.wikimedia.org/wiki/File:Arch_of_Triumph,_Chisinau,_Republic_of_Moldova_(51160304626_cropped).jpg", // MD two people in front
+  // Fourth look, the last photographs of the day.
+  "https://commons.wikimedia.org/wiki/File:Tsodilo_Hills_banner_Rock_paintings.jpg", // BW a close-up of rock
+  "https://commons.wikimedia.org/wiki/File:Guinea_banner.jpg", // GN a portrait
+  "https://commons.wikimedia.org/wiki/File:Republic_of_Moldova_banner.jpg", // MD blurred
+  "https://commons.wikimedia.org/wiki/File:WelcomeCenterBrades.jpg", // MS a conference banner
+  "https://commons.wikimedia.org/wiki/File:State_of_Melekeok.png", // PW a map
 ]);
