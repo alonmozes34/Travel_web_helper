@@ -9,7 +9,7 @@ import { Brand } from './Brand';
 import { mainNavLinks } from './navLinks';
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
-  const links = mainNavLinks(locale, dict);
+  const links = [...mainNavLinks(locale, dict), { href: localePath(locale, '/guides'), label: dict.guidesPage.navLabel }];
   /**
    * Only routes that exist. All three of these were dead links site-wide
    * once, because a privacy notice and terms of use have to name who
@@ -22,6 +22,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
    * actually stores with.
    */
   const legalLinks = [
+    { href: localePath(locale, '/about'), label: dict.aboutPage.navLabel },
     { href: localePath(locale, '/accessibility'), label: dict.accessibility.navLabel },
     { href: localePath(locale, '/disclosure'), label: dict.footer.disclosureLink },
     { href: localePath(locale, '/privacy'), label: dict.footer.privacy },

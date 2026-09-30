@@ -11,7 +11,7 @@ import { siteUrl } from '@/lib/site';
  * rather than as competitors.
  */
 /** Pages that exist for trust and law rather than for search traffic. */
-const LOW_PRIORITY = ['/accessibility', '/disclosure', '/privacy', '/terms'];
+const LOW_PRIORITY = ['/about', '/accessibility', '/disclosure', '/privacy', '/terms'];
 
 // Which destinations are listed depends on the live catalogue, so the sitemap
 // is built on request rather than frozen at build time.
@@ -21,6 +21,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { isCovered: isCountryCovered } = coverageOf((await getCatalogue()).plans);
   const paths = [
     '/',
+    '/about',
+    '/guides',
+    '/guides/choose',
+    '/guides/how-much-data',
+    '/guides/install',
     '/accessibility',
     '/disclosure',
     '/privacy',

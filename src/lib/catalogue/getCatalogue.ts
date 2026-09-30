@@ -40,6 +40,14 @@ export type SourceStatus = {
 
 /** A minute is short enough to notice a price change, long enough to be a cache. */
 const PLAN_TTL_MS = 60 * 1000;
+/**
+ * While a source is still on its first read (ZenSim's, on a new server), the
+ * catalogue without it is kept only this long, so the source appears seconds
+ * after it is ready rather than a minute later. On 30 September 2026 ZenSim
+ * was missing from the live site for about a minute after each new server.
+ */
+const PLAN_TTL_WHILE_LOADING_MS = 3 * 1000;
+const STILL_LOADING = /still loading/i;
 /** The ECB publishes once per business day; asking more often than hourly is noise. */
 const RATE_TTL_MS = 60 * 60 * 1000;
 
@@ -135,7 +143,13 @@ export function catalogueLoader(
   now = () => Date.now(),
   promotions: readonly Promotion[] = confirmedPromotions,
 ) {
-  const plans = cached({ load: () => loadPlans(sources.plans), ttlMs: PLAN_TTL_MS, now });
+  const plans = cached({
+    load: () => loadPlans(sources.plans),
+    ttlMs: PLAN_TTL_MS,
+    ttlFor: (value) =>
+      value.status.some((source) => !source.ok && STILL_LOADING.test(source.error ?? '')) ? PLAN_TTL_WHILE_LOADING_MS : PLAN_TTL_MS,
+    now,
+  });
   const rates = cached({ load: () => loadRates(sources.rates), ttlMs: RATE_TTL_MS, now });
 
   return {

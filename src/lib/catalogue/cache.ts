@@ -37,11 +37,17 @@ export type Cached<T> = {
 export function cached<T>({
   load,
   ttlMs,
+  ttlFor,
   now = () => Date.now(),
   staleWhileRevalidate = false,
 }: {
   load: () => Promise<T>;
   ttlMs: number;
+  /**
+   * A shorter life for some values: a catalogue put together while one
+   * source was still loading is kept seconds, not the full TTL.
+   */
+  ttlFor?: (value: T) => number;
   now?: () => number;
   /**
    * Once a value exists, an expired read returns it at once and refreshes in
@@ -74,7 +80,7 @@ export function cached<T>({
 
   return {
     async get(): Promise<CacheState<T>> {
-      const expired = !state || now() - state.storedAt >= ttlMs;
+      const expired = !state || now() - state.storedAt >= (ttlFor ? ttlFor(state.value) : ttlMs);
       if (expired) {
         inFlight ??= refresh().finally(() => {
           inFlight = null;

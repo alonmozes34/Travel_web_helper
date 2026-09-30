@@ -180,3 +180,34 @@ test('two sources claiming the same plan id is surfaced', async () => {
   const catalogue = await loader.get();
   assert.equal(catalogue.collisions.length, 1, 'a duplicate id must not silently let one win');
 });
+
+test('a catalogue put together while a source is still loading is kept seconds, not a minute', async () => {
+  // 30 September 2026: ZenSim's first read on a new server outlasted the
+  // page's wait, and the catalogue without it was kept for the full minute.
+  let clock = 0;
+  let ready = false;
+  const slow: ProviderSource = {
+    id: 'slow',
+    label: 'Slow',
+    fetch: async () => {
+      if (!ready) throw new Error('Slow catalogue is still loading');
+      return sourceResult('slow', [{ ...mockPlans[0], id: 'slow-1', source: 'api', affiliateUrl: 'https://example.com/p', affiliateLandsOn: 'plan' }], [], 'T');
+    },
+  };
+  const loader = catalogueLoader({ plans: [slow, mockPlanSource()], rates: [mockRateSource()] }, () => clock);
+  assert.equal((await loader.get()).sources.find((s) => s.id === 'slow')?.ok, false);
+  ready = true;
+  clock += 5_000;
+  assert.equal((await loader.get()).sources.find((s) => s.id === 'slow')?.ok, true, 'picked up within seconds');
+});
+
+test('a source that failed outright is not retried every few seconds', async () => {
+  let clock = 0;
+  let calls = 0;
+  const broken: ProviderSource = { id: 'broken', label: 'Broken', fetch: async () => { calls += 1; throw new Error('502'); } };
+  const loader = catalogueLoader({ plans: [broken, mockPlanSource()], rates: [mockRateSource()] }, () => clock);
+  await loader.get();
+  clock += 5_000;
+  await loader.get();
+  assert.equal(calls, 1, 'an ordinary failure keeps the full minute');
+});

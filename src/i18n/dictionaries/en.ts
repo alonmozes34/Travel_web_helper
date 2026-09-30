@@ -52,6 +52,63 @@ export const en: Dictionary = {
     full: 'Some links on this site are affiliate links. We may earn a commission if you make a purchase, at no extra cost to you. Commission never affects ranking.',
     rankingNote: 'Ranking is based on customer value only.',
   },
+  guidesPage: {
+    navLabel: 'Guides',
+    title: 'Guides',
+    intro: 'What is worth knowing before you buy a travel eSIM, in short.',
+    readMore: 'Read',
+    allGuides: 'All guides',
+    toCompare: 'Compare plans',
+    dataTable: {
+      caption: 'Data by type of use (estimate)',
+      usage: 'Type of use',
+      perDay: 'Per day',
+      perWeek: 'Per week',
+    },
+  },
+  aboutPage: {
+    navLabel: 'About',
+    title: 'About Yesh Klita',
+    intro:
+      'Yesh Klita is an independent comparison site for travel eSIM plans, built for travellers from Israel, in Hebrew and English. Say where you are going, for how many days and how much you use your phone — and see the plans that fit the trip, cheapest first.',
+    sections: [
+      {
+        heading: 'What the site does',
+        body: [
+          'It compares eSIM plans from several providers in one place, instead of ten tabs. For each plan you see the price, the data, the days, and whether it lasts your trip.',
+          'When you choose a plan, the button opens it on the provider\'s own site, where you buy and install it. We do not sell plans or issue eSIMs.',
+        ],
+      },
+      {
+        heading: 'Where the prices come from',
+        body: [
+          'From the providers themselves: aloSIM and Yesim through the interfaces they provide to partners, and ZenSim from the data they publish on their own site. Prices are refreshed several times a day.',
+          'What a provider does not state — for example, after how much data the speed drops — is shown as "not stated". We never fill in details by guessing.',
+        ],
+      },
+      {
+        heading: 'How results are ordered',
+        body: [
+          'By default cheapest first, among plans that last the whole trip. Under "recommended", price is about half the score, followed by how well the data fits your usage and the plan\'s terms.',
+          'The commission we earn is never part of the calculation.',
+        ],
+      },
+      {
+        heading: 'How the site is funded',
+        body: [
+          'When you buy through our links, the provider pays us a commission. Your price does not go up because of it, and sometimes there is a discount code the provider gave our visitors.',
+        ],
+      },
+      {
+        heading: 'Who we are',
+        body: [
+          'The site is run by a private individual in Israel, not by a company or a registered business. It was built so that nobody flying abroad has to guess which plan is enough.',
+        ],
+      },
+    ],
+    contactHeading: 'Contact',
+    contactBody: 'Questions, feedback, a wrong price, or a provider worth adding — write to us:',
+  },
   disclosurePage: {
     title: 'Affiliate disclosure',
     intro:
