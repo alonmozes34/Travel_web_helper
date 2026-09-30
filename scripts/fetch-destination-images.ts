@@ -9,7 +9,11 @@
  *  1. For the destinations people travel to most, the landmark everyone
  *     knows — chosen by hand in LANDMARKS below, by its Wikidata item.
  *  2. Otherwise the capital's own photograph (Wikidata P18 of P36).
- *  3. Otherwise the country's Wikivoyage banner (P948).
+ *  3. Otherwise the photograph this country already has, if it came from
+ *     `fill-destination-images.ts` and was not taken out by hand
+ *     (destination-photo-rejects.ts) — so a run that Commons slows down
+ *     leaves a country as it was rather than without a photograph.
+ *  4. Otherwise the country's Wikivoyage banner (P948).
  *
  * Wikivoyage's banners alone were tried first and were not what anyone
  * pictures: a village in a gorge for France, a bridge in Thrace for Greece.
@@ -25,6 +29,7 @@
  * to the next choice, and a country with none shows no photograph.
  *
  *   NODE_USE_ENV_PROXY=1 npx tsx scripts/fetch-destination-images.ts
+ *   NODE_USE_ENV_PROXY=1 PATIENT_MINUTES=180 npx tsx scripts/fetch-destination-images.ts
  *
  * Each photograph is downloaded once, one at a time, cropped to 4:3 around
  * its most interesting part (sharp's attention strategy), and saved as WebP
@@ -39,6 +44,8 @@ import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:
 import { resolve } from 'node:path';
 import sharp from 'sharp';
 import { countries } from '../src/data/countries';
+import { destinationImages } from '../src/data/destinationImages.generated';
+import { REJECTED_PHOTO_PAGES } from './destination-photo-rejects';
 
 const OUT = resolve(__dirname, '../src/data/destinationImages.generated.ts');
 const IMAGE_DIR = resolve(__dirname, '../public/destinations');
@@ -50,53 +57,102 @@ const USER_AGENT = 'yeshklita-build/1.0 (https://www.yeshklita.com; yeshklita.in
  * large original on demand, and it let two through every five minutes.
  */
 const THUMB_WIDTH = 1280;
+/** Between downloads: Commons began refusing after about fifty at 1.5 seconds apart. */
+const DOWNLOAD_GAP_MS = 4000;
 const FREE_LICENCE = /^(cc0|public domain|pd|cc by(-sa)? \d(\.\d)?|fal)\b/i;
 
 /**
  * The landmark for each of the destinations people travel to most. Each id
- * was checked against its English and Hebrew labels on Wikidata on 29
- * September 2026. Add one only after checking the id is the landmark, not a
+ * was checked against its English and Hebrew labels on Wikidata (29 and 30
+ * September 2026). Add one only after checking the id is the landmark, not a
  * namesake — "Charles Bridge" is also a border crossing.
  */
 const LANDMARKS: Record<string, string> = {
   AE: 'Q12495', // Burj Khalifa
+  AM: 'Q554947', // Tatev Monastery
+  AR: 'Q36332', // Iguazu Falls
   AT: 'Q131330', // Schönbrunn Palace
   AU: 'Q45178', // Sydney Opera House
+  AZ: 'Q80499', // Flame Towers
+  BA: 'Q188528', // Stari Most
+  BE: 'Q215429', // Grand-Place
+  BG: 'Q43282', // Alexander Nevsky Cathedral
+  BH: 'Q511612', // Bahrain World Trade Center
+  BO: 'Q76122', // Salar de Uyuni
   BR: 'Q79961', // Christ the Redeemer
+  BT: 'Q2209873', // Paro Taktsang
   CA: 'Q134883', // CN Tower
   CH: 'Q1374', // Matterhorn
+  CL: 'Q901646', // Torres del Paine
   CN: 'Q12501', // Great Wall of China
+  CR: 'Q641588', // Arenal Volcano
+  CU: 'Q1165566', // Old Havana
   CY: 'Q2061165', // Petra tou Romiou
   CZ: 'Q204871', // Charles Bridge
   DE: 'Q82425', // Brandenburg Gate
+  DK: 'Q943946', // Nyhavn
+  DO: 'Q1568095', // Punta Cana
+  EE: 'Q726803', // Tallinn Old Town
   EG: 'Q37200', // Great Pyramid of Giza
   ES: 'Q48435', // Sagrada Família
+  FI: 'Q738015', // Helsinki Cathedral
   FR: 'Q243', // Eiffel Tower
   GB: 'Q83125', // Tower Bridge
+  GE: 'Q155453', // Narikala
   GR: 'Q131013', // Acropolis of Athens
+  HK: 'Q155643', // Victoria Harbour
   HR: 'Q189849', // Plitvice Lakes
   HU: 'Q11819', // Hungarian Parliament Building
   ID: 'Q515253', // Tanah Lot
+  IE: 'Q239477', // Cliffs of Moher
   IN: 'Q9141', // Taj Mahal
+  IS: 'Q271466', // Hallgrímskirkja
   IT: 'Q10285', // Colosseum
+  JO: 'Q1259626', // Al-Khazneh, Petra
   JP: 'Q39231', // Mount Fuji
+  KE: 'Q172070', // Mount Kenya
   KH: 'Q43473', // Angkor Wat
   KR: 'Q482485', // Gyeongbokgung
+  LK: 'Q272153', // Sigiriya
+  LT: 'Q1497616', // Gediminas' Tower
+  LV: 'Q74736', // House of the Blackheads
   MA: 'Q1137533', // Koutoubia Mosque
+  MC: 'Q1779905', // Monte Carlo Casino
   ME: 'Q171080', // Kotor
+  MO: 'Q1551411', // Ruins of St. Paul's
+  MU: 'Q1129992', // Le Morne Brabant
+  MV: 'Q1875719', // Maafushi
   MX: 'Q5859', // Chichen Itza
   MY: 'Q83063', // Petronas Towers
   NL: 'Q1344400', // Magere Brug
+  NO: 'Q193989', // Geirangerfjord
+  NP: 'Q889902', // Boudhanath
+  NZ: 'Q187197', // Milford Sound
+  OM: 'Q1548443', // Sultan Qaboos Grand Mosque
+  PA: 'Q7350', // Panama Canal
   PE: 'Q676203', // Machu Picchu
+  PH: 'Q977422', // Chocolate Hills
   PL: 'Q18820', // Wawel Castle
+  PS: 'Q194504', // Church of the Nativity
   PT: 'Q215003', // Belém Tower
+  QA: 'Q1148353', // Museum of Islamic Art
   RO: 'Q390275', // Bran Castle
+  RS: 'Q1409017', // Belgrade Fortress
+  RU: 'Q129846', // St. Basil's Cathedral
+  SC: 'Q30744625', // Anse Source d'Argent
+  SE: 'Q579854', // Gamla stan
   SG: 'Q548679', // Marina Bay Sands
   SI: 'Q648902', // Lake Bled
+  SK: 'Q593311', // Bratislava Castle
   TH: 'Q873769', // Grand Palace
+  TN: 'Q877391', // Sidi Bou Said
   TR: 'Q12506', // Hagia Sophia
+  TW: 'Q83101', // Taipei 101
+  TZ: 'Q7296', // Mount Kilimanjaro
   US: 'Q9202', // Statue of Liberty
+  UZ: 'Q1373583', // Registan
   VN: 'Q190128', // Ha Long Bay
+  ZA: 'Q213360', // Table Mountain
 };
 
 type ImageInfo = {
@@ -129,6 +185,14 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * fifty downloads Commons let two through every ten minutes.)
  */
 let downloadsThrottled = false;
+
+/**
+ * PATIENT_MINUTES=180 keeps trying for up to three hours instead of stopping
+ * at the first refusal — for a run left in the background, when Commons
+ * lets a few photographs through every few minutes.
+ */
+const patientUntil = Date.now() + Number(process.env.PATIENT_MINUTES ?? 0) * 60_000;
+const PATIENT_WAIT_MS = 5 * 60_000;
 
 /** GET, politely: Commons answers 429 when asked too fast, and says how long to wait. */
 async function politeGet(url: string, accept: string, maxRetries = 6): Promise<Response> {
@@ -216,7 +280,8 @@ async function commonsInfo(files: string[]): Promise<Map<string, (ImageInfo & { 
       const meta = ii.extmetadata ?? {};
       const licence = String(meta.LicenseShortName?.value ?? '').trim();
       const artist = cleanArtist(String(meta.Artist?.value ?? '')) || cleanArtist(String(meta.Attribution?.value ?? ''));
-      if (!FREE_LICENCE.test(licence)) info.set(file, `licence "${licence}"`);
+      if (REJECTED_PHOTO_PAGES.has(ii.descriptionurl)) info.set(file, 'taken out by hand');
+      else if (!FREE_LICENCE.test(licence)) info.set(file, `licence "${licence}"`);
       else if (!artist && !/^(cc0|public domain|pd)/i.test(licence)) info.set(file, 'no author to credit');
       else
         info.set(file, {
@@ -237,16 +302,25 @@ async function savePhoto(code: string, file: string, remote: string): Promise<{ 
   const path = resolve(IMAGE_DIR, name);
   if (!existsSync(path)) {
     if (downloadsThrottled) throw new Error('not downloaded: Commons is throttling this run');
-    const response = await politeGet(remote, 'image/*', 2).catch((error) => {
-      if (String(error).includes('HTTP 429')) downloadsThrottled = true;
-      throw error;
-    });
+    let response: Response | null = null;
+    while (!response) {
+      response = await politeGet(remote, 'image/*', 2).catch(async (error) => {
+        if (!String(error).includes('HTTP 429')) throw error;
+        if (Date.now() + PATIENT_WAIT_MS > patientUntil) {
+          downloadsThrottled = true;
+          throw error;
+        }
+        console.error(`  Commons is throttling; trying again in ${PATIENT_WAIT_MS / 60_000} minutes`);
+        await pause(PATIENT_WAIT_MS);
+        return null;
+      });
+    }
     const bytes = Buffer.from(await response.arrayBuffer());
     await sharp(bytes)
       .resize({ ...OUTPUT, fit: 'cover', position: sharp.strategy.attention })
       .webp({ quality: 64 })
       .toFile(path);
-    await pause(1500);
+    await pause(DOWNLOAD_GAP_MS);
   }
   const { width = 0, height = 0 } = await sharp(path).metadata();
   return { name, width, height };
@@ -288,12 +362,13 @@ async function main() {
     const code = (row.code?.value ?? '').toUpperCase();
     add(candidates, code, { file: fileOf(row.capImg?.value), subject: { he: row.capHe?.value ?? null, en: row.capEn?.value ?? null } });
   }
+  const banners = new Map<string, Candidate[]>();
   for (const row of rows) {
     const code = (row.code?.value ?? '').toUpperCase();
-    add(candidates, code, { file: fileOf(row.banner?.value), subject: { he: null, en: null } });
+    add(banners, code, { file: fileOf(row.banner?.value), subject: { he: null, en: null } });
   }
 
-  const files = [...new Set([...candidates.values()].flat().map((c) => c.file))];
+  const files = [...new Set([...candidates.values(), ...banners.values()].flat().map((c) => c.file))];
   const info = await commonsInfo(files);
 
   mkdirSync(IMAGE_DIR, { recursive: true });
@@ -306,7 +381,18 @@ async function main() {
   for (const country of [...countries].sort((a, b) => rank(a.code) - rank(b.code))) {
     const reasons: string[] = [];
     let saved: Photo | null = null;
-    for (const candidate of candidates.get(country.code) ?? []) {
+    const kept = destinationImages[country.code];
+    const keep = kept && kept.src.includes('-ov-') && !REJECTED_PHOTO_PAGES.has(kept.page) ? kept : null;
+    const tries: Array<Candidate | 'kept'> = [...(candidates.get(country.code) ?? []), 'kept', ...(banners.get(country.code) ?? [])];
+    for (const candidate of tries) {
+      if (candidate === 'kept') {
+        if (keep && existsSync(resolve(IMAGE_DIR, keep.src.replace('/destinations/', '')))) {
+          saved = keep;
+          used.add(keep.src.replace('/destinations/', ''));
+          break;
+        }
+        continue;
+      }
       const found = info.get(candidate.file);
       if (!found || typeof found === 'string') {
         reasons.push(`${candidate.file}: ${found ?? 'not returned'}`);
@@ -340,13 +426,13 @@ async function main() {
 
   writeFileSync(
     OUT,
-    `// Generated by scripts/fetch-destination-images.ts — do not edit by hand.
-// One photograph per country, from Wikimedia Commons, free licences only,
-// with the credit each licence requires. Fetched
+    `// Generated by scripts/fetch-destination-images.ts and scripts/fill-destination-images.ts
+// — do not edit by hand. One photograph per country, free licences only,
+// with the credit each licence requires. Updated
 // ${new Date().toISOString().slice(0, 10)}: ${entries.length} countries.
 
 export type DestinationImage = {
-  /** The file on Wikimedia Commons. */
+  /** The file on Wikimedia Commons, or the photograph's title on Openverse. */
   file: string;
   /** Our copy, cropped to 4:3, in public/destinations/. */
   src: string;
@@ -354,11 +440,11 @@ export type DestinationImage = {
   height: number;
   /** What is pictured — the landmark or the capital — when known. */
   subject: { he: string | null; en: string | null };
-  /** Who to credit, as Commons gives it. */
+  /** Who to credit, as the source gives it. */
   artist: string;
   licence: string;
   licenceUrl: string | null;
-  /** The file's page on Commons: full attribution and licence. */
+  /** The photograph's own page: full attribution and licence. */
   page: string;
 };
 
