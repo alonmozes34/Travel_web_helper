@@ -170,34 +170,41 @@ export function TravelFacts({
           ))}
         </dl>
 
-        <h3 className="mt-8 font-head text-lg font-semibold">{t.moreTitle}</h3>
-        <ul className="mt-2 grid gap-1">
-          {facts.wikivoyage ? (
-            <li>
-              <a
-                href={facts.wikivoyage.url}
-                target="_blank"
-                rel="noopener"
-                className="inline-flex min-h-6 items-center text-brand underline underline-offset-2"
-              >
-                {t.wikivoyage}
-                {facts.wikivoyage.lang === 'en' && t.inEnglish ? ` ${t.inEnglish}` : ''}
-                <span className="sr-only"> {t.opensInNewTab}</span>
-              </a>
-            </li>
-          ) : null}
-          <li>
-            <a
-              href={NSC_TRAVEL_WARNINGS}
-              target="_blank"
-              rel="noopener"
-              className="inline-flex min-h-6 items-center text-brand underline underline-offset-2"
-            >
-              {t.warnings}
-              <span className="sr-only"> {t.opensInNewTab}</span>
-            </a>
-          </li>
-        </ul>
+        {facts.wikivoyage || t.warnings ? (
+          <>
+            <h3 className="mt-8 font-head text-lg font-semibold">{t.moreTitle}</h3>
+            <ul className="mt-2 grid gap-1">
+              {facts.wikivoyage ? (
+                <li>
+                  <a
+                    href={facts.wikivoyage.url}
+                    target="_blank"
+                    rel="noopener"
+                    className="inline-flex min-h-6 items-center text-brand underline underline-offset-2"
+                  >
+                    {t.wikivoyage}
+                    {facts.wikivoyage.lang === 'en' && t.inEnglish ? ` ${t.inEnglish}` : ''}
+                    <span className="sr-only"> {t.opensInNewTab}</span>
+                  </a>
+                </li>
+              ) : null}
+              {/* For Israelis only: none on the English pages (the owner, 1 October 2026). */}
+              {t.warnings ? (
+                <li>
+                  <a
+                    href={NSC_TRAVEL_WARNINGS}
+                    target="_blank"
+                    rel="noopener"
+                    className="inline-flex min-h-6 items-center text-brand underline underline-offset-2"
+                  >
+                    {t.warnings}
+                    <span className="sr-only"> {t.opensInNewTab}</span>
+                  </a>
+                </li>
+              ) : null}
+            </ul>
+          </>
+        ) : null}
         <p className="mt-6 max-w-[80ch] text-sm text-ink-3">{t.sources}</p>
       </div>
     </section>

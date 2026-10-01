@@ -542,7 +542,9 @@ export const en: Dictionary = {
     moreTitle: 'Read more',
     wikivoyage: 'Travel guide on Wikivoyage',
     inEnglish: '',
-    warnings: "Israel's National Security Council travel warnings (in Hebrew)",
+    // The National Security Council's warnings are for Israelis; the owner
+    // had the link taken off the English pages (1 October 2026).
+    warnings: '',
     opensInNewTab: '(opens in a new tab)',
     sources:
       'Sources: CLDR (money, languages), Wikidata (capital, power, driving, emergency numbers), the IANA time zone database and the European Central Bank. Anything the sources lack is left out. Check anything important before you fly.',
