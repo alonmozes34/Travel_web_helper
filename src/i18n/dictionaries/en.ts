@@ -435,7 +435,6 @@ export const en: Dictionary = {
     opensInNewTab: '(opens in a new tab)',
   },
   recommendations: {
-    bestValue: 'Best value',
     cheapest: 'Cheapest',
     bestForBrowsing: 'Best for browsing',
     bestUnlimited: 'Best unlimited',
@@ -443,25 +442,12 @@ export const en: Dictionary = {
       'Based on 5G, number of local networks, hotspot and allowance — not on measured real-world coverage.',
     legendSummary: 'What do the labels mean?',
     legend: {
-      bestValue:
-        'The highest overall score: price (about half of it), how well the data fits your usage, and the plan\'s terms. Not always the cheapest — when it costs more, the card says what the extra buys.',
       cheapest: 'The lowest price among plans that last the whole trip and carry the data you chose.',
       bestForBrowsing:
         'The best network at your destination, by what providers publish: 5G, number of local networks and hotspot. Not a measurement of real-world coverage.',
       bestUnlimited: 'The lowest-priced plan with no data cap, allowing for when its speed drops.',
     },
     legendCommission: 'The commission we earn does not affect any label.',
-    whyTemplate: '{extra} more than the cheapest plan that lasts the trip ({provider}). What the extra buys:',
-    whyTemplateNoProvider: '{extra} more than the cheapest plan that lasts the trip. What the extra buys:',
-    whyNoFact: 'a higher overall score (data fit and extras), with no single standout difference.',
-    reasons: {
-      statesSlowdown: 'the provider says after how much data the speed drops, and to what (the cheaper one does not say)',
-      unlimited: 'no data cap',
-      moreData: 'more data',
-      fiveG: '5G at your destination',
-      moreNetworks: 'more local networks at your destination',
-      hotspot: 'hotspot allowed',
-    },
   },
   filters: {
     categoriesLabel: 'Recommended categories',

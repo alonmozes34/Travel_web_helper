@@ -34,11 +34,9 @@ import { DEFAULT_SORT, sortRows, sortKeys, type SortKey } from "@/lib/comparison
 import { useTripExtras } from "@/components/extras/TripExtrasProvider";
 import { RecommendationTabs } from "./RecommendationTabs";
 import { TagLegend } from "./TagLegend";
-import type { BestValueWhy } from "@/lib/comparison/explainBestValue";
 
 /** Each category is an ordering preset; unlimited also narrows the list. */
 const tabSort: Record<RecommendationKey, SortKey> = {
-  bestValue: "recommended",
   cheapest: "price",
   bestForBrowsing: "recommended",
   bestUnlimited: "recommended",
@@ -54,7 +52,6 @@ export function ResultsView({
   demoDataEnabled,
   demoDataMixed,
   availableRecommendations,
-  bestValueWhy = null,
   initialFilters,
   initialSort,
 }: {
@@ -68,8 +65,6 @@ export function ResultsView({
   /** Real and demo plans share this page, so each demo row is marked. */
   demoDataMixed: boolean;
   availableRecommendations: RecommendationKey[];
-  /** What the extra money buys, when "best value" is not the cheapest plan. */
-  bestValueWhy?: BestValueWhy | null;
   /** Parsed on the server from the URL, so a shared filtered link renders
       the same markup on both sides and needs no post-hydration correction. */
   initialFilters: PlanFilters;
@@ -82,8 +77,8 @@ export function ResultsView({
   const [filters, setFilters] = useState<PlanFilters>(initialFilters);
   const [sort, setSort] = useState<SortKey>(initialSort);
   // The highlighted category follows the opening order: "cheapest" when the
-  // list opens by price (the default), "best value" when it opens by score.
-  const [tab, setTab] = useState<RecommendationKey>(initialSort === "recommended" ? "bestValue" : "cheapest");
+  // list opens by price (the default), none when it opens by another order.
+  const [tab, setTab] = useState<RecommendationKey | null>(initialSort === "price" ? "cheapest" : null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
@@ -248,15 +243,6 @@ export function ResultsView({
     canSelect: selectedIds.length < MAX_COMPARE,
     onSelect: (isSelected: boolean) => toggleSelected(row.plan.id, isSelected),
     onChosen: () => tripExtras?.choose(row.plan.id),
-    bestValueWhy:
-      bestValueWhy && row.badges.includes("bestValue")
-        ? {
-            ...bestValueWhy,
-            cheapestProvider:
-              rows.find((other) => other.plan.id === bestValueWhy.cheapestPlanId)?.provider.name ?? null,
-            currency: row.price.currency,
-          }
-        : null,
   });
 
   return (

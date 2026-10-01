@@ -66,8 +66,8 @@ const pick = (key: keyof typeof comparison.recommendations) => comparison.recomm
 // The Thailand and Asia unlimited plans are the same price, days and cap from
 // the same provider; the Asia one reaches three Thai networks to the Thailand
 // one's one, so the Thailand one is not listed twice over (`withoutRedundant`).
-test('best value is priced against plans that do the job, not a 2GB plan', () => {
-  assert.equal(pick('bestValue'), 'asia-unlimited-10d');
+test('the recommended order is priced against plans that do the job, not a 2GB plan', () => {
+  assert.equal(comparison.rows[0].plan.id, 'asia-unlimited-10d');
   const order = comparison.rows.map((row) => row.plan.id);
   assert.ok(order.indexOf('asia-100gb-180d') > order.indexOf('asia-50gb-90d'), '$185 for 100GB is not better value than $100 for 50GB here');
 });
@@ -140,7 +140,7 @@ test('five times the price for data the trip does not use does not outrank a che
   assert.ok(ranked.indexOf('jp-unlimited-30d') < ranked.indexOf('asia-100gb-180d'), ranked.join(' > '));
 });
 
-test('"best value" goes to a plan that does the job, not one in the "not enough" section', () => {
+test('a label goes to a plan that does the job, not one in the "not enough" section', () => {
   const th = { kind: 'country' as const, countries: ['TH'], regionId: null, publishedDestinationCount: null };
   const comparison = buildComparison({
     profile: { destinations: [{ countryCode: 'TH', days: 14 }], usage: 'hotspot' },
@@ -159,9 +159,9 @@ test('"best value" goes to a plan that does the job, not one in the "not enough"
     ],
     rates: mockFxRates,
   });
-  const best = comparison.rows.find((row) => row.plan.id === comparison.recommendations.bestValue?.planId);
-  assert.equal(best?.plan.id, 'th-unlimited-14d');
-  assert.equal(best?.isBelowEstimatedNeed, false);
+  const cheapest = comparison.rows.find((row) => row.plan.id === comparison.recommendations.cheapest?.planId);
+  assert.equal(cheapest?.plan.id, 'th-unlimited-14d');
+  assert.equal(cheapest?.isBelowEstimatedNeed, false);
 });
 
 test("the page keeps the comparison's order under 'recommended', repairs included", async () => {

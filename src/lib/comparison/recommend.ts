@@ -3,7 +3,14 @@ import type { DataNeedEstimate } from './estimateDataNeed';
 import { coverageSpecificity, fairUsageFactor, networkScore, type ScoredPlan } from './scorePlan';
 
 /**
- * V1 recommendation categories.
+ * Recommendation categories.
+ *
+ * There is no "best value" category. It named the plan with the best overall
+ * score, which weighs price at about half; on a US 30-day search it sat on
+ * the dearest of three plans, and on a Japan 5-day one on a ₪70 plan beside
+ * two at ₪60. Each time it needed a paragraph to defend, and the owner had
+ * it taken off (1 October 2026): every label left is one a traveller can
+ * check against the card in front of them.
  *
  * `bestForBrowsing` replaces a coverage recommendation on purpose: it uses only
  * facts providers publish — 5G, how many local networks a plan can use,
@@ -12,7 +19,6 @@ import { coverageSpecificity, fairUsageFactor, networkScore, type ScoredPlan } f
  * external source exists.
  */
 export const recommendationKeys = [
-  'bestValue',
   'cheapest',
   'bestForBrowsing',
   'bestUnlimited',
@@ -53,15 +59,6 @@ export function recommend(
     planId: entry.plan.id,
     isBelowEstimatedNeed: entry.isBelowEstimatedNeed,
   });
-
-  // The best-scoring plan that does the job: lasts the trip and carries the
-  // data. Scores multiply penalties, so a plan 11% short on data can outscore
-  // an unlimited plan with an unstated cap — and then "best value" sat on a
-  // card in the "not enough for the trip" section while the first card of the
-  // main list had no label (audit, 28 September 2026). Only when nothing does
-  // the job does the best overall stand in, flagged as short.
-  const best = scored.find((entry) => entry.coversTrip && !entry.isBelowEstimatedNeed) ?? scored[0];
-  if (best) result.bestValue = entryFor('bestValue', best);
 
   // Cheapest still has to last the trip; if nothing does, we say nothing. And
   // it has to carry the data when anything does: "cheapest" for someone

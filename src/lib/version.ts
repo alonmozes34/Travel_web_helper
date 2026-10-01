@@ -7,10 +7,10 @@
  * package.json, and a new entry at the top of CHANGELOG.md — then a git tag
  * `v<version>` on the commit.
  */
-export const siteVersion = '0.22.0';
+export const siteVersion = '0.23.0';
 
 /** The day this version was released, `YYYY-MM-DD`. */
-export const releasedOn = '2026-09-30';
+export const releasedOn = '2026-10-01';
 
 /**
  * The commit the running deployment was built from, when the host says.

@@ -390,7 +390,7 @@ try {
         const price = (text.match(/₪\s?([\d,]+(?:\.\d+)?)/g) || [])
           .map((m) => Number(m.replace(/[₪,\s]/g, '')))
           .filter((n) => n > 1);
-        return { price: price[0] ?? null, badges: /הכי טוב ללא הגבלה|הכי טוב לגלישה|הכי משתלם|הכי זול/.test(text) ? text.match(/הכי [^\n]*/g) : [] };
+        return { price: price[0] ?? null, badges: /הכי טוב ללא הגבלה|הכי טוב לגלישה|הכי זול/.test(text) ? text.match(/הכי [^\n]*/g) : [] };
       }),
     ));
 
@@ -436,13 +436,13 @@ for (const w of [390, 360, 320]) {
     await p.goto(B + '/search?to=GR:3,JP:5&usage=regular', { waitUntil: 'domcontentloaded' });
     await p.waitForTimeout(1500);
     const cut = [];
-    for (const label of ['הכי משתלם', 'הכי זול', 'הכי טוב לגלישה', 'הכי טוב ללא הגבלה']) {
+    for (const label of ['הכי זול', 'הכי טוב לגלישה', 'הכי טוב ללא הגבלה']) {
       const el = p.getByRole('button', { name: new RegExp(label) }).first();
       if ((await el.count()) === 0) { cut.push(label + ' (missing)'); continue; }
       const box = await el.boundingBox();
       if (!box || box.x < 0 || box.x + box.width > w) cut.push(label);
     }
-    check('categories', `all four are fully on screen at ${w}px`, cut.length === 0, cut.join(', '));
+    check('categories', `all three are fully on screen at ${w}px`, cut.length === 0, cut.join(', '));
     await p.close();
   } catch (e) { check('categories', `${w}px: section completed`, false, e.message.split('\n')[0].slice(0, 70)); }
 }

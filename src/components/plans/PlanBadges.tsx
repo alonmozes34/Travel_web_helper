@@ -3,7 +3,6 @@ import type { Dictionary } from '@/i18n/getDictionary';
 import type { RecommendationKey } from '@/lib/comparison/recommend';
 
 const badgeIcons: Record<RecommendationKey, string> = {
-  bestValue: '🏆',
   cheapest: '💰',
   bestForBrowsing: '📶',
   bestUnlimited: '♾️',
@@ -39,7 +38,7 @@ export function PlanBadges({
         </Badge>
       ) : null}
       {badges.map((key) => (
-        <Badge key={key} tone={key === 'bestValue' ? 'value' : 'brand'}>
+        <Badge key={key} tone="brand">
           <span aria-hidden="true">{badgeIcons[key]}</span>
           {dict.recommendations[key]}
         </Badge>

@@ -5,7 +5,6 @@ import type { Dictionary } from '@/i18n/getDictionary';
 import { recommendationKeys, type RecommendationKey } from '@/lib/comparison/recommend';
 
 export const recommendationIcons: Record<RecommendationKey, string> = {
-  bestValue: '🏆',
   cheapest: '💰',
   bestForBrowsing: '📶',
   bestUnlimited: '♾️',
@@ -30,7 +29,8 @@ export function RecommendationTabs({
   onSelect,
 }: {
   available: RecommendationKey[];
-  active: RecommendationKey;
+  /** None when the list is ordered by something no category stands for. */
+  active: RecommendationKey | null;
   dict: Dictionary;
   onSelect: (key: RecommendationKey) => void;
 }) {

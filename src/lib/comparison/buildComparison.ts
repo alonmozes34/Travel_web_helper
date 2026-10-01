@@ -9,7 +9,6 @@ import type { Provider } from '@/lib/types/provider';
 import { destinationCodes, type TripProfile } from '@/lib/types/trip';
 import { buildCombination, type Combination } from './buildCombination';
 import { estimateDataNeed, type DataNeedEstimate } from './estimateDataNeed';
-import { explainBestValue, type BestValueWhy } from './explainBestValue';
 import {
   recommend,
   unlimitedCost,
@@ -56,8 +55,6 @@ export type Comparison = {
   estimate: DataNeedEstimate;
   rows: ComparisonRow[];
   recommendations: Partial<Record<RecommendationKey, Recommendation>>;
-  /** What the extra money buys, when "best value" is not the cheapest plan. */
-  bestValueWhy: BestValueWhy | null;
   planCount: number;
   /** Derived from the data, never asserted in copy. */
   providerCount: number;
@@ -135,14 +132,6 @@ export function buildComparison({
   });
   const recommendations = recommend(scored, { estimate, priceByPlanId, countryCodes });
 
-  const planById = new Map(scored.map((entry) => [entry.plan.id, entry.plan]));
-  const whyBestValue = () => {
-    const best = recommendations.bestValue && planById.get(recommendations.bestValue.planId);
-    const cheapest = recommendations.cheapest && planById.get(recommendations.cheapest.planId);
-    if (!best || !cheapest) return null;
-    return explainBestValue(best, cheapest, (plan) => priceByPlanId.get(plan.id) ?? 0, countryCodes);
-  };
-
   const badgesByPlanId = new Map<string, RecommendationKey[]>();
   for (const recommendation of Object.values(recommendations)) {
     const existing = badgesByPlanId.get(recommendation.planId) ?? [];
@@ -189,7 +178,6 @@ export function buildComparison({
     estimate,
     rows,
     recommendations,
-    bestValueWhy: whyBestValue(),
     planCount: rows.length,
     providerCount: new Set(rows.map((row) => row.plan.providerId)).size,
     isMockData: rows.some((row) => row.plan.source === 'mock'),

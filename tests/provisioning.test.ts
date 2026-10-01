@@ -18,14 +18,16 @@ test('asking for unlimited does not return a 3GB plan first', () => {
   const { rows, recommendations } = japan('unlimited');
   assert.equal(rows[0].plan.isUnlimited, true, `top plan was ${rows[0].plan.planName}`);
 
-  const best = rows.find((row) => row.plan.id === recommendations.bestValue?.planId);
-  assert.equal(best?.plan.isUnlimited, true, 'best value must be an unlimited plan');
+  // There is no "best value" label any more (1 October 2026); the top of the
+  // "recommended" order is what it named.
+  assert.equal(recommendations.cheapest !== undefined, true);
+  assert.equal(rows[0].plan.isUnlimited, true, 'the top recommended plan must be an unlimited plan');
 });
 
-test('a plan that runs out mid-trip cannot be the best value', () => {
+test('a plan that runs out mid-trip cannot top the recommended order', () => {
   for (const usage of ['unlimited', 'heavy', 'regular'] as const) {
-    const { rows, recommendations } = japan(usage);
-    const best = rows.find((row) => row.plan.id === recommendations.bestValue?.planId);
+    const { rows } = japan(usage);
+    const best = rows[0];
     assert.ok(best, usage);
     assert.equal(best.isBelowEstimatedNeed, false, `${usage}: recommended a plan below the need`);
   }

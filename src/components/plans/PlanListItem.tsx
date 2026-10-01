@@ -8,9 +8,7 @@ import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
-import type { BestValueWhy } from '@/lib/comparison/explainBestValue';
 import { recommendationKeys, type RecommendationKey } from '@/lib/comparison/recommend';
-import type { CurrencyCode } from '@/i18n/config';
 import { formatData } from '@/lib/formatters/data';
 import { formatPrice } from '@/lib/formatters/price';
 import { CompareToggle } from './CompareToggle';
@@ -22,7 +20,6 @@ import { PlanDetails } from './PlanDetails';
 import { ProviderCell } from './ProviderCell';
 
 const badgeIcons: Record<RecommendationKey, string> = {
-  bestValue: '🏆',
   cheapest: '💰',
   bestForBrowsing: '📶',
   bestUnlimited: '♾️',
@@ -55,7 +52,6 @@ export function PlanListItem({
   canSelect,
   onSelect,
   onChosen,
-  bestValueWhy = null,
 }: {
   row: ComparisonRow;
   locale: Locale;
@@ -70,11 +66,8 @@ export function PlanListItem({
   onSelect: (selected: boolean) => void;
   /** Raised when this row's outbound link is followed. */
   onChosen?: () => void;
-  /** On the "best value" card only, when it is not the cheapest: what the extra buys. */
-  bestValueWhy?: (BestValueWhy & { cheapestProvider: string | null; currency: CurrencyCode }) | null;
 }) {
   const { plan } = row;
-  const isBestValue = row.badges.includes('bestValue');
   // One label, not four: the first category the plan wins, in the order the
   // tabs above list them.
   const badge = recommendationKeys.find((key) => row.badges.includes(key));
@@ -99,7 +92,6 @@ export function PlanListItem({
         // min-w-0: a grid item otherwise refuses to shrink below its longest
         // word and pushes a 320px screen sideways.
         'relative min-w-0 rounded-lg border border-line bg-surface p-4 md:p-5',
-        isBestValue && 'border-teal bg-teal-50/45',
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -114,30 +106,13 @@ export function PlanListItem({
             </Badge>
           ) : null}
           {badge ? (
-            <Badge tone={badge === 'bestValue' ? 'value' : 'brand'}>
+            <Badge tone="brand">
               <span aria-hidden="true">{badgeIcons[badge]}</span>
               {dict.recommendations[badge]}
             </Badge>
           ) : null}
         </div>
       </div>
-      {/* A badge on a dearer plan says what the extra money buys, in facts the
-          providers published — otherwise it reads as a mistake, or as a paid
-          placement. */}
-      {bestValueWhy ? (
-        <p className="mt-2 text-sm text-ink-2">
-          {interpolate(
-            bestValueWhy.cheapestProvider ? dict.recommendations.whyTemplate : dict.recommendations.whyTemplateNoProvider,
-            {
-              extra: formatPrice(bestValueWhy.extraMinor, bestValueWhy.currency, locale),
-              provider: bestValueWhy.cheapestProvider ?? '',
-            },
-          )}{' '}
-          {bestValueWhy.reasons.length
-            ? bestValueWhy.reasons.map((reason) => dict.recommendations.reasons[reason]).join(' · ')
-            : dict.recommendations.whyNoFact}
-        </p>
-      ) : null}
       <CoverageNote coverage={plan.coverage} locale={locale} dict={dict} />
 
       <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:gap-6">

@@ -229,7 +229,7 @@ describe('recommendations', () => {
       plans: getPlansForCountry('TH').filter((entry) => !entry.isUnlimited),
     });
     assert.equal(noUnlimited.recommendations.bestUnlimited, undefined);
-    assert.ok(noUnlimited.recommendations.bestValue);
+    assert.ok(noUnlimited.recommendations.cheapest);
   });
 
   test('counts are derived from the data', () => {

@@ -250,7 +250,6 @@ export default async function CountryPage({
                 countryCodes={comparison.countryCodes}
                 demoDataEnabled={comparison.isMockData}
                 demoDataMixed={comparison.isMockData && !comparison.allMockData}
-                bestValueWhy={comparison.bestValueWhy}
                   availableRecommendations={
                   Object.keys(comparison.recommendations) as RecommendationKey[]
                 }
