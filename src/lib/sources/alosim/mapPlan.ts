@@ -129,9 +129,11 @@ function readFairUsage(item: AlosimPlan): FairUsage | null {
   const threshold = parseAmount(item.dataBeforeThrottle, { gb: MB_PER_GB, mb: 1 });
   const speed = parseAmount(item.throttleSpeed, { mbps: 1000, kbps: 1 });
   if (threshold === null && speed === null) return null;
-  // "3 GB" with no period. Whether that is per day or per plan is the
-  // question put to aloSIM; until they answer, the page does not say "a day".
-  return { thresholdMb: threshold, per: null, throttledToKbps: speed };
+  // "3 GB" with no period in the API. Per day: "The 3 GB is per day. After
+  // that, speeds are throttled to the throttleSpeed shown in the API
+  // (1 Mbps), and the allowance resets the next day." (Adam Bednarek, aloSIM
+  // partnerships, by email, 1 October 2026.)
+  return { thresholdMb: threshold, per: 'day', throttledToKbps: speed };
 }
 
 function readNetwork(entry: AlosimNetwork): Network[] {

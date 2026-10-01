@@ -61,13 +61,14 @@ describe('mapping an aloSIM plan', () => {
     assert.ok(planOf(europe).coverage.countries.every((code) => /^[A-Z]{2}$/.test(code)));
   });
 
-  test('an unlimited plan keeps its cap, without claiming it is per day', () => {
+  test("an unlimited plan's cap is per day, as aloSIM confirmed", () => {
     const plan = planOf(thaiUnlimited);
     assert.equal(plan.isUnlimited, true);
     assert.equal(plan.dataAmountMb, 0);
-    assert.deepEqual(plan.fairUsage, { thresholdMb: 3 * 1024, per: null, throttledToKbps: 1000 });
-    // Scoring takes the less generous reading while the period is unknown.
-    assert.equal(dailyFullSpeedMb(plan.fairUsage, plan.validityDays), (3 * 1024) / 7);
+    assert.deepEqual(plan.fairUsage, { thresholdMb: 3 * 1024, per: 'day', throttledToKbps: 1000 });
+    // Until aloSIM answered (1 October 2026) the period was unknown and
+    // scoring took the less generous reading, 3GB over the whole plan.
+    assert.equal(dailyFullSpeedMb(plan.fairUsage, plan.validityDays), 3 * 1024);
   });
 
   test('networks: LTE is 4G, 5G is 5G, and nothing is inferred', () => {

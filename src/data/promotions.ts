@@ -35,9 +35,9 @@ export type Promotion = {
 export const promotions: readonly Promotion[] = [
   {
     // "The code is YESHKLITA15. The code is for new customers only, and it
-    // expires Feb 28th, 2027." Whether it covers regional plans too, and
-    // whether the tracking link applies it by itself, has been asked; until
-    // then the code is shown to type in.
+    // expires Feb 28th, 2027." And on 1 October 2026: "the code applies to
+    // every plan, including regional ones. It is valid on a customer's first
+    // purchase only." The link does not apply it, so it is shown to type in.
     providerId: 'alosim',
     code: 'YESHKLITA15',
     percent: 15,
