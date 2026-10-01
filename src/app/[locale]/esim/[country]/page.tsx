@@ -21,6 +21,9 @@ import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
 import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
 import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { CountryFacts } from "@/components/content/CountryFacts";
+import { TravelFacts } from "@/components/content/TravelFacts";
+import { countryTravelFacts } from "@/data/countryFacts.generated";
+import { getLocalRates } from "@/lib/sources/ecb/localCurrencyRates";
 import { RelatedDestinations } from "@/components/content/RelatedDestinations";
 import { CoverageNotice } from "@/components/content/CoverageNotice";
 import { Faq } from "@/components/content/Faq";
@@ -107,7 +110,7 @@ export default async function CountryPage({
   // it on the first paint rather than changing under them after hydration.
   // A country page is a single-destination search; the multi-stop flow lives
   // on /search, which the hero submits to when more than one stop is chosen.
-  const catalogue = await getCatalogue();
+  const [catalogue, localRates] = await Promise.all([getCatalogue(), getLocalRates()]);
   const comparison = buildComparison({
     profile: {
       ...profile,
@@ -264,6 +267,13 @@ export default async function CountryPage({
       </Container>
 
       {coverageKind !== "none" && <CountryFacts facts={facts} dict={dict} />}
+      <TravelFacts
+        facts={countryTravelFacts[country.code]}
+        countryName={name}
+        locale={locale}
+        dict={dict}
+        rates={localRates}
+      />
       {/* Every destination page used to be an island: reachable from the
           sitemap and from a search, and from nothing else. */}
       <RelatedDestinations

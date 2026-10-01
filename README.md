@@ -419,6 +419,16 @@ downloaded once by `scripts/fetch-destination-images.ts` into
 new banner (`--refresh` to fetch all again). Never images from a search
 engine: those belong to someone who has not allowed their use.
 
+**"Before you go" facts** on each country page — capital, money and its
+shekel rate, official languages, plugs and voltage, driving side, time
+difference, emergency numbers, calling code — come from
+`src/data/countryFacts.generated.ts`, written by
+`scripts/fetch-country-facts.ts` from CLDR, Wikidata and the IANA time zone
+database. The shekel rate (ECB, every currency it publishes) and the time
+difference (summer time included) are worked out when the page is shown. A
+fact a source lacks is left out. Safety is a link to the National Security
+Council's travel warnings, never our own words about a country.
+
 Where plans come from is decided in one place, `planSourcesFromEnv` in
 `src/lib/catalogue/getCatalogue.ts`:
 
