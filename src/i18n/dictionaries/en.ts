@@ -515,6 +515,12 @@ export const en: Dictionary = {
     },
     differsLabel: 'Differs between plans',
   },
+  share: {
+    whatsapp: 'Send on WhatsApp',
+    opensInNewTab: '(opens in a new tab)',
+    messageTemplate: 'eSIM plans for {country}, {days}-day trip:',
+    messageNoDaysTemplate: 'eSIM plans for {country}:',
+  },
   travelFacts: {
     titleTemplate: 'Before you travel: {country}',
     capital: 'Capital',

@@ -534,6 +534,12 @@ export const he = {
     },
     differsLabel: 'שונה בין החבילות',
   },
+  share: {
+    whatsapp: 'שליחה בוואטסאפ',
+    opensInNewTab: '(נפתח בלשונית חדשה)',
+    messageTemplate: 'השוואת חבילות eSIM ל{country} לטיול של {days} ימים:',
+    messageNoDaysTemplate: 'השוואת חבילות eSIM ל{country}:',
+  },
   travelFacts: {
     titleTemplate: 'לפני שנוסעים ל{country}',
     capital: 'עיר הבירה',

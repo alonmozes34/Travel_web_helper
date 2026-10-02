@@ -12,7 +12,9 @@ import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { AffiliateDisclosure } from "@/components/content/AffiliateDisclosure";
 import { MockDataNotice } from "@/components/content/MockDataNotice";
 import { countries } from "@/data/countries";
-import { isLocale } from "@/i18n/config";
+import { isLocale, localePath } from "@/i18n/config";
+import { ShareSearch } from "@/components/results/ShareSearch";
+import { siteUrl } from "@/lib/site";
 import { getDictionary } from "@/i18n/getDictionary";
 import { interpolate } from "@/i18n/interpolate";
 import { buildComparison } from "@/lib/comparison/buildComparison";
@@ -162,14 +164,25 @@ export default async function SearchPage({
             ) : null}
 
             {comparison.rows.length > 0 || combination ? (
-              <p className="mt-6 text-base text-ink-2">
-                <strong className="font-semibold text-ink">
-                  {interpolate(comparison.providerCount === 1 ? dict.results.summaryOneProviderTemplate : dict.results.summaryTemplate, {
-                    plans: comparison.planCount,
-                    providers: comparison.providerCount,
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-base text-ink-2">
+                  <strong className="font-semibold text-ink">
+                    {interpolate(comparison.providerCount === 1 ? dict.results.summaryOneProviderTemplate : dict.results.summaryTemplate, {
+                      plans: comparison.planCount,
+                      providers: comparison.providerCount,
+                    })}
+                  </strong>
+                </p>
+                <ShareSearch
+                  message={interpolate(estimate.isDefault ? dict.share.messageNoDaysTemplate : dict.share.messageTemplate, {
+                    country: names,
+                    days: estimate.days,
                   })}
-                </strong>
-              </p>
+                  label={dict.share.whatsapp}
+                  opensInNewTab={dict.share.opensInNewTab}
+                  initialUrl={`${siteUrl}${localePath(locale, "/search")}${queryParams.size ? `?${queryParams}` : ""}`}
+                />
+              </div>
             ) : null}
             <p className="mt-1 text-sm text-ink-2">
               {estimate.isDefault ? (

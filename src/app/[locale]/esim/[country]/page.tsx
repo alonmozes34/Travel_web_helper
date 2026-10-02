@@ -22,6 +22,7 @@ import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
 import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { CountryFacts } from "@/components/content/CountryFacts";
 import { TravelFacts } from "@/components/content/TravelFacts";
+import { ShareSearch } from "@/components/results/ShareSearch";
 import { countryTravelFacts } from "@/data/countryFacts.generated";
 import { getLocalRates } from "@/lib/sources/ecb/localCurrencyRates";
 import { RelatedDestinations } from "@/components/content/RelatedDestinations";
@@ -205,14 +206,25 @@ export default async function CountryPage({
 
         {coverageKind !== "none" && (
           <>
-            <p className="mt-6 text-base text-ink-2">
-              <strong className="font-semibold text-ink">
-                {interpolate(comparison.providerCount === 1 ? dict.results.summaryOneProviderTemplate : dict.results.summaryTemplate, {
-                  plans: comparison.planCount,
-                  providers: comparison.providerCount,
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-base text-ink-2">
+                <strong className="font-semibold text-ink">
+                  {interpolate(comparison.providerCount === 1 ? dict.results.summaryOneProviderTemplate : dict.results.summaryTemplate, {
+                    plans: comparison.planCount,
+                    providers: comparison.providerCount,
+                  })}
+                </strong>
+              </p>
+              <ShareSearch
+                message={interpolate(estimate.isDefault ? dict.share.messageNoDaysTemplate : dict.share.messageTemplate, {
+                  country: name,
+                  days: estimate.days,
                 })}
-              </strong>
-            </p>
+                label={dict.share.whatsapp}
+                opensInNewTab={dict.share.opensInNewTab}
+                initialUrl={`${siteUrl}${localePath(locale, `/esim/${country.slug}`)}${queryParams.size ? `?${queryParams}` : ""}`}
+              />
+            </div>
             <p className="mt-1 mb-6 text-sm text-ink-2">
               {estimate.isDefault ? (
                 dict.results.defaultEstimate
