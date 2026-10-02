@@ -1,13 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useParams } from 'next/navigation';
 import { isLocale } from '@/i18n/config';
+import { interpolate } from '@/i18n/interpolate';
 import { loadingCopy } from '@/i18n/loadingCopy';
+import { destinationLabel } from '@/lib/loadingDestination';
 import { estimatedProgress, noteLoadingProgress } from '@/lib/loadingProgress';
 import { Container } from './Container';
+import { FlightProgress } from './FlightProgress';
 
-/** How often the bar moves. Slower under reduced motion: fewer, larger steps. */
+const noSubscription = () => () => {};
+
+/** How often the plane moves. Slower under reduced motion: fewer, larger steps. */
 const TICK_MS = 150;
 const TICK_MS_REDUCED = 600;
 
@@ -15,22 +20,35 @@ const TICK_MS_REDUCED = 600;
  * Shown the moment a results page is asked for, while its prices load.
  *
  * The first visitor on a fresh server waits a couple of seconds for the
- * provider's catalogue; a blank screen for that long reads as a broken site.
+ * providers' catalogues; a blank screen for that long reads as a broken site.
  * The sentence is a live status, so a screen reader announces it once. The
- * bar and its percentage are an estimate by time (see `estimatedProgress`),
- * and hidden from screen readers: a number changing several times a second
- * would be read out, or beeped, over and over.
+ * flight below it (`FlightProgress`) and its percentage are an estimate by
+ * time (see `estimatedProgress`), and hidden from screen readers: a number
+ * changing several times a second would be read out over and over.
  *
- * The bar fills from the start of the line — the right in Hebrew — because
- * the fill is a plain block in the page's own direction. An earlier version
- * mirrored the track for RTL on top of that, and its sweep began in the
- * middle (28 September 2026).
+ * The destination is read from the address once the screen is up, so the
+ * plane flies to Japan when Japan was asked for.
  */
 export function PageLoading() {
   const params = useParams();
   const locale = typeof params?.locale === 'string' && isLocale(params.locale) ? params.locale : 'he';
   const copy = loadingCopy[locale];
   const [percent, setPercent] = useState(0);
+  // The address, read in the browser only; on the server there is none.
+  const address = useSyncExternalStore(
+    noSubscription,
+    () => window.location.pathname + window.location.search,
+    () => '',
+  );
+  const destination = useMemo(() => {
+    if (!address) return null;
+    const url = new URL(address, 'https://x.invalid');
+    try {
+      return destinationLabel(url.pathname, url.search, locale);
+    } catch {
+      return null;
+    }
+  }, [address, locale]);
 
   useEffect(() => {
     const started = performance.now();
@@ -42,8 +60,8 @@ export function PageLoading() {
     };
     noteLoadingProgress(0);
     const timer = window.setInterval(tick, reduced ? TICK_MS_REDUCED : TICK_MS);
-    // Where the bar stopped is handed to the page that replaces this one,
-    // which runs it on to 100 (`LoadingComplete`).
+    // Where the plane stopped is handed to the page that replaces this one,
+    // which flies it on to 100 (`LoadingComplete`).
     return () => {
       window.clearInterval(timer);
       noteLoadingProgress(estimatedProgress(performance.now() - started));
@@ -53,19 +71,14 @@ export function PageLoading() {
   return (
     <Container className="py-10">
       <div role="status" aria-live="polite" className="max-w-[60ch]">
-        <p className="font-head text-xl font-semibold text-ink">{copy.title}</p>
+        <p className="font-head text-xl font-semibold text-ink">
+          {destination ? interpolate(copy.titleToTemplate, { to: destination.names }) : copy.title}
+        </p>
         <p className="mt-1 text-base text-ink-2">{copy.body}</p>
       </div>
 
-      <div aria-hidden="true" className="mt-5 flex max-w-md items-center gap-3">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-line">
-          <div
-            data-loading-fill
-            className="h-full rounded-full bg-brand motion-safe:transition-[width] motion-safe:duration-150 motion-safe:ease-linear"
-            style={{ width: `${percent}%` }}
-          />
-        </div>
-        <span className="min-w-[4ch] text-end text-sm font-semibold tabular-nums text-ink-2">{percent}%</span>
+      <div className="mt-6">
+        <FlightProgress percent={percent} rtl={locale === 'he'} from={copy.from} to={destination?.label ?? copy.anywhere} />
       </div>
 
       <div aria-hidden="true" className="mt-8 grid gap-4">

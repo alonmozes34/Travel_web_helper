@@ -137,3 +137,14 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* The loading screen's flight (FlightProgress): clouds drift, the plane rides
+   a little turbulence. Both stop under reduced motion (the rule above). */
+@keyframes cloud-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(28px); }
+}
+@keyframes plane-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}

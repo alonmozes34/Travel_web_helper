@@ -51,7 +51,13 @@ export function LoadingComplete() {
   return (
     <div aria-hidden="true" data-loading-complete className="pointer-events-none fixed inset-x-0 top-0 z-50">
       <div className="h-1 bg-line/60">
-        <div className="h-full bg-brand" style={{ width: `${percent}%` }} />
+        <div className="relative h-full bg-brand" style={{ width: `${percent}%` }}>
+          {/* The plane from the loading screen, landing. Points along the
+              strip: to the left in Hebrew, where the strip grows leftwards. */}
+          <svg viewBox="-16 -12 32 24" className="absolute -end-2 top-1/2 h-4 w-5 -translate-y-1/2 fill-ink rtl:-scale-x-100">
+            <path d="M-14 -0.8 L8 -2 C12 -2 15 -1 15 0 C15 1 12 2 8 2 L-14 0.8 Z M-2 -1.6 L-7 -11 L-3.6 -11 L4 -1.8 Z M-2 1.6 L-7 11 L-3.6 11 L4 1.8 Z M-11 -0.7 L-13.5 -6 L-11.5 -6 L-8 -0.9 Z M-11 0.7 L-13.5 6 L-11.5 6 L-8 0.9 Z" />
+          </svg>
+        </div>
       </div>
       <span className="absolute end-2 top-1.5 rounded-full bg-surface px-2 text-xs font-semibold tabular-nums text-ink-2 shadow-sm">
         {percent}%
