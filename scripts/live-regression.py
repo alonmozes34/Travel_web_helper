@@ -26,6 +26,10 @@ answer automated clients with an empty page, so Yesim is checked by hand.
 ZenSim cards: the link has our affiliate id and the card's data and days; on a
 sample of 25 of their pages, the list price is read again and every card from
 that page must show it, at one exchange rate for the run.
+Exchange rates: the rates on /api/status (those prices are converted at, and
+those the "before you go" facts quote) are fresh and within 2% of the Bank of
+Israel's representative rates, and the rates implied by Yesim's and ZenSim's
+cards are within 5% of them.
 Exit status 1 when anything is found. Written 28 September 2026 after the
 owner asked for "a full regression, so we don't fall into this again".
 """
@@ -45,6 +49,7 @@ for c,u,d in itertools.product(matrix_c,usages,[3,7,14,30]): jobs.append(([(c,d)
 for cb in combos:
     for u in ['light','regular','hotspot']: jobs.append(([(x,5) for x in cb],u))
 yes_by_key={}
+rates_med=None; zmed_all=None
 for p in YESIM:
     base=p['directLink'].rstrip('/').replace('https://yesim.app','')
     cap=p['capacity']; mb=int(cap) if cap!='-1' else -1
@@ -183,11 +188,54 @@ if zensim_cards:
         for rate,key,link,usd,ils in zrates:
             if abs(rate/zmed-1)>0.02: issues['zensim-price≠page'].append(f"{key}: ${usd} shown as ₪{ils} (rate {rate:.3f} vs {zmed:.3f}) {link}")
         print(f'zensim ILS/USD median {zmed:.4f} over {len(zrates)} cards from {len(zsample)} pages')
+        zmed_all=zmed
 if rates:
     med=statistics.median(x[0] for x in rates)
     for rate,key,link,eur,ils in rates:
         if abs(rate/med-1)>0.02: issues['yesim-price≠api'].append(f"{key}: €{eur} shown as ₪{ils} (rate {rate:.3f} vs {med:.3f}) {link}")
     print(f'yesim ILS/EUR median {med:.4f} over {len(rates)} cards')
+    rates_med=med
+# Exchange rates (the owner, 2 October 2026: "always check the exchange
+# rates"). The rates the site converts prices at, and the ones its "before you
+# go" facts quote, are held against the Bank of Israel's representative rates:
+# fresh (the ECB publishes every business day), and within 2% — the two are
+# set at different hours, never more than a fraction of a percent apart on a
+# normal day. The rates actually applied to Yesim's and ZenSim's prices above
+# are held against the same figures.
+def check_rates():
+    try:
+        status=json.loads(subprocess.run(['curl','-sS','-m','60',BASE+'/api/status'],capture_output=True,text=True).stdout)
+        boi=json.loads(subprocess.run(['curl','-sS','-m','60','https://www.boi.org.il/PublicApi/GetExchangeRates'],capture_output=True,text=True).stdout)
+    except ValueError as e:
+        issues['rates-unreadable'].append(str(e)[:120]); return
+    official={r['key']:float(r['currentExchangeRate'])/float(r.get('unit') or 1) for r in boi.get('exchangeRates',[])}
+    if not official: issues['rates-unreadable'].append('Bank of Israel returned no rates'); return
+    rates=status.get('rates') or {}
+    ecb=next((x for x in status.get('sources',[]) if x.get('id')=='ecb'),None)
+    if not ecb or not ecb.get('ok'): issues['rates-ecb-not-loaded'].append(json.dumps(ecb)[:200])
+    today=datetime.date.today()
+    seen=0
+    for name,table in (('prices',{k:v['ilsPer'] for k,v in (rates.get('prices') or {}).items()}),('local',(rates.get('local') or {}).get('ilsPer') or {})):
+        for code,ils in table.items():
+            if code not in official: continue
+            seen+=1
+            off=ils/official[code]-1
+            if abs(off)>0.02: issues['rate≠bank-of-israel'].append(f"{name} {code}: ₪{ils:.4f} vs Bank of Israel ₪{official[code]:.4f} ({off:+.1%})")
+    for k,v in (rates.get('prices') or {}).items():
+        if v.get('source')!='api': issues['rates-not-live'].append(f"{k} from {v.get('source')}")
+        age=(today-datetime.date.fromisoformat(v['asOf'])).days
+        if age>5: issues['rates-stale'].append(f"{k}: ECB rate of {v['asOf']} ({age} days)")
+    local=rates.get('local')
+    if not local: issues['rates-local-missing'].append('no local-currency rates on /api/status')
+    elif (today-datetime.date.fromisoformat(local['asOf'])).days>5: issues['rates-stale'].append(f"local rates of {local['asOf']}")
+    applied=[]
+    if rates_med is not None and 'EUR' in official: applied.append(('Yesim (EUR)',rates_med,official['EUR']))
+    if zmed_all is not None and 'USD' in official: applied.append(('ZenSim (USD)',zmed_all,official['USD']))
+    for label,used,ref in applied:
+        # Prices may carry a provider's own discount or rounding, so the band is wider.
+        if abs(used/ref-1)>0.05: issues['applied-rate≠bank-of-israel'].append(f"{label}: prices imply ₪{used:.4f}, Bank of Israel ₪{ref:.4f}")
+    print(f"rates: {seen} checked against the Bank of Israel; applied: "+', '.join(f"{l} {u:.4f}/{r:.4f}" for l,u,r in applied))
+check_rates()
 print(len(res),'pages,',sum(len(p['rows']) for p in res),'cards')
 for k in sorted(issues):
     v=issues[k]; print(f'\n## {k}: {len(v)}')
