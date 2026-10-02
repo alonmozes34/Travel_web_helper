@@ -83,6 +83,10 @@ line ""
 
 line "## Code"
 step "lint" npm run lint
+# Next writes the PageProps/LayoutProps route types into .next/types; a fresh
+# clone has none until a build, and tsc then fails on every page (the nightly
+# run of 1 October 2026). `next typegen` writes them without building.
+npx next typegen > "$LOGS/typegen.log" 2>&1
 step "typecheck" npx tsc --noEmit -p .
 step "unit tests" npm run test:unit
 
