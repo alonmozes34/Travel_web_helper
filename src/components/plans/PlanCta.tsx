@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/getDictionary";
@@ -33,6 +33,7 @@ export function PlanCta({
   onToggleDetails,
   onChosen,
   demoDataEnabled = false,
+  share,
 }: {
   row: ComparisonRow;
   dict: Dictionary;
@@ -52,6 +53,8 @@ export function PlanCta({
   onChosen?: () => void;
   /** Whether a demo discount code may be shown, as on the card. */
   demoDataEnabled?: boolean;
+  /** A share button, kept in the same row as the plan's other actions. */
+  share?: ReactNode;
 }) {
   const [noted, setNoted] = useState(false);
   const [beforeYouGo, setBeforeYouGo] = useState(false);
@@ -142,6 +145,7 @@ export function PlanCta({
         >
           {detailsOpen ? dict.details.close : dict.plan.details}
         </Button>
+        {share}
       </div>
       {/* Naming the destination on the button, and saying what happens there,
           is the difference between a link someone follows and a link someone

@@ -302,7 +302,7 @@ ok(
 
 // Country facts are derived from the plans, not pre-written.
 const pageText = await page.locator('main').innerText();
-ok('practical information is present', pageText.includes('מידע פרקטי'));
+ok('practical information is present', pageText.includes(': מה כדאי לדעת'));
 const summaryCount = (await page.locator('main').innerText()).match(/מצאנו (\d+) חבילות/)?.[1];
 ok(
   'the practical answers cite the same counts as the results',

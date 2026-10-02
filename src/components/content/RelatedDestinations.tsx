@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { localePath, type Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import type { RelatedDestination } from '@/lib/comparison/relatedDestinations';
+import { SectionTitle } from './SectionTitle';
 
 /**
  * Other destinations, from a destination page.
@@ -26,10 +27,10 @@ export function RelatedDestinations({
   if (destinations.length === 0) return null;
 
   return (
-    <section className="border-t border-line-soft bg-surface-2 py-12">
+    <section id="related" className="scroll-mt-20 border-t border-line-soft bg-surface-2 py-12">
       <div className="mx-auto w-full max-w-[1200px] px-5">
-        <h2 className="font-head text-2xl font-semibold">{dict.relatedDestinations.title}</h2>
-        <p className="mt-1 max-w-[70ch] text-ink-2">{dict.relatedDestinations.body}</p>
+        <SectionTitle icon="🗺️">{dict.relatedDestinations.title}</SectionTitle>
+        <p className="mt-2 max-w-[70ch] text-ink-2">{dict.relatedDestinations.body}</p>
 
         {/* Each link may wrap inside itself: at 200% text on a phone a name
             and its status do not fit on one line, and held there they pushed

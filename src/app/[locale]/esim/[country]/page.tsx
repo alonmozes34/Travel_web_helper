@@ -24,6 +24,7 @@ import { CountryFacts } from "@/components/content/CountryFacts";
 import { getPriceSummary } from "@/lib/priceHistory/store";
 import { trendFor } from "@/lib/priceHistory/summary";
 import { TravelFacts } from "@/components/content/TravelFacts";
+import { MoreOnPage } from "@/components/content/MoreOnPage";
 import { ShareSearch } from "@/components/results/ShareSearch";
 import { countryTravelFacts } from "@/data/countryFacts.generated";
 import { getLocalRates } from "@/lib/sources/ecb/localCurrencyRates";
@@ -147,6 +148,8 @@ export default async function CountryPage({
     facts: dict.country.facts,
     interpolate,
   });
+
+  const related = relatedDestinations(country.code, locale, coverage.isCovered);
 
   return (
     <>
@@ -278,9 +281,21 @@ export default async function CountryPage({
         )}
 
         <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
+
+        <MoreOnPage
+          title={dict.moreOnPage.title}
+          items={[
+            ...(countryTravelFacts[country.code] ? [{ href: "#travel-facts", icon: "🧳", label: dict.moreOnPage.travel }] : []),
+            ...(coverageKind !== "none" && facts.length
+              ? [{ href: "#esim-facts", icon: "📶", label: interpolate(dict.moreOnPage.esim, { country: name }) }]
+              : []),
+            ...(related.length ? [{ href: "#related", icon: "🗺️", label: dict.moreOnPage.related }] : []),
+            { href: "#faq", icon: "❓", label: dict.moreOnPage.faq },
+          ]}
+        />
       </Container>
 
-      {coverageKind !== "none" && <CountryFacts facts={facts} dict={dict} />}
+      {coverageKind !== "none" && <CountryFacts facts={facts} dict={dict} countryName={name} />}
       <TravelFacts
         facts={countryTravelFacts[country.code]}
         countryName={name}
@@ -291,7 +306,7 @@ export default async function CountryPage({
       {/* Every destination page used to be an island: reachable from the
           sitemap and from a search, and from nothing else. */}
       <RelatedDestinations
-        destinations={relatedDestinations(country.code, locale, coverage.isCovered)}
+        destinations={related}
         locale={locale}
         dict={dict}
       />

@@ -517,11 +517,19 @@ export const en: Dictionary = {
     },
     differsLabel: 'Differs between plans',
   },
+  moreOnPage: {
+    title: 'Further down this page',
+    travel: 'Before you travel',
+    esim: 'eSIM in {country}: what to know',
+    related: 'Nearby destinations',
+    faq: 'Questions',
+  },
   share: {
     whatsapp: 'Send on WhatsApp',
     opensInNewTab: '(opens in a new tab)',
     messageTemplate: 'eSIM plans for {country}, {days}-day trip:',
     messageNoDaysTemplate: 'eSIM plans for {country}:',
+    planMessageTemplate: 'An eSIM plan I found: {provider} · {data} · {days} days · {price}. The full comparison:',
   },
   travelFacts: {
     titleTemplate: 'Before you travel: {country}',
@@ -563,6 +571,7 @@ export const en: Dictionary = {
     metaDescriptionTemplate:
       'Compare eSIM plans for {country}: price, data, validity, local network and 5G — from every provider in one place.',
     factsTitle: 'Practical information',
+    factsTitleTemplate: 'eSIM in {country}: what to know',
     factsNote: 'Every answer here is calculated from the plans on this page — none of it is pre-written.',
     facts: {
       worksQuestion: 'Does eSIM work in {country}?',

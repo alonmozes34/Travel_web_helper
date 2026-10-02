@@ -5,6 +5,7 @@ import { interpolate } from '@/i18n/interpolate';
 import type { CountryTravelFacts } from '@/data/countryFacts.generated';
 import { quoteUnits, type LocalRates } from '@/lib/sources/ecb/localCurrencyRates';
 import { minutesAheadOfIsrael } from '@/lib/travel/timeDifference';
+import { SectionTitle } from './SectionTitle';
 
 /** The official warnings page; its old address, which the NSC keeps redirecting. */
 const NSC_TRAVEL_WARNINGS = 'https://www.nsc.gov.il/he/Travel-Warnings/Pages/default.aspx';
@@ -45,15 +46,15 @@ export function TravelFacts({
     new Intl.NumberFormat(numberLocale, { style: 'currency', currency: 'ILS', maximumFractionDigits: 2 }).format(value);
   const date = (iso: string) => new Intl.DateTimeFormat(numberLocale, { dateStyle: 'short', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`));
 
-  const rows: Array<{ label: string; value: ReactNode }> = [];
+  const rows: Array<{ icon: string; label: string; value: ReactNode }> = [];
 
   const capitals = facts.capital.map((city) => name(city)).filter(Boolean);
-  if (capitals.length) rows.push({ label: t.capital, value: capitals.join(', ') });
+  if (capitals.length) rows.push({ icon: '🏛️', label: t.capital, value: capitals.join(', ') });
 
   if (facts.currencies.length) {
     const rated = facts.currencies.filter((currency) => currency.code !== 'ILS' && rates?.ilsPer.has(currency.code));
     rows.push({
-      label: t.currency,
+      icon: '💱', label: t.currency,
       value: (
         <>
           {facts.currencies.map((currency) => `${name(currency) ?? currency.code} (${currency.code})`).join(' · ')}
@@ -61,7 +62,7 @@ export function TravelFacts({
             const perUnit = rates!.ilsPer.get(currency.code)!;
             const units = quoteUnits(perUnit);
             return (
-              <span key={currency.code} className="mt-1 block text-sm text-ink-2">
+              <span key={currency.code} className="mt-1 block text-sm font-normal text-ink-2">
                 {interpolate(t.rateTemplate, {
                   units: units.toLocaleString(numberLocale),
                   currency: name(currency) ?? currency.code,
@@ -71,7 +72,7 @@ export function TravelFacts({
             );
           })}
           {rated.length && rates ? (
-            <span className="mt-0.5 block text-sm text-ink-3">{interpolate(t.rateNote, { date: date(rates.asOf) })}</span>
+            <span className="mt-0.5 block text-sm font-normal text-ink-3">{interpolate(t.rateNote, { date: date(rates.asOf) })}</span>
           ) : null}
         </>
       ),
@@ -79,14 +80,14 @@ export function TravelFacts({
   }
 
   const languages = facts.languages.map((language) => name(language)).filter(Boolean);
-  if (languages.length) rows.push({ label: t.languages, value: languages.join(', ') });
+  if (languages.length) rows.push({ icon: '🗣️', label: t.languages, value: languages.join(', ') });
 
   // Each part in its own line, the plug letters isolated: run together, the
   // Latin letters and the Hebrew reordered each other ("A, B 220 וולט שקע מסוג").
   if (facts.plugs.length || facts.voltages.length) {
     const [beforeTypes, afterTypes = ''] = t.plugsTemplate.split('{types}');
     rows.push({
-      label: t.power,
+      icon: '🔌', label: t.power,
       value: (
         <>
           {facts.plugs.length ? (
@@ -104,7 +105,7 @@ export function TravelFacts({
     });
   }
 
-  if (facts.driving) rows.push({ label: t.driving, value: facts.driving === 'right' ? t.drivingRight : t.drivingLeft });
+  if (facts.driving) rows.push({ icon: '🚗', label: t.driving, value: facts.driving === 'right' ? t.drivingRight : t.drivingLeft });
 
   if (facts.timeZone) {
     const minutes = minutesAheadOfIsrael(facts.timeZone, now);
@@ -113,12 +114,12 @@ export function TravelFacts({
     const difference = minutes === 0 ? t.sameTime : interpolate(minutes > 0 ? t.aheadTemplate : t.behindTemplate, { hours: span });
     const where = facts.multipleTimeZones && capitals[0] ? ` ${interpolate(t.inCapitalTemplate, { city: capitals[0] })}` : '';
     rows.push({
-      label: t.timeDifference,
+      icon: '🕐', label: t.timeDifference,
       value: (
         <>
           {difference}
           {where}
-          {facts.multipleTimeZones ? <span className="mt-1 block text-sm text-ink-2">{t.multipleZones}</span> : null}
+          {facts.multipleTimeZones ? <span className="mt-1 block text-sm font-normal text-ink-2">{t.multipleZones}</span> : null}
         </>
       ),
     });
@@ -126,7 +127,7 @@ export function TravelFacts({
 
   if (facts.emergency.length) {
     rows.push({
-      label: t.emergency,
+      icon: '🚨', label: t.emergency,
       value: (
         <ul className="flex flex-wrap gap-x-4 gap-y-1">
           {facts.emergency.map((entry) => (
@@ -134,7 +135,7 @@ export function TravelFacts({
               <bdi dir="ltr" className="font-semibold tabular-nums text-ink">
                 {entry.number}
               </bdi>{' '}
-              <span className="text-ink-2">{t.emergencyUses[entry.use]}</span>
+              <span className="font-normal text-ink-2">{t.emergencyUses[entry.use]}</span>
             </li>
           ))}
         </ul>
@@ -144,7 +145,7 @@ export function TravelFacts({
 
   if (facts.callingCode) {
     rows.push({
-      label: t.callingCode,
+      icon: '📞', label: t.callingCode,
       value: (
         <bdi dir="ltr" className="tabular-nums">
           {facts.callingCode}
@@ -156,16 +157,21 @@ export function TravelFacts({
   if (rows.length === 0) return null;
 
   return (
-    <section aria-labelledby="travel-facts-title" className="border-t border-line-soft bg-surface-2 py-12">
+    <section id="travel-facts" aria-labelledby="travel-facts-title" className="scroll-mt-20 border-t border-line-soft bg-surface-2 py-12">
       <div className="mx-auto w-full max-w-[1200px] px-5">
-        <h2 id="travel-facts-title" className="font-head text-2xl font-semibold">
+        <SectionTitle id="travel-facts-title" icon="🧳">
           {interpolate(t.titleTemplate, { country: countryName })}
-        </h2>
-        <dl className="mt-5 grid max-w-[900px] gap-x-10 gap-y-5 md:grid-cols-2">
+        </SectionTitle>
+        <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {rows.map((row) => (
-            <div key={row.label} className="min-w-0">
-              <dt className="text-sm font-semibold text-ink-3">{row.label}</dt>
-              <dd className="mt-1 text-base text-ink">{row.value}</dd>
+            <div key={row.label} className="min-w-0 rounded-lg border border-line bg-surface p-4">
+              <dt className="flex items-center gap-2 text-sm font-semibold text-ink-2">
+                <span aria-hidden="true" className="text-lg">
+                  {row.icon}
+                </span>
+                {row.label}
+              </dt>
+              <dd className="mt-2 text-base font-semibold text-ink">{row.value}</dd>
             </div>
           ))}
         </dl>

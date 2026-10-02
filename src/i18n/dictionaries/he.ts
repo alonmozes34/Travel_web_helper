@@ -536,11 +536,19 @@ export const he = {
     },
     differsLabel: 'שונה בין החבילות',
   },
+  moreOnPage: {
+    title: 'בהמשך העמוד',
+    travel: 'לפני שנוסעים',
+    esim: 'eSIM ב{country}: מה כדאי לדעת',
+    related: 'יעדים נוספים באזור',
+    faq: 'שאלות נפוצות',
+  },
   share: {
     whatsapp: 'שליחה בוואטסאפ',
     opensInNewTab: '(נפתח בלשונית חדשה)',
     messageTemplate: 'השוואת חבילות eSIM ל{country} לטיול של {days} ימים:',
     messageNoDaysTemplate: 'השוואת חבילות eSIM ל{country}:',
+    planMessageTemplate: 'חבילת eSIM שמצאתי: {provider} · {data} · {days} ימים · {price}. ההשוואה המלאה:',
   },
   travelFacts: {
     titleTemplate: 'לפני שנוסעים ל{country}',
@@ -580,6 +588,7 @@ export const he = {
     metaDescriptionTemplate:
       'השוואת חבילות eSIM ל{country}: מחיר, נפח גלישה, תוקף, רשת מקומית ו‑5G — מכל הספקים במקום אחד.',
     factsTitle: 'מידע פרקטי',
+    factsTitleTemplate: 'eSIM ב{country}: מה כדאי לדעת',
     factsNote: 'כל התשובות כאן מחושבות מהחבילות שבעמוד — לא נכתבו מראש.',
     facts: {
       worksQuestion: 'האם eSIM עובד ב{country}?',

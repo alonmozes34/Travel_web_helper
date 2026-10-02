@@ -18,6 +18,7 @@ import { DataFact, FairUsageNote, NetworkFact, ValidityFact } from './PlanFacts'
 import { PlanCta } from './PlanCta';
 import { PlanDetails } from './PlanDetails';
 import { ProviderCell } from './ProviderCell';
+import { ShareSearch } from '@/components/results/ShareSearch';
 
 const badgeIcons: Record<RecommendationKey, string> = {
   cheapest: '💰',
@@ -163,6 +164,21 @@ export function PlanListItem({
           onToggleDetails={() => setDetailsOpen((open) => !open)}
           onChosen={onChosen}
           demoDataEnabled={demoDataEnabled}
+          share={
+            <ShareSearch
+              compact
+              message={interpolate(dict.share.planMessageTemplate, {
+                provider: row.provider.name,
+                data: plan.isUnlimited ? dict.units.unlimited : formatData(plan.dataAmountMb, locale),
+                days: plan.validityDays,
+                // First-strong isolates, so "₪52.30" keeps its order inside Hebrew.
+                price: '\u2068' + formatPrice(row.price.amountMinor, row.price.currency, locale) + '\u2069',
+              })}
+              label={dict.share.whatsapp}
+              opensInNewTab={dict.share.opensInNewTab}
+              context={`${row.provider.name}, ${plan.isUnlimited ? dict.units.unlimited : formatData(plan.dataAmountMb, locale)}, ${plan.validityDays} ${dict.units.days}`}
+            />
+          }
         />
       </div>
 

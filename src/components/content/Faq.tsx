@@ -1,5 +1,6 @@
 import { Container } from '@/components/ui/Container';
 import { Disclosure } from '@/components/ui/Disclosure';
+import { SectionTitle } from './SectionTitle';
 import type { Dictionary } from '@/i18n/getDictionary';
 
 /**
@@ -31,7 +32,7 @@ export function Faq({
   return (
     <section id="faq" className="scroll-mt-20 border-t border-line-soft bg-surface py-14">
       <Container>
-        <h2 className="font-head text-2xl font-semibold">{dict.faq.title}</h2>
+        <SectionTitle icon="❓">{dict.faq.title}</SectionTitle>
         <div className="mt-6 max-w-[76ch]">
           {dict.faq.items.map((item) => (
             <Disclosure key={item.question} summary={item.question}>
