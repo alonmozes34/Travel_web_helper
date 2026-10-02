@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, error: 'unauthorised' }, { status: 401 });
   }
   if (!priceHistoryEnabled()) {
-    return Response.json({ ok: false, error: 'no Blob store connected (BLOB_READ_WRITE_TOKEN)' }, { status: 503 });
+    return Response.json({ ok: false, error: 'no Blob store connected (neither BLOB_READ_WRITE_TOKEN nor BLOB_STORE_ID is set)' }, { status: 503 });
   }
 
   let catalogue = await getCatalogue();

@@ -4,9 +4,11 @@ import { HISTORY_DAYS, summarise, type PriceSnapshot, type PriceSummary } from '
 
 /**
  * Where the price history lives: a private Vercel Blob store, connected to
- * the project in Vercel (Storage → Blob), which sets BLOB_READ_WRITE_TOKEN.
- * Without that variable there is no history: nothing is written, and the
- * pages say nothing about price changes.
+ * the project in Vercel (Storage → Blob). Connecting sets either
+ * BLOB_READ_WRITE_TOKEN or, for stores that authenticate with Vercel's OIDC
+ * token, BLOB_STORE_ID; the Blob SDK reads whichever is there. Without
+ * either there is no history: nothing is written, and the pages say nothing
+ * about price changes.
  *
  *   price-history/snapshots/YYYY-MM-DD.json   one a day, never rewritten
  *   price-history/summary.json                rewritten after each snapshot
@@ -15,7 +17,7 @@ const SNAPSHOTS = 'price-history/snapshots/';
 const SUMMARY = 'price-history/summary.json';
 
 export function priceHistoryEnabled(env: Record<string, string | undefined> = process.env): boolean {
-  return Boolean(env.BLOB_READ_WRITE_TOKEN?.trim());
+  return Boolean(env.BLOB_READ_WRITE_TOKEN?.trim() || env.BLOB_STORE_ID?.trim());
 }
 
 async function readJson<T>(pathname: string): Promise<T | null> {
