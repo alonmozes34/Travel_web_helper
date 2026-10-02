@@ -429,6 +429,14 @@ difference (summer time included) are worked out when the page is shown. A
 fact a source lacks is left out. Safety is a link to the National Security
 Council's travel warnings, never our own words about a country.
 
+**Cities in the destination search** ("נאפולי · איטליה") come from GeoNames'
+`cities15000` (CC BY 4.0, credited on the About page), written by
+`scripts/generate-places.ts` to `src/data/places.generated.json`: populated
+places of 50,000 people or more, or with a Hebrew name at any size. Only the
+server reads it (`/api/places`); the field asks after two letters and shows
+cities under the countries. Picking a city picks its country. A city in
+Israel gets a sentence, not a row.
+
 **Price history** ("the price dropped" on a card) is our own daily record of
 each provider's price, in the provider's currency, kept in a private Vercel
 Blob store: `src/lib/priceHistory/`, written once a day by Vercel Cron through

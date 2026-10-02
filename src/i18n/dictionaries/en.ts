@@ -84,6 +84,7 @@ export const en: Dictionary = {
         body: [
           'From the providers themselves: aloSIM and Yesim through the interfaces they provide to partners, and ZenSim from the data they publish on their own site. Prices are refreshed several times a day.',
           'What a provider does not state — for example, after how much data the speed drops — is shown as "not stated". We never fill in details by guessing.',
+          'Everything else comes from open sources: city names in the search from GeoNames (CC BY 4.0), destination facts from Wikidata and CLDR, and exchange rates from the European Central Bank.',
         ],
       },
       {
@@ -183,7 +184,10 @@ export const en: Dictionary = {
     submit: 'Compare plans',
     clear: 'Clear destination',
     suggestionsLabel: 'Destination suggestions',
-    noResults: 'No destination found. Try a country name.',
+    noResults: 'No destination found. Try a country or a large city.',
+    countriesLabel: 'Countries',
+    citiesLabel: 'Cities',
+    placeInIsraelTemplate: '{place} is in Israel: no travel eSIM needed at home 🙂',
     popularLabel: 'Popular destinations:',
     recentLabel: 'Recent searches',
     popularGroupLabel: 'Popular destinations',

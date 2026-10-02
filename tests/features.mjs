@@ -240,7 +240,11 @@ try {
   // Typing still narrows, and still says so when nothing matches.
   await field().type('תא', { delay: 30 });
   await p.waitForTimeout(600);
-  check('destination list', 'typing replaces it with matches, ungrouped', (await p.locator('[role="listbox"] [role="group"]').count()) === 0 && (await p.locator('[role="option"]').count()) > 0);
+  // Typed, the recent and popular groups give way to matches. Countries and
+  // cities may each be a group of their own (2 October 2026), but never the
+  // recent or popular ones.
+  const typedGroups = (await p.locator('[role="listbox"] [role="group"]').allInnerTexts()).map((t) => t.split('\n')[0]);
+  check('destination list', 'typing replaces it with matches', !typedGroups.some((t) => /חיפושים אחרונים|פופולרי/.test(t)) && (await p.locator('[role="listbox"] [role="option"]').count()) > 0, typedGroups.join(' | '));
   await field().fill('זזזזז');
   await p.waitForTimeout(600);
   const body = await p.locator('body').innerText();

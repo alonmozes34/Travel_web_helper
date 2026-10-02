@@ -144,7 +144,7 @@ export function getCountryByCode(code: string): Country | undefined {
  * Fold a query so that punctuation and Hebrew diacritics do not stand between
  * a traveller and their destination: `ארה"ב`, `ארהב` and `ארה״ב` all match.
  */
-function normalize(value: string): string {
+export function normalize(value: string): string {
   return value
     .toLowerCase()
     .normalize('NFKD')

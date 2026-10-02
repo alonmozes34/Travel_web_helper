@@ -1,7 +1,8 @@
 'use client';
 
-import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { getCountryByCode, popularCountries, searchCountries, type Country } from '@/data/countries';
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { getCountryByCode, normalize, popularCountries, searchCountries, type Country } from '@/data/countries';
+import type { PlaceMatch } from '@/lib/places/searchPlaces';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { track } from '@/lib/analytics/events';
@@ -19,6 +20,12 @@ import { readRecentDestinations, rememberDestination } from '@/lib/recentDestina
  * answers nothing until you guess a spelling puts the whole burden of the
  * first move on the traveller, and on a phone it is a keyboard covering half
  * the screen for a country the list could have offered in one tap.
+ *
+ * Cities too (the owner, 2 October 2026): after two letters the server is
+ * asked for cities by that name (`/api/places`, from GeoNames), shown under
+ * the countries as "נאפולי · 🇮🇹 איטליה". Picking one picks its country —
+ * eSIMs are sold by country. A city in Israel gets a word instead of a row:
+ * at home there is nothing to buy.
  */
 export function DestinationSearch({
   locale,
@@ -63,6 +70,49 @@ export function DestinationSearch({
     [query, locale, chosen],
   );
 
+  // City matches for the current query, fetched after a short pause. Kept
+  // with the query they answer, so a slow answer to an old query is ignored.
+  const [placeAnswer, setPlaceAnswer] = useState<{ query: string; places: PlaceMatch[] } | null>(null);
+  const trimmedQuery = query.trim();
+  useEffect(() => {
+    if (normalize(trimmedQuery).length < 2) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      fetch(`/api/places?q=${encodeURIComponent(trimmedQuery)}&locale=${locale}`, { signal: controller.signal })
+        .then((response) => (response.ok ? (response.json() as Promise<PlaceMatch[]>) : []))
+        .then((places) => setPlaceAnswer({ query: trimmedQuery, places }))
+        .catch(() => {});
+    }, 200);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [trimmedQuery, locale]);
+  const placesReady = placeAnswer?.query === trimmedQuery || normalize(trimmedQuery).length < 2;
+  const answeredPlaces = useMemo(
+    () => (placeAnswer?.query === trimmedQuery ? placeAnswer.places : []),
+    [placeAnswer, trimmedQuery],
+  );
+
+  /** Cities to offer: not already a country row, not on the trip, and not at home. */
+  const cityOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ place: string; country: Country }> = [];
+    for (const place of answeredPlaces) {
+      const country = getCountryByCode(place.countryCode);
+      if (!country || country.code === 'IL' || chosen.includes(country.code)) continue;
+      const key = `${normalize(place.name)}|${country.code}`;
+      const sameAsCountry = [country.names.he, country.names.en].some((name) => normalize(name) === normalize(place.name));
+      if (seen.has(key) || sameAsCountry) continue;
+      seen.add(key);
+      out.push({ place: place.name, country });
+    }
+    // Fewer under a list of countries, so the popup stays a phone screen tall.
+    return out.slice(0, matches.length ? 3 : 5);
+  }, [answeredPlaces, chosen, matches.length]);
+  /** A city in Israel, when that is all the query found. */
+  const placeAtHome = answeredPlaces.find((place) => place.countryCode === 'IL')?.name ?? null;
+
   /**
    * What an untyped field offers: where this visitor has been before, then the
    * popular list, with nothing repeated between the two and nothing already on
@@ -99,7 +149,7 @@ export function DestinationSearch({
   const isTyping = query.trim().length > 0;
   /** One flat list in the order they are rendered, so the arrow keys agree. */
   const options = isTyping
-    ? matches
+    ? [...matches, ...cityOptions.map((option) => option.country)]
     : sections.flatMap((section) => section.items.map((item) => item.country));
   const showList = open && (isTyping || options.length > 0);
   /**
@@ -221,12 +271,12 @@ export function DestinationSearch({
         ) : null}
       </div>
 
-      {showList && !showListbox ? (
+      {showList && !showListbox && placesReady ? (
         <p
           role="status"
           className="absolute -inset-x-px top-[calc(100%+0.75rem)] z-30 rounded-md border border-line bg-surface px-4 py-3 text-sm text-ink-2 shadow-search"
         >
-          {dict.search.noResults}
+          {placeAtHome ? dict.search.placeInIsraelTemplate.replace('{place}', placeAtHome) : dict.search.noResults}
         </p>
       ) : null}
 
@@ -238,17 +288,55 @@ export function DestinationSearch({
           className="absolute -inset-x-px top-[calc(100%+0.75rem)] z-30 overflow-hidden rounded-md border border-line bg-surface py-1 shadow-search"
         >
           {isTyping ? (
-            matches.map((country, index) => (
-              <Option
-                key={country.code}
-                country={country}
-                locale={locale}
-                id={optionId(index)}
-                isActive={index === activeIndex}
-                onHover={() => setActiveIndex(index)}
-                onPick={() => commit(country)}
-              />
-            ))
+            <>
+              {(() => {
+                const rows = matches.map((country, index) => (
+                  <Option
+                    key={country.code}
+                    country={country}
+                    locale={locale}
+                    id={optionId(index)}
+                    isActive={index === activeIndex}
+                    onHover={() => setActiveIndex(index)}
+                    onPick={() => commit(country)}
+                  />
+                ));
+                // Labelled only when cities follow, so a plain country
+                // search reads exactly as before.
+                return matches.length && cityOptions.length ? (
+                  <div role="group" aria-labelledby={`${listboxId}-countries`}>
+                    <p id={`${listboxId}-countries`} className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-ink-3">
+                      {dict.search.countriesLabel}
+                    </p>
+                    {rows}
+                  </div>
+                ) : (
+                  rows
+                );
+              })()}
+              {cityOptions.length ? (
+                <div role="group" aria-labelledby={`${listboxId}-cities`}>
+                  <p id={`${listboxId}-cities`} className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-ink-3">
+                    {dict.search.citiesLabel}
+                  </p>
+                  {cityOptions.map(({ place, country }, cityIndex) => {
+                    const index = matches.length + cityIndex;
+                    return (
+                      <Option
+                        key={`${place}-${country.code}`}
+                        country={country}
+                        place={place}
+                        locale={locale}
+                        id={optionId(index)}
+                        isActive={index === activeIndex}
+                        onHover={() => setActiveIndex(index)}
+                        onPick={() => commit(country)}
+                      />
+                    );
+                  })}
+                </div>
+              ) : null}
+            </>
           ) : (
             /* `listbox > group > option` rather than a flat list with a
                heading in it: a section title is not something you can choose,
@@ -275,6 +363,7 @@ export function DestinationSearch({
 
 function Option({
   country,
+  place,
   locale,
   id,
   isActive,
@@ -282,6 +371,8 @@ function Option({
   onPick,
 }: {
   country: Country;
+  /** A city in that country, when the row offers the country through it. */
+  place?: string;
   locale: Locale;
   id: string;
   isActive: boolean;
@@ -301,9 +392,23 @@ function Option({
         isActive ? 'bg-brand-50' : 'bg-surface'
       }`}
     >
-      <span aria-hidden="true">{country.flag}</span>
-      <span className="font-semibold">{country.names[locale]}</span>
-      <span className="text-sm text-ink-3">{country.names.en}</span>
+      {place ? (
+        <>
+          <span aria-hidden="true">📍</span>
+          <span className="font-semibold">{place}</span>
+          <span className="text-sm text-ink-2">
+            <span className="sr-only">, </span>
+            <span aria-hidden="true">· {country.flag} </span>
+            {country.names[locale]}
+          </span>
+        </>
+      ) : (
+        <>
+          <span aria-hidden="true">{country.flag}</span>
+          <span className="font-semibold">{country.names[locale]}</span>
+          <span className="text-sm text-ink-3">{country.names.en}</span>
+        </>
+      )}
     </button>
   );
 }
