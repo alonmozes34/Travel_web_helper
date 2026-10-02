@@ -429,6 +429,14 @@ difference (summer time included) are worked out when the page is shown. A
 fact a source lacks is left out. Safety is a link to the National Security
 Council's travel warnings, never our own words about a country.
 
+**Price history** ("the price dropped" on a card) is our own daily record of
+each provider's price, in the provider's currency, kept in a private Vercel
+Blob store: `src/lib/priceHistory/`, written once a day by Vercel Cron through
+`/api/cron/price-snapshot` (`vercel.json`). A card mentions a drop of 3% or
+more since the previous recorded day, or "the lowest in N days" after two
+weeks of history and only for a price that moved. Without
+`BLOB_READ_WRITE_TOKEN` nothing is recorded or said.
+
 Where plans come from is decided in one place, `planSourcesFromEnv` in
 `src/lib/catalogue/getCatalogue.ts`:
 

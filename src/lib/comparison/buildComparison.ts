@@ -7,6 +7,7 @@ import { pricePerDayMinor, pricePerGbMinor } from '@/lib/pricing/perUnit';
 import { hasDiscount, type Plan } from '@/lib/types/plan';
 import type { Provider } from '@/lib/types/provider';
 import { destinationCodes, type TripProfile } from '@/lib/types/trip';
+import type { PriceTrend } from '@/lib/priceHistory/summary';
 import { buildCombination, type Combination } from './buildCombination';
 import { estimateDataNeed, type DataNeedEstimate } from './estimateDataNeed';
 import {
@@ -46,6 +47,12 @@ export type ComparisonRow = {
   daysOfData: number | null;
   /** Recommendation badges this plan won, if any. */
   badges: RecommendationKey[];
+  /**
+   * What our own price history says about today's price ("dropped since
+   * yesterday", "lowest in 30 days"), when it says anything. Attached by the
+   * page from the stored history; absent in tests and without a store.
+   */
+  trend?: PriceTrend | null;
 };
 
 export type Comparison = {

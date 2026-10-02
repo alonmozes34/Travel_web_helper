@@ -13,6 +13,8 @@ import { AffiliateDisclosure } from "@/components/content/AffiliateDisclosure";
 import { MockDataNotice } from "@/components/content/MockDataNotice";
 import { countries } from "@/data/countries";
 import { isLocale, localePath } from "@/i18n/config";
+import { getPriceSummary } from "@/lib/priceHistory/store";
+import { trendFor } from "@/lib/priceHistory/summary";
 import { ShareSearch } from "@/components/results/ShareSearch";
 import { siteUrl } from "@/lib/site";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -63,7 +65,7 @@ export default async function SearchPage({
 
   // One place resolves where plans and rates come from; this page asks for a
   // catalogue and knows nothing about who supplied it.
-  const catalogue = await getCatalogue();
+  const [catalogue, priceSummary] = await Promise.all([getCatalogue(), getPriceSummary()]);
   const comparison = buildComparison({
     profile,
     currency: await getDisplayCurrency(locale),
@@ -258,7 +260,7 @@ export default async function SearchPage({
 
               {comparison.rows.length > 0 ? (
                 <ResultsView
-                  rows={comparison.rows}
+                  rows={comparison.rows.map((row) => ({ ...row, trend: trendFor(row.plan, priceSummary) }))}
                   locale={locale}
                   dict={dict}
                   currency={comparison.currency}

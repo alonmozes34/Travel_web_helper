@@ -21,6 +21,8 @@ import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
 import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
 import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { CountryFacts } from "@/components/content/CountryFacts";
+import { getPriceSummary } from "@/lib/priceHistory/store";
+import { trendFor } from "@/lib/priceHistory/summary";
 import { TravelFacts } from "@/components/content/TravelFacts";
 import { ShareSearch } from "@/components/results/ShareSearch";
 import { countryTravelFacts } from "@/data/countryFacts.generated";
@@ -111,7 +113,7 @@ export default async function CountryPage({
   // it on the first paint rather than changing under them after hydration.
   // A country page is a single-destination search; the multi-stop flow lives
   // on /search, which the hero submits to when more than one stop is chosen.
-  const [catalogue, localRates] = await Promise.all([getCatalogue(), getLocalRates()]);
+  const [catalogue, localRates, priceSummary] = await Promise.all([getCatalogue(), getLocalRates(), getPriceSummary()]);
   const comparison = buildComparison({
     profile: {
       ...profile,
@@ -257,7 +259,7 @@ export default async function CountryPage({
             >
               <TripExtrasSlot dict={dict} />
               <ResultsView
-                rows={comparison.rows}
+                rows={comparison.rows.map((row) => ({ ...row, trend: trendFor(row.plan, priceSummary) }))}
                 locale={locale}
                 dict={dict}
                 currency={comparison.currency}

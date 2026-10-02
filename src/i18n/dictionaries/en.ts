@@ -377,6 +377,8 @@ export const en: Dictionary = {
     listedHereTemplate: 'The {provider} price, in {currency}',
     chargedExplains: 'The provider bills in its own currency. Your card issuer converts at its own rate and usually adds a foreign-transaction fee, so the final amount may differ slightly.',
     fitsTrip: 'Enough for the whole trip',
+    priceDroppedTemplate: 'Price dropped: was {before} on {date}',
+    priceLowestTemplate: 'Lowest price in the last {days} days',
     approxShort: 'about',
     chargedShortTemplate: 'Charged to your card: {amount}',
     listedShortTemplate: 'At {provider}: {amount}',

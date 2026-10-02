@@ -142,7 +142,10 @@ export function PlanListItem({
           <FairUsageNote row={row} dict={dict} />
         </div>
 
-        <PriceSummary row={row} locale={locale} dict={dict} />
+        <div className="grid gap-1 md:justify-items-end">
+          <PriceSummary row={row} locale={locale} dict={dict} />
+          <PriceTrendNote row={row} locale={locale} dict={dict} />
+        </div>
       </div>
 
       <div className="mt-2">
@@ -211,6 +214,32 @@ function PriceSummary({ row, locale, dict }: { row: ComparisonRow; locale: Local
       <Ltr className="tnum font-head text-3xl font-bold tracking-tight">{home}</Ltr>
       {homeBefore ? <Ltr className="tnum text-base text-ink-2 line-through">{homeBefore}</Ltr> : null}
     </div>
+  );
+}
+
+/**
+ * What our price history says, in the provider's own currency: a drop since
+ * the last day we recorded, or the lowest in N days. Nothing until there is
+ * history to say it from.
+ */
+function PriceTrendNote({ row, locale, dict }: { row: ComparisonRow; locale: Locale; dict: Dictionary }) {
+  const trend = row.trend;
+  if (!trend) return null;
+  const text =
+    trend.kind === 'dropped'
+      ? interpolate(dict.plan.priceDroppedTemplate, {
+          // First-strong isolates, so "$27.50" keeps its order inside Hebrew.
+          before: '\u2068' + formatPrice(trend.previousMinor, trend.currency, locale) + '\u2069',
+          date: new Intl.DateTimeFormat(locale === 'he' ? 'he-IL' : 'en-IL', { day: 'numeric', month: 'numeric', timeZone: 'UTC' }).format(
+            new Date(`${trend.since}T00:00:00Z`),
+          ),
+        })
+      : interpolate(dict.plan.priceLowestTemplate, { days: trend.days });
+  return (
+    <p className="text-sm font-semibold text-teal-ink">
+      <span aria-hidden="true">↓ </span>
+      {text}
+    </p>
   );
 }
 

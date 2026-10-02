@@ -395,6 +395,8 @@ export const he = {
     chargedExplains: 'הספק גובה במטבע שלו. חברת האשראי ממירה בשער שלה ולרוב מוסיפה עמלת מטבע חוץ, אז הסכום בשקלים עשוי להיות שונה במעט.',
     belowNeed: 'מתחת לצריכה הצפויה',
     fitsTrip: 'מספיק לכל הטיול',
+    priceDroppedTemplate: 'המחיר ירד: היה {before} ב־{date}',
+    priceLowestTemplate: 'המחיר הכי נמוך ב־{days} הימים האחרונים',
     approxShort: 'בערך',
     chargedShortTemplate: 'בכרטיס האשראי: {amount}',
     listedShortTemplate: 'באתר {provider}: {amount}',
