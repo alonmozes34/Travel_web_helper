@@ -14,10 +14,13 @@ export function Brand({
   locale,
   dict,
   className,
+  tone = 'light',
 }: {
   locale: Locale;
   dict: Dictionary;
   className?: string;
+  /** 'night' on the dark footer: white wordmark, sky-blue question mark. */
+  tone?: 'light' | 'night';
 }) {
   return (
     <Link
@@ -37,7 +40,8 @@ export function Brand({
       </svg>
       <BrandName
         name={dict.brand.name}
-        className="font-head text-lg font-semibold tracking-tight text-ink"
+        className={`font-head text-lg font-semibold tracking-tight ${tone === 'night' ? 'text-on-night' : 'text-ink'}`}
+        markClassName={tone === 'night' ? 'text-sky' : undefined}
       />
     </Link>
   );
@@ -56,14 +60,23 @@ export function Brand({
  * English wordmark ("Yesh Klita", no question mark) renders correctly with no
  * branching at the call site.
  */
-export function BrandName({ name, className }: { name: string; className?: string }) {
+export function BrandName({
+  name,
+  className,
+  markClassName = 'text-brand',
+}: {
+  name: string;
+  className?: string;
+  /** The question mark's colour: action blue, or sky on the night ground. */
+  markClassName?: string;
+}) {
   const hasMark = name.endsWith('?');
   const base = hasMark ? name.slice(0, -1) : name;
 
   return (
     <span className={className}>
       {base}
-      {hasMark ? <span className="text-brand">?</span> : null}
+      {hasMark ? <span className={markClassName}>?</span> : null}
     </span>
   );
 }

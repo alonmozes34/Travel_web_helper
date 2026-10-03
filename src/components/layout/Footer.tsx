@@ -30,22 +30,22 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   ];
 
   return (
-    <footer className="mt-auto border-t border-line bg-surface">
+    <footer className="on-night mt-auto bg-night-band text-on-night-2">
       <Container className="grid gap-10 py-12 md:grid-cols-[1.6fr_1fr_1fr]">
         <div>
-          <Brand locale={locale} dict={dict} />
+          <Brand locale={locale} dict={dict} tone="night" />
           <h2 className="sr-only">{dict.footer.aboutTitle}</h2>
-          <p className="mt-4 max-w-[46ch] text-base text-ink-2">{dict.footer.aboutText}</p>
+          <p className="mt-4 max-w-[46ch] text-base text-on-night-2">{dict.footer.aboutText}</p>
         </div>
 
         <nav aria-label={dict.footer.productTitle}>
-          <h2 className="text-sm font-semibold text-ink-2">
+          <h2 className="text-sm font-semibold tracking-wide text-on-night">
             {dict.footer.productTitle}
           </h2>
           <ul className="mt-3 flex flex-col gap-2.5">
             {links.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="inline-flex min-h-6 items-center text-base text-ink-2 hover:text-brand">
+                <Link href={link.href} className="inline-flex min-h-6 items-center text-base text-on-night-2 underline-offset-4 hover:text-on-night hover:underline">
                   {link.label}
                 </Link>
               </li>
@@ -54,13 +54,13 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
         </nav>
 
         <nav aria-label={dict.footer.legalTitle}>
-          <h2 className="text-sm font-semibold text-ink-2">
+          <h2 className="text-sm font-semibold tracking-wide text-on-night">
             {dict.footer.legalTitle}
           </h2>
           <ul className="mt-3 flex flex-col gap-2.5">
             {legalLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="inline-flex min-h-6 items-center text-base text-ink-2 hover:text-brand">
+                <Link href={link.href} className="inline-flex min-h-6 items-center text-base text-on-night-2 underline-offset-4 hover:text-on-night hover:underline">
                   {link.label}
                 </Link>
               </li>
@@ -69,10 +69,10 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
         </nav>
       </Container>
 
-      <div className="border-t border-line-soft bg-surface-2">
+      <div className="border-t border-white/10 bg-night-2">
         <Container className="flex flex-col gap-3 py-6 md:flex-row md:items-end md:justify-between">
-          <AffiliateDisclosure dict={dict} variant="full" className="max-w-[70ch]" />
-          <div className="text-sm text-ink-3">
+          <AffiliateDisclosure dict={dict} variant="full" tone="night" className="max-w-[70ch]" />
+          <div className="text-sm text-on-night-2">
             <p>
               © {new Date().getFullYear()} {dict.brand.name}. {dict.footer.rights}.
             </p>

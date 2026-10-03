@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LoadingComplete } from '@/components/ui/LoadingComplete';
-import { DestinationPhotos } from '@/components/results/DestinationPhotos';
+import { CountryHero } from '@/components/results/CountryHero';
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { HeroSearch } from "@/components/search/HeroSearch";
@@ -156,16 +156,18 @@ export default async function CountryPage({
       <LoadingComplete />
       <section className="bg-surface pt-6 pb-8 md:pt-8">
         <Container>
-          <DestinationPhotos countryCodes={[country.code]} locale={locale} dict={dict} className="mb-6" />
-          <h1 className="flex flex-wrap items-center gap-3 text-3xl font-bold tracking-tight md:text-4xl">
-            <span aria-hidden="true">{country.flag}</span>
-            {interpolate(dict.country.titleTemplate, { country: name })}
-          </h1>
+          <CountryHero
+            countryCode={country.code}
+            flag={country.flag}
+            title={interpolate(dict.country.titleTemplate, { country: name })}
+            locale={locale}
+            dict={dict}
+          />
 
           {/* The whole product is named after a word a first-time traveller
               does not know. One sentence, before anything else, so nobody has
               to guess what they are looking at. */}
-          <p className="mt-3 max-w-[62ch] text-base text-ink-2">
+          <p className="mt-5 max-w-[62ch] text-lg text-ink-2">
             {dict.search.whatIsEsim}
           </p>
 

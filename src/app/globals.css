@@ -39,8 +39,19 @@
   --color-warn-ink: #9a5a00;
   --color-warn-50: #fcf3e4;
 
-  /* Deep — compare tray and footer ground */
+  /* Deep — compare tray ground */
   --color-deep: #0a2540;
+
+  /* Night — the home page's first screen, the trust band and the footer.
+     A darker, bluer ground than `deep`, so the photographs and the white
+     search card are what the eye lands on. Text on it uses the two on-night
+     tones only; `sky` is the brand's question mark and focus ring there,
+     because the action blue is too dark to read on night. */
+  --color-night: #071a33;
+  --color-night-2: #04122a;
+  --color-on-night: #ffffff;
+  --color-on-night-2: #c3d2e6;
+  --color-sky: #6cc0ff;
 
   /* Type scale.
      Sized for a reader who is not going to reach for their glasses: the body
@@ -75,12 +86,22 @@
   /* The entire product has exactly two shadows. */
   --shadow-search: 0 10px 30px -14px rgb(16 44 68 / 0.28);
   --shadow-sheet: 0 -12px 32px -18px rgb(16 44 68 / 0.35);
+  /* The search card floating on the night ground, and a photo card lifting
+     under the pointer. */
+  --shadow-hero: 0 30px 60px -24px rgb(0 0 0 / 0.55);
+  --shadow-lift: 0 18px 40px -20px rgb(16 44 68 / 0.45);
 }
 
 @layer base {
   html {
     color-scheme: light;
     -webkit-text-size-adjust: 100%;
+    /* The header is sticky. Without this, moving focus backwards (Shift+Tab)
+       scrolled the focused control to the very top of the window — under the
+       header, where it could not be seen (WCAG 2.4.11). Also keeps in-page
+       links from landing a heading behind it. In rem, so it grows with the
+       header at large text sizes. */
+    scroll-padding-top: 6rem;
   }
 
   body {
@@ -122,6 +143,11 @@
     border-radius: 4px;
   }
 
+  /* On the night ground the action blue is too dark to see as a ring. */
+  .on-night :focus-visible {
+    outline-color: var(--color-sky);
+  }
+
   ::selection {
     background-color: var(--color-brand-50);
   }
@@ -147,4 +173,28 @@
 @keyframes plane-bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2.5px); }
+}
+
+/* The night ground: deep blue lit by the two brand colours, like a city seen
+   from a plane at dusk. Gradients only — no image to load, nothing to credit.
+   Under forced colours the system replaces the background, and the text,
+   painted in on-night tokens, becomes the system's own text colour. */
+.bg-hero {
+  background-color: var(--color-night);
+  background-image:
+    radial-gradient(56rem 28rem at 88% -12%, rgb(11 107 211 / 0.6), transparent 62%),
+    radial-gradient(40rem 26rem at 0% 115%, rgb(22 191 182 / 0.32), transparent 62%),
+    radial-gradient(34rem 22rem at 45% 55%, rgb(108 92 231 / 0.16), transparent 70%);
+}
+
+.bg-night-band {
+  background-color: var(--color-night);
+  background-image:
+    radial-gradient(40rem 20rem at 100% 0%, rgb(11 107 211 / 0.35), transparent 65%),
+    radial-gradient(36rem 20rem at 0% 100%, rgb(22 191 182 / 0.22), transparent 65%);
+}
+
+/* The route drawn across the first screen (HeroRoute). */
+@keyframes route-dash {
+  to { stroke-dashoffset: -140; }
 }

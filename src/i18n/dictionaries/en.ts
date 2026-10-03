@@ -172,11 +172,23 @@ export const en: Dictionary = {
     heroDescriptor: 'Compare travel eSIM plans',
     heroSubtitle:
       'Compare travel eSIM plans in one place and pick the one that fits your trip.',
+    explore: {
+      eyebrow: 'Ideas for the next trip',
+      title: 'Where to this time?',
+      subtitle: 'From Greece to Japan: pick a destination and see every eSIM plan for it in one place.',
+      allLink: 'All destinations',
+      arrow: '→',
+      credits: 'Photo credits',
+    },
     trustStrip: [
       { strong: 'Everything in one place', rest: 'instead of ten provider sites' },
       { strong: 'The price in your currency', rest: "next to the provider's own price" },
       { strong: 'No paid placement', rest: 'our commission never changes the order' },
     ],
+  },
+  searchMeta: {
+    titleTemplate: 'eSIM plans for {countries}',
+    emptyTitle: 'Search eSIM plans',
   },
   search: {
     label: 'Destination',
@@ -639,7 +651,10 @@ export const en: Dictionary = {
     done: [
       'The whole search and comparison journey can be completed with the keyboard alone, with a visible focus indicator on every control.',
       'An automated contrast test that fails if any text colour drops below a 4.5:1 ratio.',
-      'axe-core run across seven states of the site against WCAG 2.0/2.1/2.2 at levels A and AA.',
+      'axe-core run on every kind of page on the site, in Hebrew and English, including dialogs and states that only appear after an action, against WCAG 2.0/2.1/2.2 at levels A and AA.',
+      'A control that receives focus is never hidden under the page header, including when moving backwards with Shift+Tab.',
+      'Text stays readable and uncut when line, letter and word spacing are increased.',
+      'Every page has its own title in the browser tab, including search results.',
       'Usable at 320 pixels wide and at 200% text size, with no horizontal scrolling.',
       'Touch targets of at least 44 pixels on the main interactive controls.',
       'Modals built on the native <dialog> element, so focus trapping, Escape and background inertness come from the browser.',

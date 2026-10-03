@@ -11,12 +11,16 @@ import { cn } from '@/components/ui/cn';
 export function AffiliateDisclosure({
   dict,
   variant = 'inline',
+  tone = 'light',
   className,
 }: {
   dict: Dictionary;
   variant?: 'inline' | 'full';
+  /** 'night' in the dark footer. */
+  tone?: 'light' | 'night';
   className?: string;
 }) {
+  const night = tone === 'night';
   if (variant === 'inline') {
     return (
       <p className={cn('text-sm text-ink-2', className)}>
@@ -27,8 +31,8 @@ export function AffiliateDisclosure({
   }
 
   return (
-    <div className={cn('text-sm leading-relaxed text-ink-2', className)}>
-      <p className="font-semibold text-ink">{dict.disclosure.short}</p>
+    <div className={cn('text-sm leading-relaxed', night ? 'text-on-night-2' : 'text-ink-2', className)}>
+      <p className={cn('font-semibold', night ? 'text-on-night' : 'text-ink')}>{dict.disclosure.short}</p>
       <p className="mt-1">{dict.disclosure.full}</p>
       <p className="mt-1">{dict.disclosure.rankingNote}</p>
     </div>

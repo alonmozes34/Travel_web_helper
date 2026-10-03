@@ -86,8 +86,11 @@ await kb.locator('form li input[type="number"]').first().fill('10');
 await kb.locator('label:has-text("רגיל")').first().click();
 await kb.waitForTimeout(150);
 
+// Forward from the usage choice, through the rest of the page and round to
+// the search's own button; the bound grows with the page (the photographs
+// of destinations to explore added nine stops).
 let reachedSubmit = false;
-for (let i = 0; i < 40 && !reachedSubmit; i += 1) {
+for (let i = 0; i < 80 && !reachedSubmit; i += 1) {
   await kb.keyboard.press('Tab');
   reachedSubmit = (await kb.evaluate(() => document.activeElement?.textContent?.trim())) === 'השוו חבילות';
 }
@@ -225,6 +228,62 @@ await err.waitForTimeout(300);
 const live = await err.locator('[aria-live="polite"]').first().innerText();
 ok('an empty search states the error in a live region', live.trim().length > 0, live.trim());
 await err.close();
+
+// 1.4.12 Text spacing: the spacing a reader's own stylesheet may impose must
+// not cut text off or push the page sideways.
+const SPACING = '*{line-height:1.5!important;letter-spacing:.12em!important;word-spacing:.16em!important}p{margin-bottom:2em!important}';
+for (const path of ['/', '/esim/thailand?days=10&usage=regular', '/search?to=DE:1,US:14&usage=regular', '/accessibility']) {
+  const sp = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await sp.goto(BASE + path, { waitUntil: 'networkidle' }).catch(() => {});
+  await sp.addStyleTag({ content: SPACING });
+  await sp.waitForTimeout(300);
+  const result = await sp.evaluate(() => {
+    const clipped = [];
+    for (const el of document.querySelectorAll('body *')) {
+      if (el.closest('.sr-only') || !el.offsetParent || !el.textContent.trim()) continue;
+      const cs = getComputedStyle(el);
+      const hides = [cs.overflow, cs.overflowX, cs.overflowY].includes('hidden');
+      if (hides && (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2)) clipped.push(el.textContent.trim().slice(0, 30));
+    }
+    return { overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, clipped };
+  });
+  ok(`text spacing keeps text whole: ${path}`, result.overflow <= 1 && result.clipped.length === 0, `${result.overflow}px overflow; clipped: ${result.clipped.join(' | ')}`);
+  await sp.close();
+}
+
+// 2.4.11 Focus not obscured: the header is sticky, so a control reached by
+// Shift+Tab used to scroll to the top of the window and sit behind it.
+const fo = await browser.newPage({ viewport: { width: 1280, height: 700 } });
+await fo.goto(`${BASE}/esim/thailand?days=10&usage=regular`, { waitUntil: 'networkidle' }).catch(() => {});
+const hiddenFocus = [];
+const underHeader = () => fo.evaluate(() => {
+  const el = document.activeElement;
+  const header = document.querySelector('header');
+  if (!el || el === document.body || !header || header.contains(el) || el.matches('a[href="#main"]')) return null;
+  const a = el.getBoundingClientRect();
+  return a.top < header.getBoundingClientRect().bottom - 1 ? (el.textContent || el.tagName).trim().slice(0, 30) : null;
+});
+for (let i = 0; i < 45; i++) { await fo.keyboard.press('Tab'); const r = await underHeader(); if (r) hiddenFocus.push(r); }
+for (let i = 0; i < 45; i++) { await fo.keyboard.press('Shift+Tab'); const r = await underHeader(); if (r) hiddenFocus.push('back: ' + r); }
+ok('focus is never hidden under the sticky header', hiddenFocus.length === 0, hiddenFocus.slice(0, 4).join(' | '));
+await fo.close();
+
+// 2.4.2 Page titled: a search names its trip, not the home page.
+const tt = await browser.newPage();
+await tt.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+const homeTitle = await tt.title();
+await tt.goto(`${BASE}/search?to=DE:1,US:14`, { waitUntil: 'domcontentloaded' });
+const searchTitle = await tt.title();
+ok('a search has its own page title', searchTitle !== homeTitle && searchTitle.includes('גרמניה'), searchTitle);
+await tt.close();
+
+// 2.3.3 again, for the first screen's moving route: nothing keeps moving.
+const rm = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
+await rm.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+await rm.waitForTimeout(400);
+const running = await rm.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running' && (a.effect?.getTiming().duration ?? 0) > 50).length);
+ok('reduced motion stops the home page animation', running === 0, `${running} running`);
+await rm.close();
 
 await kb.close();
 await browser.close();

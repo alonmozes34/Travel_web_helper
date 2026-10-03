@@ -13,6 +13,8 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line-soft bg-surface">
+      {/* The brand's two colours as a thin strip along the top edge. */}
+      <div aria-hidden="true" className="h-1 bg-linear-to-l from-brand via-teal to-sky" />
       {/*
         Wraps rather than overflows. A fifth navigation item pushed the
         currency switcher 124px off the edge at 200% text on a 1280px

@@ -4,7 +4,7 @@ import { getCountryByCode } from '@/data/countries';
 import { destinationImages } from '@/data/destinationImages.generated';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
-import { interpolate } from '@/i18n/interpolate';
+import { PhotoCredit } from './PhotoCredit';
 
 const MAX_TILES = 4;
 
@@ -39,7 +39,6 @@ export function DestinationPhotos({
     .slice(0, MAX_TILES);
   if (tiles.length === 0) return null;
   const single = tiles.length === 1;
-  const copy = dict.destinationPhoto;
 
   return (
     <figure className={cn('m-0', className)}>
@@ -77,24 +76,12 @@ export function DestinationPhotos({
         {tiles.map((tile, index) => (
           <span key={tile.code}>
             {index > 0 ? ' · ' : null}
-            {interpolate(single ? copy.creditTemplate : copy.creditMultiTemplate, {
-              country: tile.image.subject[locale] ?? tile.country?.names[locale] ?? tile.code,
-              artist: tile.image.artist || tile.image.licence,
-            })}
-            {', '}
-            {tile.image.licenceUrl ? (
-              <a href={tile.image.licenceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-6 items-center underline">
-                {tile.image.licence}
-                <span className="sr-only"> {copy.opensInNewTab}</span>
-              </a>
-            ) : (
-              tile.image.licence
-            )}
-            {', '}
-            <a href={tile.image.page} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-6 items-center underline">
-              {copy.source}
-              <span className="sr-only"> {copy.opensInNewTab}</span>
-            </a>
+            <PhotoCredit
+              image={tile.image}
+              label={tile.image.subject[locale] ?? tile.country?.names[locale] ?? tile.code}
+              multi={!single}
+              dict={dict}
+            />
           </span>
         ))}
       </figcaption>

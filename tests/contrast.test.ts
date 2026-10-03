@@ -57,6 +57,11 @@ const textPairs: Array<[string, string]> = [
   ['warn-ink', 'surface'],
   ['warn-ink', 'warn-50'],
   ['on-brand', 'brand'],
+  // The night ground: first screen, trust band and footer.
+  ['on-night', 'night'],
+  ['on-night-2', 'night'],
+  ['on-night-2', 'night-2'],
+  ['sky', 'night'],
 ];
 
 describe('colour contrast', () => {
@@ -69,6 +74,12 @@ describe('colour contrast', () => {
       );
     });
   }
+
+  // A focus ring is not text, so 3:1 is the bar (WCAG 1.4.11).
+  test('the focus ring shows on the night ground', () => {
+    assert.ok(contrast(token('sky'), token('night')) >= 3);
+    assert.ok(contrast(token('sky'), token('night-2')) >= 3);
+  });
 
   test('the greys stay distinguishable from one another', () => {
     assert.ok(contrast(token('ink-2'), token('ink-3')) >= 1.3, 'ink-2 and ink-3 look the same');

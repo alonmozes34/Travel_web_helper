@@ -29,12 +29,35 @@ import { getDisplayCurrency } from "@/lib/currencyServer";
 import { tripProfileFromParams } from "@/lib/types/trip";
 import { coverageOf } from "@/lib/comparison/catalogueCoverage";
 
-export const metadata: Metadata = {
-  // A search result is a private query, not a page for a search engine.
-  robots: { index: false, follow: false },
-};
-
 const byCode = new Map(countries.map((country) => [country.code, country]));
+
+/**
+ * The tab names the trip. Every search once shared the home page's title, so
+ * someone with two searches open — or a screen reader announcing the page on
+ * arrival — could not tell them apart (WCAG 2.4.2).
+ */
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  // A search result is a private query, not a page for a search engine.
+  const robots = { index: false, follow: false };
+  if (!isLocale(locale)) return { robots };
+  const dict = getDictionary(locale);
+  const names = tripProfileFromParams(await searchParams)
+    .destinations.map((d) => byCode.get(d.countryCode)?.names[locale])
+    .filter((name): name is string => Boolean(name));
+  const title = names.length
+    ? interpolate(dict.searchMeta.titleTemplate, {
+        countries: new Intl.ListFormat(locale === 'he' ? 'he' : 'en', { type: 'conjunction' }).format(names),
+      })
+    : dict.searchMeta.emptyTitle;
+  return { title, robots };
+}
 
 /**
  * Multi-stop search.

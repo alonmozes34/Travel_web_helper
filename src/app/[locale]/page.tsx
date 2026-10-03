@@ -3,6 +3,8 @@ import { Container } from '@/components/ui/Container';
 import { BrandName } from '@/components/layout/Brand';
 import { HeroSearch } from '@/components/search/HeroSearch';
 import { HowItWorks } from '@/components/content/HowItWorks';
+import { ExploreDestinations } from '@/components/content/ExploreDestinations';
+import { HeroRoute } from '@/components/content/HeroRoute';
 import { TrustSection } from '@/components/content/TrustSection';
 import { Faq } from '@/components/content/Faq';
 import { AffiliateDisclosure } from '@/components/content/AffiliateDisclosure';
@@ -41,9 +43,13 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* The first screen asks for a destination and nothing else. */}
-      <section className="bg-surface pt-12 pb-10 sm:pt-16 md:pt-20 md:pb-12">
-        <Container>
+      {/* The first screen asks for a destination and nothing else. The night
+          ground is there to make the white search card the brightest thing on
+          the screen; everything that a traveller has to read or operate is
+          inside that card, in the same colours as the rest of the site. */}
+      <section className="on-night bg-hero relative pt-12 pb-14 text-on-night sm:pt-16 md:pt-20 md:pb-20">
+        <HeroRoute rtl={localeConfig[locale].dir === 'rtl'} />
+        <Container className="relative">
           {/* One H1, two lines. The brand carries the page and the descriptor
               sits inside the same heading, so the accessible name of the
               document's main heading is "יש קליטה? השוואת חבילות eSIM לחו״ל"
@@ -57,30 +63,43 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
                 not held on one line either — at 200% text on a phone it does
                 not fit, and wrapping between its two words is better than a
                 page that scrolls sideways. At normal sizes it fits whole. */}
-            <BrandName name={dict.home.heroTitle} className="block text-4xl font-bold md:text-5xl" />
-            <span className="mt-2 block max-w-[24ch] text-2xl font-semibold text-balance text-ink-2 md:text-3xl">
+            <BrandName
+              name={dict.home.heroTitle}
+              className="block text-5xl font-bold text-on-night md:text-6xl"
+              markClassName="text-sky"
+            />
+            <span className="mt-3 block max-w-[24ch] text-2xl font-semibold text-balance text-on-night-2 md:text-3xl">
               {dict.home.heroDescriptor}
             </span>
           </h1>
-          <p className="mt-4 max-w-[50ch] text-lg text-ink-2">{dict.home.heroSubtitle}</p>
+          <p className="mt-4 max-w-[50ch] text-lg text-on-night-2">{dict.home.heroSubtitle}</p>
 
-          <div className="mt-7">
+          <div className="mt-8 max-w-[720px] rounded-[24px] bg-surface p-3 text-ink shadow-hero sm:p-5">
             <HeroSearch locale={locale} dict={dict} />
           </div>
 
-          <ul className="mt-9 flex flex-wrap gap-x-7 gap-y-2 border-t border-line-soft pt-5 text-sm text-ink-2">
+          <ul className="mt-9 flex flex-wrap gap-x-8 gap-y-3 text-sm text-on-night-2">
             {dict.home.trustStrip.map((item) => (
-              <li key={item.strong}>
-                <strong className="font-semibold text-ink">{item.strong}</strong> {item.rest}
+              <li key={item.strong} className="flex items-start gap-2">
+                <span aria-hidden="true" className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-teal/20 text-xs text-teal">
+                  ✓
+                </span>
+                <span>
+                  <strong className="font-semibold text-on-night">{item.strong}</strong> {item.rest}
+                </span>
               </li>
             ))}
-            <li>
-              <strong className="font-semibold text-ink">{dict.disclosure.short}</strong>
+            <li className="flex items-start gap-2">
+              <span aria-hidden="true" className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-teal/20 text-xs text-teal">
+                ✓
+              </span>
+              <strong className="font-semibold text-on-night">{dict.disclosure.short}</strong>
             </li>
           </ul>
         </Container>
       </section>
 
+      <ExploreDestinations locale={locale} dict={dict} />
       <HowItWorks dict={dict} />
       <TrustSection dict={dict} />
       <Faq dict={dict} />

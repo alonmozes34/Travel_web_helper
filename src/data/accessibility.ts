@@ -58,11 +58,13 @@ export const accessibilityStatement: AccessibilityStatement = {
   // A personal project. No company exists, and inventing one to fill a field
   // would be the one thing a legal document must never do.
   operator: { kind: 'individual' },
-  // The date the technical review below was last run in full: axe-core across
-  // eight states of the site plus twenty-three manual checks, all passing.
+  // The date the technical review below was last run in full: axe-core on
+  // every kind of page and dialog (`tests/a11y.mjs`) plus the manual checks in
+  // `tests/a11y-manual.mjs` — reflow, text size and spacing, keyboard, focus
+  // visible and not hidden, target size, motion, titles — all passing.
   // A date for work that happened — explicitly not a licensed audit, which the
   // page states separately and which a website does not require.
-  lastReviewedAt: '2026-09-25',
+  lastReviewedAt: '2026-10-03',
   auditedBy: null,
   contact: {
     coordinatorName: null,
