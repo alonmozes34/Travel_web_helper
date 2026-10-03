@@ -94,3 +94,23 @@ the site is released as a version:
 
 The footer shows the version, its date, and the commit the host built, so the
 owner can check which build is live.
+
+## After every scheduled run, problems get fixed
+
+The owner (3 October 2026): "after every run, if there are problems, they
+must be fixed." Two Routines run unattended and only report — neither may
+push, because a push to the branch deploys the live site:
+
+- **Nightly QA** (02:49 Israel time) publishes
+  https://claude.ai/artifact/Ac41PCCjrreHJ7wL14G8r3
+- **Weekly eSIM devices check** (Sunday 08:47) publishes
+  https://claude.ai/artifact/1PomsmJSh2SA6ngKV6ec2i
+
+The owner's main session watches both pages and is woken when either is
+republished. On each wake: read the report; for every failure, reproduce it,
+find the cause, fix it (site, data or test — whichever is wrong), run the
+suites including `npm run test:a11y`, version it if a visitor would notice,
+push, and tell the owner in Hebrew what failed and what was done. A provider's
+momentary outage is fixed by making the check tolerate it, never by deleting
+the check; a test is never skipped or weakened to get green. Device changes
+are applied only as copied from the manufacturer's own page.

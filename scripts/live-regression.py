@@ -138,17 +138,33 @@ for p in res:
 UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
 # One request at a time: in parallel, aloSIM's server leaves some unanswered
 # (33 of 200 on 28 September 2026, all fine when asked again one by one).
+# A provider's server error (502/503/504, 429) or no answer is retried, and a
+# link that still fails is tried once more after every other link: the night
+# of 2 October 2026 eight aloSIM links answered 502 or nothing, and all eight
+# opened on a second try minutes later. A failure that survives both passes is
+# reported; one that recovers is noted, so a provider whose site keeps
+# stumbling still shows up in the report.
+TRANSIENT=('000','429','500','502','503','504')
 def alosim_status(link):
     out=''
     for attempt in range(3):
-        if attempt: time.sleep(5)
-        out=subprocess.run(['curl','-sS','-o','/dev/null','-I','-m','30','-A',UA,'-w','%{http_code} %{redirect_url}',link],capture_output=True,text=True).stdout
-        if out and not out.startswith('000'): return out
-    return out or '000'
+        if attempt: time.sleep(5*attempt)
+        out=subprocess.run(['curl','-sS','-o','/dev/null','-I','-m','30','-A',UA,'-w','%{http_code} %{redirect_url}',link],capture_output=True,text=True).stdout or '000'
+        if not out.startswith(TRANSIENT): return out
+    return out
+failed={}
 for path,link in alosim_links.items():
-    out=alosim_status(link); code=out.split(' ')[0]
-    if code=='000': issues['alosim-no-answer (3 tries)'].append(link)
-    elif code!='200': issues['alosim-link-does-not-open-page'].append(f"HTTP {out.strip()} ← {link}")
+    out=alosim_status(link)
+    if not out.startswith('200'): failed[link]=out
+if failed:
+    time.sleep(60)
+    recovered=[]
+    for link,first in failed.items():
+        out=alosim_status(link); code=out.split(' ')[0]
+        if code=='200': recovered.append(f"HTTP {first.split(' ')[0]} then 200 ← {link}")
+        elif code=='000': issues['alosim-no-answer (two passes)'].append(link)
+        else: issues['alosim-link-does-not-open-page'].append(f"HTTP {out.strip()} ← {link}")
+    if recovered: print(f'alosim: {len(recovered)} links failed at first and opened on the second pass (provider hiccup, not counted):\n  '+'\n  '.join(recovered[:10]))
 sample=sorted(alosim_links.items())[datetime.date.today().toordinal()%7::max(1,len(alosim_links)//25)][:25]
 for path,link in sample:
     page=subprocess.run(['curl','-sS','-L','-m','60','-A',UA,link],capture_output=True,text=True).stdout
