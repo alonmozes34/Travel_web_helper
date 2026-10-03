@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/PageHeader';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Ltr } from '@/components/ui/Bdi';
@@ -46,12 +47,13 @@ export default async function TermsPage({
   const email = accessibilityStatement.contact.email;
 
   return (
+    <>
+      <PageHeader
+        title={page.title}
+        intro={page.intro}
+        note={interpolate(page.updatedTemplate, { date: privacyReviewedOn })}
+      />
     <Container className="py-12">
-      <h1 className="font-head text-3xl font-bold tracking-tight sm:text-4xl">{page.title}</h1>
-      <p className="mt-4 max-w-[70ch] text-lg text-ink-2">{page.intro}</p>
-      <p className="mt-3 text-sm text-ink-3">
-        {interpolate(page.updatedTemplate, { date: privacyReviewedOn })}
-      </p>
 
       <div className="mt-10 grid gap-8">
         {page.sections.map((section) => (
@@ -79,5 +81,6 @@ export default async function TermsPage({
         </section>
       </div>
     </Container>
+    </>
   );
 }

@@ -285,6 +285,50 @@ const running = await rm.evaluate(() => document.getAnimations().filter((a) => a
 ok('reduced motion stops the home page animation', running === 0, `${running} running`);
 await rm.close();
 
+// 2.4.7 / 1.4.11 The focus ring must be visible against what is behind it:
+// sky on the night ground, action blue on light ground — including a white
+// card that sits on the night ground, where sky would all but vanish.
+const ring = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+const weakRings = [];
+for (const path of ['/', '/esim/thailand?days=10&usage=regular', '/about', '/unlock']) {
+  await ring.goto(BASE + path, { waitUntil: 'networkidle' }).catch(() => {});
+  for (let i = 0; i < 60; i++) {
+    await ring.keyboard.press('Tab');
+    const r = await ring.evaluate(async () => {
+      const el = document.activeElement;
+      if (!el || el === document.body) return null;
+      // Buttons fade their colours in (transition-colors includes the
+      // outline); read the ring once it has arrived, as a person would see it.
+      await Promise.all(el.getAnimations().map((a) => a.finished.catch(() => {})));
+      const cs = getComputedStyle(el);
+      if (cs.outlineStyle === 'none' || parseFloat(cs.outlineWidth) === 0) return null;
+      // Computed colours come back as rgb(), oklab() or color(srgb …) depending
+      // on how Tailwind wrote them; a canvas turns any of them into 0–255.
+      const ctx = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d');
+      const rgb = (c) => { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1); const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data; return [r, g, b, a / 255]; };
+      const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
+      // The ring is drawn outside the element, so the background that matters is its parent's.
+      let node = el.parentElement, bg = null;
+      while (node) { const c = rgb(getComputedStyle(node).backgroundColor); if (c[3] > 0.9) { bg = c; break; } node = node.parentElement; }
+      if (!bg) bg = [255, 255, 255];
+      const a = lum(rgb(cs.outlineColor)), b = lum(bg);
+      const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      return ratio < 3 ? `${(el.textContent || el.tagName).trim().slice(0, 24)} ${ratio.toFixed(1)}:1` : null;
+    });
+    if (r) weakRings.push(`${path} ${r}`);
+  }
+}
+ok('the focus ring stands out from its background (3:1)', weakRings.length === 0, [...new Set(weakRings)].slice(0, 4).join(' | '));
+await ring.close();
+
+// A mistyped address gets the site's own page, with a 404 status.
+const nf = await browser.newPage();
+const nfResponse = await nf.goto(BASE + '/no-such-page', { waitUntil: 'domcontentloaded' });
+const nfHeading = await nf.locator('h1').first().innerText().catch(() => '');
+const nfHeader = await nf.locator('header').count();
+ok('an unknown address shows the site 404 page', nfResponse?.status() === 404 && nfHeader === 1 && nfHeading.length > 0, `${nfResponse?.status()} · ${nfHeading}`);
+await nf.close();
+
 await kb.close();
 await browser.close();
 console.log(out.join('\n'));

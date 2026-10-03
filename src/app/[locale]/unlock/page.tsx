@@ -63,8 +63,9 @@ export default async function UnlockPage({
   }
 
   return (
+    <div className="on-night bg-hero">
     <Container className="flex justify-center py-16 md:py-24">
-      <div className="w-full max-w-[54ch] rounded-lg border border-line bg-surface p-7 md:p-9">
+      <div className="on-light w-full max-w-[54ch] rounded-[24px] bg-surface p-7 shadow-hero md:p-9">
         <h1 className="font-head text-2xl font-bold tracking-tight md:text-3xl">
           {dict.preview.heading}
         </h1>
@@ -108,5 +109,6 @@ export default async function UnlockPage({
         </p>
       </div>
     </Container>
+    </div>
   );
 }

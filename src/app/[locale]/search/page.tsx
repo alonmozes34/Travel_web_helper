@@ -120,10 +120,20 @@ export default async function SearchPage({
   // cost less than one plan that covers the whole trip.
   const { offer: showCombination, cheapestSingleMinor } = shouldOfferCombination(combination, comparison.rows);
 
+  const empty = profile.destinations.length === 0;
+
   return (
     <>
       <LoadingComplete />
-      <section className="bg-surface pt-6 pb-8 md:pt-8">
+      {/* With no trip yet, the page is the home page's first screen: the
+          question on the night ground and the search in a white card. */}
+      <section
+        className={
+          empty
+            ? "on-night bg-hero pt-10 pb-12 text-on-night md:pt-14"
+            : "bg-surface pt-6 pb-8 md:pt-8"
+        }
+      >
         <Container>
           <DestinationPhotos
             countryCodes={profile.destinations.map((destination) => destination.countryCode)}
@@ -131,14 +141,22 @@ export default async function SearchPage({
             dict={dict}
             className="mb-6"
           />
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+          <h1
+            className={`text-3xl font-bold tracking-tight md:text-4xl${empty ? " text-on-night" : ""}`}
+          >
             {names
               ? interpolate(dict.search.multiTitleTemplate, {
                   destinations: names,
                 })
               : dict.search.chooseFirst}
           </h1>
-          <div className="mt-6">
+          <div
+            className={
+              empty
+                ? "on-light mt-6 max-w-[720px] rounded-[24px] bg-surface p-3 text-ink shadow-hero sm:p-5"
+                : "mt-6"
+            }
+          >
             <HeroSearch
               locale={locale}
               dict={dict}

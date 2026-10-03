@@ -74,7 +74,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
           </h1>
           <p className="mt-4 max-w-[50ch] text-lg text-on-night-2">{dict.home.heroSubtitle}</p>
 
-          <div className="mt-8 max-w-[720px] rounded-[24px] bg-surface p-3 text-ink shadow-hero sm:p-5">
+          <div className="on-light mt-8 max-w-[720px] rounded-[24px] bg-surface p-3 text-ink shadow-hero sm:p-5">
             <HeroSearch locale={locale} dict={dict} />
           </div>
 

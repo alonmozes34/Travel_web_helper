@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/PageHeader';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -65,14 +66,17 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
   const dict = getDictionary(locale);
 
   return (
+    <>
+      <PageHeader
+        before={
+          <Link href={localePath(locale, '/guides')} className="inline-flex min-h-6 items-center text-sky underline">
+            {dict.guidesPage.allGuides}
+          </Link>
+        }
+        title={guide.title}
+        intro={guide.description}
+      />
     <Container className="py-12">
-      <p className="text-sm">
-        <Link href={localePath(locale, '/guides')} className="inline-flex min-h-6 items-center text-brand underline">
-          {dict.guidesPage.allGuides}
-        </Link>
-      </p>
-      <h1 className="mt-2 font-head text-3xl font-bold tracking-tight sm:text-4xl">{guide.title}</h1>
-      <p className="mt-4 max-w-[70ch] text-lg text-ink-2">{guide.description}</p>
       <div className="mt-10 grid gap-8">
         {guide.sections.map((section, index) => (
           <section key={section.heading} className="max-w-[70ch]">
@@ -92,5 +96,6 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
         </Link>
       </p>
     </Container>
+    </>
   );
 }

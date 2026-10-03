@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/PageHeader';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { RentalResults } from '@/components/carRental/RentalResults';
@@ -66,9 +67,9 @@ export default async function CarRentalPage({
   const { rates } = await getCatalogue();
 
   return (
+    <>
+      <PageHeader title={page.title} intro={page.intro} />
     <Container className="py-12">
-      <h1 className="font-head text-3xl font-bold tracking-tight sm:text-4xl">{page.title}</h1>
-      <p className="mt-4 max-w-[70ch] text-lg text-ink-2">{page.intro}</p>
 
       {summary?.allDemo ? (
         <div className="mt-6 max-w-[70ch] rounded-sm bg-warn-50 px-4 py-3 text-warn-ink">
@@ -105,5 +106,6 @@ export default async function CarRentalPage({
         <p className="mt-6 text-ink-2">{page.results.notSearched}</p>
       )}
     </Container>
+    </>
   );
 }

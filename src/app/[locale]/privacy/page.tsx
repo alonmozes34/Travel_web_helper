@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/PageHeader';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
@@ -47,12 +48,13 @@ export default async function PrivacyPage({
   const email = accessibilityStatement.contact.email;
 
   return (
+    <>
+      <PageHeader
+        title={page.title}
+        intro={page.intro}
+        note={interpolate(page.reviewedTemplate, { date: privacyReviewedOn })}
+      />
     <Container className="py-12">
-      <h1 className="font-head text-3xl font-bold tracking-tight sm:text-4xl">{page.title}</h1>
-      <p className="mt-4 max-w-[70ch] text-lg text-ink-2">{page.intro}</p>
-      <p className="mt-3 text-sm text-ink-3">
-        {interpolate(page.reviewedTemplate, { date: privacyReviewedOn })}
-      </p>
 
       <section className="mt-10 max-w-[70ch]">
         <h2 className="font-head text-xl font-semibold">{page.operator.heading}</h2>
@@ -121,5 +123,6 @@ export default async function PrivacyPage({
         </p>
       </section>
     </Container>
+    </>
   );
 }

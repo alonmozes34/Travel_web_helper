@@ -655,6 +655,7 @@ export const en: Dictionary = {
       'A control that receives focus is never hidden under the page header, including when moving backwards with Shift+Tab.',
       'Text stays readable and uncut when line, letter and word spacing are increased.',
       'Every page has its own title in the browser tab, including search results.',
+      'The focus ring stands out from whatever is behind it (at least 3:1), on the dark ground and on the white cards that sit on it.',
       'Usable at 320 pixels wide and at 200% text size, with no horizontal scrolling.',
       'Touch targets of at least 44 pixels on the main interactive controls.',
       'Modals built on the native <dialog> element, so focus trapping, Escape and background inertness come from the browser.',

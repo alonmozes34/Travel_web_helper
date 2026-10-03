@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/PageHeader';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -21,9 +22,9 @@ export default async function GuidesPage({ params }: { params: Promise<{ locale:
   const dict = getDictionary(locale);
 
   return (
+    <>
+      <PageHeader title={dict.guidesPage.title} intro={dict.guidesPage.intro} />
     <Container className="py-12">
-      <h1 className="font-head text-3xl font-bold tracking-tight sm:text-4xl">{dict.guidesPage.title}</h1>
-      <p className="mt-4 max-w-[70ch] text-lg text-ink-2">{dict.guidesPage.intro}</p>
       <ul className="mt-8 grid max-w-3xl gap-4">
         {guides[locale].map((guide) => (
           <li key={guide.slug} className="rounded-lg border border-line bg-surface p-5">
@@ -37,5 +38,6 @@ export default async function GuidesPage({ params }: { params: Promise<{ locale:
         ))}
       </ul>
     </Container>
+    </>
   );
 }

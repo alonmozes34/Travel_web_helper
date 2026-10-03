@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/PageHeader';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Container } from '@/components/ui/Container';
@@ -40,9 +41,9 @@ export default async function AboutPage({
   const email = accessibilityStatement.contact.email;
 
   return (
+    <>
+      <PageHeader title={page.title} intro={page.intro} />
     <Container className="py-12">
-      <h1 className="font-head text-3xl font-bold tracking-tight sm:text-4xl">{page.title}</h1>
-      <p className="mt-4 max-w-[70ch] text-lg text-ink-2">{page.intro}</p>
 
       <div className="mt-10 grid gap-8">
         {page.sections.map((section) => (
@@ -68,5 +69,6 @@ export default async function AboutPage({
         ) : null}
       </div>
     </Container>
+    </>
   );
 }

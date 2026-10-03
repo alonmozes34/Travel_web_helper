@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/PageHeader';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Container } from '@/components/ui/Container';
@@ -91,17 +92,17 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
   const complete = isAccessibilityStatementComplete();
 
   return (
+    <>
+      <PageHeader title={copy.title} intro={copy.intro} narrow />
     <Container className="max-w-[76ch] py-12">
-      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{copy.title}</h1>
 
       {!complete ? (
-        <div className="mt-5 rounded-sm border-s-[3px] border-s-warn-ink bg-warn-50 px-4 py-3">
+        <div className="mb-8 rounded-sm border-s-[3px] border-s-warn-ink bg-warn-50 px-4 py-3">
           <p className="font-semibold text-warn-ink">{copy.pendingBadge}</p>
           <p className="mt-1 text-base text-warn-ink">{copy.pendingNotice}</p>
         </div>
       ) : null}
 
-      <p className="mt-6 text-lg text-ink-2">{copy.intro}</p>
 
       <section className="mt-10">
         <h2 className="font-head text-xl font-semibold">{copy.standardTitle}</h2>
@@ -229,5 +230,6 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
         </p>
       ) : null}
     </Container>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/layout/PageHeader';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -45,12 +46,13 @@ export default async function DevicesPage({
   const page = dict.devicesPage;
 
   return (
+    <>
+      <PageHeader
+        title={page.title}
+        intro={page.intro}
+        note={<>{interpolate(page.updatedTemplate, { date: devicesCheckedOn() })} {page.staleNote}</>}
+      />
     <Container className="py-12">
-      <h1 className="font-head text-3xl font-bold tracking-tight sm:text-4xl">{page.title}</h1>
-      <p className="mt-4 max-w-[70ch] text-lg text-ink-2">{page.intro}</p>
-      <p className="mt-3 max-w-[70ch] text-sm text-ink-3">
-        {interpolate(page.updatedTemplate, { date: devicesCheckedOn() })} {page.staleNote}
-      </p>
 
       <section className="mt-12 border-t border-line-soft pt-10">
         <h2 className="font-head text-2xl font-semibold">{page.check.title}</h2>
@@ -118,5 +120,6 @@ export default async function DevicesPage({
         </Link>
       </section>
     </Container>
+    </>
   );
 }

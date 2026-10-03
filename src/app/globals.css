@@ -147,6 +147,12 @@
   .on-night :focus-visible {
     outline-color: var(--color-sky);
   }
+  /* …but a white card on that ground (the home page's search, the preview
+     gate) is light again, and sky on white is too faint to see. Same
+     specificity, later in the file, so it wins inside the card. */
+  .on-light :focus-visible {
+    outline-color: var(--color-brand);
+  }
 
   ::selection {
     background-color: var(--color-brand-50);
