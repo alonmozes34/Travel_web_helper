@@ -133,8 +133,12 @@ for (const [p, want, loc] of [
 {
   const en = await get('/en');
   check('regression', '/en serves English LTR', en.status === 200 && en.body.includes('dir="ltr"'));
+  // Before launch: crawlers may read the pages (an affiliate network's review
+  // bot was turned away by a blanket Disallow), and every page says noindex.
   const ar = await get('/robots.txt');
-  check('regression', 'robots disallows everything', ar.body.includes('Disallow: /'));
+  const home = await get('/');
+  check('regression', 'robots lets crawlers in before launch', ar.body.includes('Allow: /') && !/Disallow: \/\s*$/m.test(ar.body), ar.body.replace(/\n/g, ' '));
+  check('regression', 'and every page still asks not to be indexed', /<meta name="robots" content="noindex, nofollow"/.test(home.body));
   const sm = await get('/sitemap.xml');
   check('regression', 'sitemap is well formed', sm.status === 200 && sm.body.startsWith('<?xml'));
   const mf = await get('/manifest.webmanifest');

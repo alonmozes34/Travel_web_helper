@@ -332,8 +332,8 @@ with invented details.
 
 **Indexing is gated on this at runtime.** `allowIndexing` in `src/lib/site.ts`
 requires both `NEXT_PUBLIC_ALLOW_INDEXING=true` *and* a complete statement, so
-`robots.txt` keeps disallowing and every page keeps its `noindex` until the
-table above is filled in. A build that asked to be indexed and was refused
+every page keeps its `noindex`, and no sitemap is offered, until the table
+above is filled in. A build that asked to be indexed and was refused
 says so on stdout, naming the missing fields. This used to be a unit test
 alone, which never runs on the host where that variable is actually set —
 `next build` does not run tests — so the guard existed everywhere except where
@@ -379,8 +379,11 @@ that page — how many providers, which local operators, how many plans offer
 the listings, and when no plan offers 5G the page says so rather than staying
 quiet. That is the difference between useful content and keyword filler.
 
-**Indexing is off by default.** `robots.ts` disallows everything and pages are
-marked `noindex` unless `NEXT_PUBLIC_ALLOW_INDEXING=true`, because indexing a
+**Indexing is off by default.** Pages are marked `noindex` and no sitemap is
+offered unless `NEXT_PUBLIC_ALLOW_INDEXING=true`. `robots.txt` lets crawlers
+read the pages either way (only `/api/` is closed): a blanket Disallow turned
+away Booking.com's review crawler on CJ (5 October 2026), and it would also
+hide the `noindex` from the search engines it is meant for. Indexing stays off because indexing a
 site whose every price is invented would put fabricated offers into search
 results. There is deliberately no Product or Offer structured data for the same
 reason, and the FAQ structured data is published on the homepage only rather
