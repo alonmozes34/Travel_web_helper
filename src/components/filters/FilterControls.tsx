@@ -185,6 +185,9 @@ export function FilterControls({
             max={options.maxPriceMinor}
             step={100}
             value={filters.maxPriceMinor ?? options.maxPriceMinor}
+            // Read out as a price: without this a screen reader said "19606",
+            // the value in agorot.
+            aria-valuetext={formatPrice(filters.maxPriceMinor ?? options.maxPriceMinor, currency, locale)}
             onChange={(event) =>
               onChange({
                 ...filters,

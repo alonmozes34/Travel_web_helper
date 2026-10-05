@@ -78,7 +78,7 @@ export function DestinationList({
                 }}
                 className="tnum h-11 w-14 rounded-sm border border-line bg-surface px-1.5 text-center text-base text-ink"
               />
-              <Ltr>{dict.search.daysUnit}</Ltr>
+              <span aria-hidden="true"><Ltr>{dict.search.daysUnit}</Ltr></span>
             </label>
 
             <button

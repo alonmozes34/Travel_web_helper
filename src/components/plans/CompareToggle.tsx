@@ -15,12 +15,15 @@ export function CompareToggle({
   onChange,
   dict,
   className,
+  describedBy,
 }: {
   checked: boolean;
   disabled: boolean;
   onChange: (checked: boolean) => void;
   dict: Dictionary;
   className?: string;
+  /** The card's heading, so the box says which plan it adds. */
+  describedBy?: string;
 }) {
   return (
     <label
@@ -34,6 +37,7 @@ export function CompareToggle({
       <input
         type="checkbox"
         className="peer sr-only"
+        aria-describedby={describedBy}
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}

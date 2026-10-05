@@ -34,6 +34,7 @@ export function PlanCta({
   onChosen,
   demoDataEnabled = false,
   share,
+  describedBy,
 }: {
   row: ComparisonRow;
   dict: Dictionary;
@@ -55,6 +56,12 @@ export function PlanCta({
   demoDataEnabled?: boolean;
   /** A share button, kept in the same row as the plan's other actions. */
   share?: ReactNode;
+  /**
+   * The card's heading. Ten cards each had a "more details" button and
+   * several a "go to Yesim" one, with nothing a screen reader could tell
+   * apart; described by the heading, each says which plan it belongs to.
+   */
+  describedBy?: string;
 }) {
   const [noted, setNoted] = useState(false);
   const [beforeYouGo, setBeforeYouGo] = useState(false);
@@ -94,6 +101,7 @@ export function PlanCta({
           // router has no business prefetching a provider's checkout.
           <a
             href={link.href}
+            aria-describedby={describedBy}
             rel={link.rel}
             target={link.target}
             onClick={(event) => {
@@ -119,6 +127,7 @@ export function PlanCta({
         ) : (
           <Button
             size={size}
+            aria-describedby={describedBy}
             onClick={() => {
               recordClick();
               setNoted(true);
@@ -132,6 +141,7 @@ export function PlanCta({
           size={size}
           aria-expanded={detailsOpen}
           aria-controls={detailsOpen ? detailsId : undefined}
+          aria-describedby={describedBy}
           onClick={() => {
             if (!detailsOpen) {
               track({

@@ -329,6 +329,48 @@ const nfHeader = await nf.locator('header').count();
 ok('an unknown address shows the site 404 page', nfResponse?.status() === 404 && nfHeader === 1 && nfHeading.length > 0, `${nfResponse?.status()} · ${nfHeading}`);
 await nf.close();
 
+// What a screen reader is told along the search (5 October 2026). The site
+// has not been tested with a real screen reader; these hold the parts of
+// that experience a browser exposes: names, headings, live announcements.
+const sr = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+await sr.addInitScript(() => {
+  window.__said = [];
+  new MutationObserver(() => {
+    for (const r of document.querySelectorAll('[aria-live]:not([aria-live="off"]),[role="status"],[role="alert"]')) {
+      const t = r.textContent.trim();
+      if (t && r.dataset.said !== t) { r.dataset.said = t; window.__said.push(t); }
+    }
+  }).observe(document, { subtree: true, childList: true, characterData: true });
+});
+await sr.goto(BASE + '/', { waitUntil: 'networkidle' });
+await sr.getByRole('combobox', { name: 'יעד הטיול' }).focus();
+await sr.keyboard.type('תאילנד', { delay: 30 });
+await sr.waitForSelector('[role="listbox"]');
+await sr.keyboard.press('Enter');
+await sr.waitForTimeout(400);
+const saidOnAdd = await sr.evaluate(() => window.__said.join(' | '));
+ok('choosing a destination is announced', /תאילנד/.test(saidOnAdd) && /נוסף לטיול/.test(saidOnAdd), saidOnAdd.slice(0, 120));
+const daysName = await sr.getByRole('spinbutton').first().evaluate((el) => el.labels?.[0]?.innerText ?? '');
+const daysAccName = await sr.getByRole('spinbutton', { name: 'לכמה ימים בתאילנד?' }).count();
+ok('the days field is named once, with its question', daysAccName === 1, daysName.replace(/\s+/g, ' '));
+await sr.goto(`${BASE}/esim/thailand?to=TH:10&usage=regular`, { waitUntil: 'networkidle' });
+await sr.waitForTimeout(1200);
+const saidOnResults = await sr.evaluate(() => window.__said.join(' | '));
+ok('the number of plans found is announced', /נמצא/.test(saidOnResults), saidOnResults.slice(0, 120));
+const cards = await sr.evaluate(() => [...document.querySelectorAll('main article')].map((a) => {
+  const h = document.getElementById(a.getAttribute('aria-labelledby') || '');
+  return h && /^H[34]$/.test(h.tagName) && h.textContent.trim().length > 3;
+}));
+ok('every plan card is named by its own heading', cards.length > 0 && cards.every(Boolean), `${cards.filter(Boolean).length}/${cards.length}`);
+const described = await sr.evaluate(() => [...document.querySelectorAll('main article button, main article a[href]')]
+  .filter((el) => /עוד פרטים|לחבילה באתר/.test(el.textContent))
+  .every((el) => { const id = el.getAttribute('aria-describedby'); return id && document.getElementById(id); }));
+ok('repeated card buttons say which plan they belong to', described);
+const slider = sr.getByRole('slider').first();
+const valueText = (await slider.count()) ? await slider.getAttribute('aria-valuetext') : null;
+ok('the price slider reads a price, not a raw number', !!valueText && /[₪$€£]/.test(valueText), String(valueText));
+await sr.close();
+
 await kb.close();
 await browser.close();
 console.log(out.join('\n'));

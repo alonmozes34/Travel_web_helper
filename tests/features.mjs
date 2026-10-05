@@ -27,10 +27,16 @@ const check = (g, label, cond, detail = '') => {
 const b = await chromium.launch();
 const page = async (vp = { width: 1400, height: 1000 }) => b.newPage({ viewport: vp });
 const priceCount = async (p) => ((await p.locator('body').innerText()).match(/₪\s*\d/g) ?? []).length;
-// The result count the page announces ("הצג 12 תוצאות"): what a sort must not
+// The result count the page announces ("נמצאו 12 חבילות"): what a sort must not
 // change. Counting prices instead depended on which cards made the shortlist
 // and whether they carried a code's saving.
-const resultCount = async (p) => Number((await p.locator('[aria-live]').allInnerTexts()).join(' ').match(/הצג (\d+) תוצאות/)?.[1] ?? NaN);
+const resultCount = async (p) => {
+  // Announced a moment after the page appears ("נמצאו 12 חבילות"), so wait for it.
+  await p.waitForFunction(() => [...document.querySelectorAll('[aria-live]')].some((r) => /נמצא/.test(r.textContent)), null, { timeout: 5000 }).catch(() => {});
+  const text = (await p.locator('[aria-live]').allTextContents()).join(' ');
+  if (/נמצאה חבילה אחת/.test(text)) return 1;
+  return Number(text.match(/נמצאו (\d+) חבילות/)?.[1] ?? NaN);
+};
 
 // ══ search & autocomplete ════════════════════════════════════════════════
 try {
@@ -353,7 +359,7 @@ try {
   await p.locator('[role="option"]').first().click();
   await p.waitForTimeout(600);
 
-  await p.getByRole('spinbutton', { name: /^ימים ב/ }).first().fill('8');
+  await p.getByRole('spinbutton', { name: /^לכמה ימים ב/ }).first().fill('8');
   const gb = p.getByRole('spinbutton', { name: 'כמה GB לכל הטיול?' });
   check('gb button', 'the GB field is on the page', (await gb.count()) > 0);
   await gb.first().fill('20');

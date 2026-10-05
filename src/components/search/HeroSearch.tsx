@@ -7,6 +7,7 @@ import { ChipLink } from "@/components/ui/Chip";
 import { countries, popularCountries, type Country } from "@/data/countries";
 import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/getDictionary";
+import { interpolate } from "@/i18n/interpolate";
 import { track } from "@/lib/analytics/events";
 import {
   isTripDescribed,
@@ -61,6 +62,13 @@ export function HeroSearch({
   const [showSearch, setShowSearch] = useState(variant === "hero");
   const [error, setError] = useState<string | null>(null);
   const [listOpen, setListOpen] = useState(false);
+  /**
+   * What a screen reader is told when a stop is added or removed. Choosing a
+   * destination opens the two trip questions below the search and adds the
+   * stop as a row there, but the focus stays in the search box — so without
+   * this, nothing said that anything had happened.
+   */
+  const [announcement, setAnnouncement] = useState("");
 
   /**
    * Adopt the page's trip when the page changes under us.
@@ -126,6 +134,11 @@ export function HeroSearch({
   function addDestination(country: Country) {
     setError(null);
     setShowDetails(true);
+    if (!profile.destinations.some((d) => d.countryCode === country.code)) {
+      setAnnouncement(
+        interpolate(dict.search.destinationAddedTemplate, { country: country.names[locale] }),
+      );
+    }
     setProfile((current) =>
       current.destinations.some((d) => d.countryCode === country.code)
         ? current
@@ -142,6 +155,12 @@ export function HeroSearch({
   function setDestinations(destinations: TripDestination[]) {
     const next = { ...profile, destinations };
     setProfile(next);
+    const removed = profile.destinations
+      .filter((d) => !destinations.some((kept) => kept.countryCode === d.countryCode))
+      .map((d) => byCode.get(d.countryCode)?.names[locale] ?? d.countryCode);
+    if (removed.length) {
+      setAnnouncement(interpolate(dict.search.destinationRemovedTemplate, { country: removed.join(", ") }));
+    }
 
     // The empty search is where "I no longer want these results" lands, and it
     // goes there at once rather than behind a button. What the traveller told
@@ -286,6 +305,9 @@ export function HeroSearch({
 
       <p aria-live="polite" className="min-h-5 pt-2 text-sm text-warn-ink">
         {error}
+      </p>
+      <p role="status" className="sr-only">
+        {announcement}
       </p>
 
       <div className="flex max-w-[640px] flex-wrap items-center gap-x-5 gap-y-2">

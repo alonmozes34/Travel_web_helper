@@ -53,6 +53,7 @@ export function PlanListItem({
   canSelect,
   onSelect,
   onChosen,
+  headingLevel = 3,
 }: {
   row: ComparisonRow;
   locale: Locale;
@@ -67,6 +68,8 @@ export function PlanListItem({
   onSelect: (selected: boolean) => void;
   /** Raised when this row's outbound link is followed. */
   onChosen?: () => void;
+  /** 3 under the list's own heading; 4 inside the "too short" section. */
+  headingLevel?: 3 | 4;
 }) {
   const { plan } = row;
   // One label, not four: the first category the plan wins, in the order the
@@ -74,6 +77,10 @@ export function PlanListItem({
   const badge = recommendationKeys.find((key) => row.badges.includes(key));
   const [detailsOpen, setDetailsOpen] = useState(false);
   const detailsId = useId();
+  const headingId = useId();
+  const Heading = headingLevel === 4 ? 'h4' : 'h3';
+  const dataText = plan.isUnlimited ? dict.units.unlimited : formatData(plan.dataAmountMb, locale);
+  const daysText = `${plan.validityDays} ${plan.validityDays === 1 ? dict.units.day : dict.units.days}`;
 
   const status = !row.coversTrip
     ? { tone: 'warn' as const, text: dict.plan.shortValidity }
@@ -89,12 +96,28 @@ export function PlanListItem({
 
   return (
     <article
+      aria-labelledby={headingId}
       className={cn(
         // min-w-0: a grid item otherwise refuses to shrink below its longest
         // word and pushes a 320px screen sideways.
         'relative min-w-0 rounded-lg border border-line bg-surface p-4 md:p-5',
       )}
     >
+      {/* What a screen reader lists when moving from plan to plan by heading.
+          Hidden: the card already shows the same three things, larger. The
+          provider's name is Latin, marked so the reader can switch voice. */}
+      <Heading id={headingId} className="sr-only">
+        {(() => {
+          const [before, after = ''] = dict.results.cardHeadingTemplate.split('{provider}');
+          return (
+            <>
+              {before}
+              <span lang="en">{row.provider.name}</span>
+              {interpolate(after, { data: dataText, days: daysText })}
+            </>
+          );
+        })()}
+      </Heading>
       <div className="flex flex-wrap items-center justify-between gap-2">
         {/* The plan's own name is under "more details": the button opens the
             plan itself, so nobody has to find it by name any more. */}
@@ -164,6 +187,7 @@ export function PlanListItem({
           onToggleDetails={() => setDetailsOpen((open) => !open)}
           onChosen={onChosen}
           demoDataEnabled={demoDataEnabled}
+          describedBy={headingId}
           share={
             <ShareSearch
               compact
@@ -204,6 +228,7 @@ export function PlanListItem({
               disabled={!isSelected && !canSelect}
               onChange={onSelect}
               dict={dict}
+              describedBy={headingId}
             />
           </div>
         </div>

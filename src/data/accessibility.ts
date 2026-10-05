@@ -64,7 +64,7 @@ export const accessibilityStatement: AccessibilityStatement = {
   // visible and not hidden, target size, motion, titles — all passing.
   // A date for work that happened — explicitly not a licensed audit, which the
   // page states separately and which a website does not require.
-  lastReviewedAt: '2026-10-03',
+  lastReviewedAt: '2026-10-05',
   auditedBy: null,
   contact: {
     coordinatorName: null,

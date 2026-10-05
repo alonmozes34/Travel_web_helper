@@ -237,16 +237,18 @@ await page.waitForTimeout(800);
 // Filtering narrows the list and survives a reload through the URL.
 // Counted from the announced total rather than the rendered cards, which the
 // shortlist caps at five either way.
-const announced = async () =>
-  Number(
-    // Scoped to the results section: the page has seven live regions, and the
-    // first one belongs to the search form. sr-only text needs textContent —
-    // innerText() reads empty for it.
-    (await page
-      .locator('section[aria-label="תוצאות ההשוואה"] [aria-live="polite"]')
-      .first()
-      .textContent())?.match(/\d+/)?.[0] ?? '0',
-  );
+const announced = async () => {
+  // Scoped to the results section: the page has seven live regions, and the
+  // first one belongs to the search form. sr-only text needs textContent —
+  // innerText() reads empty for it. The count is filled a moment after the
+  // page appears (so that it is announced), hence the wait.
+  const region = page.locator('section[aria-label="תוצאות ההשוואה"] [aria-live="polite"]').first();
+  await page
+    .waitForFunction((el) => el.textContent.trim().length > 0, await region.elementHandle(), { timeout: 5000 })
+    .catch(() => {});
+  const text = (await region.textContent()) ?? '';
+  return /חבילה אחת|One plan/.test(text) ? 1 : Number(text.match(/\d+/)?.[0] ?? '0');
+};
 const beforeFilter = await announced();
 await page.locator('aside label:has-text("רק עם רשת 5G")').click();
 await page.waitForTimeout(250);

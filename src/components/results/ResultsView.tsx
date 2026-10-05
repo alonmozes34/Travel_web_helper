@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 
 /**
@@ -75,6 +75,12 @@ export function ResultsView({
     [rows, countryCodes],
   );
   const [filters, setFilters] = useState<PlanFilters>(initialFilters);
+  // Off for the first moment, so the count is a change a live region speaks.
+  const [announceCount, setAnnounceCount] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setAnnounceCount(true), 700);
+    return () => clearTimeout(timer);
+  }, []);
   const [sort, setSort] = useState<SortKey>(initialSort);
   // The highlighted category follows the opening order: "cheapest" when the
   // list opens by price (the default), none when it opens by another order.
@@ -362,10 +368,20 @@ export function ResultsView({
         </aside>
 
         <section aria-label={dict.filters.resultsLabel} className="min-w-0">
+          {/* The list's heading, for moving through the page by heading:
+              each plan below is a heading one level down. */}
+          <h2 className="sr-only">{dict.results.plansHeading}</h2>
+          {/* Said when the results arrive and whenever a filter changes the
+              count. Filled a moment after the page appears, because a live
+              region only speaks when its text changes — present from the
+              start, the count was never announced, and the last thing a
+              screen reader said was the loading screen's "searching…". */}
           <p aria-live="polite" className="sr-only">
-            {interpolate(dict.filters.showResultsTemplate, {
-              count: visible.length,
-            })}
+            {announceCount
+              ? visible.length === 1
+                ? dict.results.foundOneTemplate
+                : interpolate(dict.results.foundTemplate, { count: visible.length })
+              : ""}
           </p>
           <div className="mb-3 lg:hidden">
             <Button
@@ -425,7 +441,7 @@ export function ResultsView({
                   </p>
                   <div className="grid gap-3">
                     {shortShown.map((row) => (
-                      <PlanListItem key={row.plan.id} {...planRowProps(row)} />
+                      <PlanListItem key={row.plan.id} {...planRowProps(row)} headingLevel={4} />
                     ))}
                   </div>
                   {short.length > shortShown.length ? (

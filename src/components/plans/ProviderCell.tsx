@@ -38,7 +38,7 @@ export function ProviderCell({ row, showPlanName = true }: { row: ComparisonRow;
         </span>
       )}
       <span className="min-w-0">
-        <span className="block font-head font-semibold">{provider.name}</span>
+        <span lang="en" className="block font-head font-semibold">{provider.name}</span>
         {showPlanName ? <span className="block truncate text-sm text-ink-3">{row.plan.planName}</span> : null}
       </span>
     </div>
