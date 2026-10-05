@@ -1,4 +1,5 @@
-import { get, list, put } from '@vercel/blob';
+import { list } from '@vercel/blob';
+import { blobEnabled, readBlobJson as readJson, writeBlobJson as writeJson } from '@/lib/blob/json';
 import { cached } from '@/lib/catalogue/cache';
 import { HISTORY_DAYS, summarise, type PriceSnapshot, type PriceSummary } from './summary';
 
@@ -17,22 +18,7 @@ const SNAPSHOTS = 'price-history/snapshots/';
 const SUMMARY = 'price-history/summary.json';
 
 export function priceHistoryEnabled(env: Record<string, string | undefined> = process.env): boolean {
-  return Boolean(env.BLOB_READ_WRITE_TOKEN?.trim() || env.BLOB_STORE_ID?.trim());
-}
-
-async function readJson<T>(pathname: string): Promise<T | null> {
-  const result = await get(pathname, { access: 'private', useCache: false });
-  if (!result || result.statusCode !== 200 || !result.stream) return null;
-  return (await new Response(result.stream).json()) as T;
-}
-
-async function writeJson(pathname: string, value: unknown, overwrite: boolean): Promise<void> {
-  await put(pathname, JSON.stringify(value), {
-    access: 'private',
-    contentType: 'application/json',
-    addRandomSuffix: false,
-    allowOverwrite: overwrite,
-  });
+  return blobEnabled(env);
 }
 
 /**

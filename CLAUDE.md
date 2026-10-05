@@ -55,10 +55,13 @@ Rules that follow from that, and hold for every change:
 The owner's rule (28 September 2026): "every link must go to the specific
 plan — if the customer starts searching on the provider's site, we have done
 nothing." `buyLinkLandsOnPlan` in `src/lib/catalogue/getCatalogue.ts` drops
-any real plan whose link lands anywhere else. Yesim is connected
-(`YESIM_PARTNER_ID`) and hidden by this rule, because their links open the
-country page; it returns by itself if they issue plan-level links. Do not
-weaken the rule to show a provider — ask the provider for plan links.
+any real plan whose link lands anywhere else. Yesim's links open each plan's
+own page on yesim.app (`yesimPlanLink`, since 0.10.0), so Yesim is on the
+site; a Yesim plan whose page address is not known falls back to the country
+page and is dropped by this rule. (An earlier version of this file said Yesim
+was hidden — it was stale by 5 October 2026; check the live /api/status
+`listedPlansByProvider` rather than this file.) Do not weaken the rule to
+show a provider — ask the provider for plan links.
 
 **The one exception is ZenSim, and it is the owner's own (29 September
 2026).** ZenSim have no plan-level link and no price feed. The owner allowed,

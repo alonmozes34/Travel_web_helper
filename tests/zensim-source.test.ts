@@ -5,7 +5,7 @@ import { buyLinkLandsOnPlan, DURATION_LINK_ALLOWED, planSourcesFromEnv } from '@
 import { promotions } from '@/data/promotions';
 import { applyPromotions } from '@/lib/pricing/promotions';
 import { mapZensimOffer, offersInPage, type ZensimOffer } from '@/lib/sources/zensim/mapOffer';
-import { zensimAffiliateIdFromEnv, zensimSource, type ZensimPersist, type ZensimSnapshot } from '@/lib/sources/zensim/zensimSource';
+import { keptAcrossDeployments, zensimAffiliateIdFromEnv, zensimSource, type ZensimPersist, type ZensimSnapshot } from '@/lib/sources/zensim/zensimSource';
 import type { Plan } from '@/lib/types/plan';
 
 const japan = readFileSync(new URL('./fixtures/zensim-japan.html', import.meta.url), 'utf8');
@@ -204,5 +204,55 @@ describe('the source', () => {
     assert.equal(zensimAffiliateIdFromEnv({ ZENSIM_AFFILIATE_ID: 'a b' }), null);
     assert.deepEqual(planSourcesFromEnv({ ZENSIM_AFFILIATE_ID: 'yeshklita' }).map((s) => s.id), ['zensim']);
     assert.deepEqual(planSourcesFromEnv({ DEMO_CATALOGUE: 'true' }).map((s) => s.id), ['mock']);
+  });
+});
+
+describe('ZenSim kept across deployments', () => {
+  const snapshot = (fetchedAt: string): ZensimSnapshot => ({ fetchedAt, offers: [] });
+  const HOUR = 60 * 60 * 1000;
+  const now = () => Date.parse('2026-10-05T12:00:00Z');
+
+  test('with nothing kept, a visitor waits for the read, and it is kept', async () => {
+    const written: ZensimSnapshot[] = [];
+    const get = keptAcrossDeployments(async () => snapshot('2026-10-05T12:00:00Z'), {
+      read: async () => null,
+      write: async (s) => void written.push(s),
+    }, { now });
+    assert.equal((await get()).fetchedAt, '2026-10-05T12:00:00Z');
+    assert.equal(written.length, 1);
+  });
+
+  test('a recent copy is used as it is, and ZenSim is not read', async () => {
+    let reads = 0;
+    const get = keptAcrossDeployments(async () => { reads += 1; return snapshot('x'); }, {
+      read: async () => snapshot('2026-10-05T09:00:00Z'),
+      write: async () => {},
+    }, { now });
+    assert.equal((await get()).fetchedAt, '2026-10-05T09:00:00Z');
+    assert.equal(reads, 0);
+  });
+
+  test('an old copy is served at once, and replaced after the response', async () => {
+    const written: ZensimSnapshot[] = [];
+    let pending: Promise<unknown> | null = null;
+    const get = keptAcrossDeployments(async () => snapshot('2026-10-05T12:00:00Z'), {
+      read: async () => snapshot(new Date(now() - 7 * HOUR).toISOString()),
+      write: async (s) => void written.push(s),
+    }, { now, background: (work) => { pending = work; } });
+    assert.equal((await get()).fetchedAt, new Date(now() - 7 * HOUR).toISOString());
+    assert.ok(pending, 'a refresh was started');
+    await pending;
+    assert.equal(written[0]?.fetchedAt, '2026-10-05T12:00:00Z');
+  });
+
+  test('a failed refresh keeps the old copy', async () => {
+    let pending: Promise<unknown> | null = null;
+    const old = snapshot(new Date(now() - 7 * HOUR).toISOString());
+    const get = keptAcrossDeployments(async () => { throw new Error('ZenSim down'); }, {
+      read: async () => old,
+      write: async () => assert.fail('nothing should be written'),
+    }, { now, background: (work) => { pending = work; } });
+    assert.equal(await get(), old);
+    await pending;
   });
 });

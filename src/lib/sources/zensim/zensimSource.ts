@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache';
 import { after } from 'next/server';
+import { blobEnabled, readBlobJson, writeBlobJson } from '@/lib/blob/json';
 import { cached } from '@/lib/catalogue/cache';
 import type { Plan } from '@/lib/types/plan';
 import { sourceResult, type ProviderSource, type SkippedRecord, type SourceResult } from '../ProviderSource';
@@ -128,14 +129,77 @@ function keepAliveUntil(work: Promise<unknown>) {
   }
 }
 
-/** The host's shared cache, or — outside a Next server (tests, scripts), where there is none — the read itself. */
+/**
+ * Where the last complete read is kept between deployments. The host's shared
+ * cache starts empty on every deployment, so each release took ZenSim off the
+ * site until a visitor happened to trigger the 20–40 second read — on 5
+ * October 2026, three releases in a morning, the owner found ZenSim missing.
+ * The project's Blob store survives deployments: a new one starts from the
+ * last read at once.
+ */
+const KEPT_PATH = 'zensim/offers.json';
+
+export type ZensimKeep = {
+  read: () => Promise<ZensimSnapshot | null>;
+  write: (snapshot: ZensimSnapshot) => Promise<void>;
+};
+
+/**
+ * `load`, behind a copy kept across deployments. A copy younger than six
+ * hours is used as it is. An older one is still used — ZenSim at yesterday's
+ * prices beats no ZenSim — while a fresh read runs after the response and
+ * replaces it. Only when nothing is kept does a visitor wait for the read.
+ */
+export function keptAcrossDeployments(
+  load: () => Promise<ZensimSnapshot>,
+  keep: ZensimKeep,
+  {
+    now = () => Date.now(),
+    refreshMs = REFRESH_S * 1000,
+    background = keepAliveUntil,
+  }: { now?: () => number; refreshMs?: number; background?: (work: Promise<unknown>) => void } = {},
+): () => Promise<ZensimSnapshot> {
+  let refreshing: Promise<void> | null = null;
+  const refresh = () =>
+    (refreshing ??= load()
+      .then((fresh) => keep.write(fresh))
+      .catch(() => {})
+      .finally(() => {
+        refreshing = null;
+      }));
+
+  return async () => {
+    const kept = await keep.read().catch(() => null);
+    if (kept) {
+      if (now() - Date.parse(kept.fetchedAt) >= refreshMs) background(refresh());
+      return kept;
+    }
+    const fresh = await load();
+    await keep.write(fresh).catch(() => {});
+    return fresh;
+  };
+}
+
+/**
+ * The host's shared cache in front of the kept copy — or, outside a Next
+ * server (tests, scripts), where there is no shared cache, the read itself.
+ * With the Blob store connected the shared cache only saves a Blob read, so
+ * it is refreshed hourly; ZenSim's own pages are still read at most every
+ * six hours.
+ */
 function sharedAcrossServers(load: () => Promise<ZensimSnapshot>): () => Promise<ZensimSnapshot> {
-  const shared = unstable_cache(load, ['zensim-offers-v1'], { revalidate: REFRESH_S });
+  const durable = blobEnabled()
+    ? keptAcrossDeployments(load, {
+        read: () => readBlobJson<ZensimSnapshot>(KEPT_PATH),
+        write: (snapshot) => writeBlobJson(KEPT_PATH, snapshot, true),
+      })
+    : load;
+  const shared = unstable_cache(durable, ['zensim-offers-v1'], { revalidate: blobEnabled() ? 60 * 60 : REFRESH_S });
   return async () => {
     try {
       return await shared();
     } catch (error) {
-      if (error instanceof Error && error.message.includes('incrementalCache missing')) return load();
+      if (error instanceof Error && error.message.includes('incrementalCache missing')) return durable();
       throw error;
     }
   };

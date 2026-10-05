@@ -251,6 +251,30 @@ def check_rates():
         # Prices may carry a provider's own discount or rounding, so the band is wider.
         if abs(used/ref-1)>0.05: issues['applied-rate≠bank-of-israel'].append(f"{label}: prices imply ₪{used:.4f}, Bank of Israel ₪{ref:.4f}")
     print(f"rates: {seen} checked against the Bank of Israel; applied: "+', '.join(f"{l} {u:.4f}/{r:.4f}" for l,u,r in applied))
+# Every provider the site is configured with must be on it. A provider can go
+# missing without a single card looking wrong — the cards checked above are
+# simply the others' — and on 5 October 2026 ZenSim was off the live site
+# after each deployment until a visitor happened to trigger its read. A source
+# still loading is given two minutes; one that never arrives is reported.
+def check_sources():
+    status=None
+    for attempt in range(7):
+        try:
+            status=json.loads(subprocess.run(['curl','-sS','-m','60',f"{BASE}/api/status?n={attempt}"],capture_output=True,text=True).stdout)
+        except ValueError as e:
+            issues['status-unreadable'].append(str(e)[:120]); return
+        loading=[x['id'] for x in status.get('sources',[]) if not x.get('ok') and 'still loading' in (x.get('error') or '')]
+        if not loading: break
+        print(f"sources still loading: {', '.join(loading)}; waiting"); time.sleep(20)
+    listed=status.get('listedPlansByProvider') or {}
+    for pid in status.get('configured',[]):
+        src=next((x for x in status.get('sources',[]) if x.get('id')==pid),None)
+        if not src or not src.get('ok') or not src.get('planCount'):
+            issues['provider-not-loaded'].append(f"{pid}: {json.dumps(src)[:200]}")
+        elif not listed.get(pid):
+            issues['provider-not-listed'].append(f"{pid}: {src.get('planCount')} plans loaded, none listed")
+    print('providers on the site: '+', '.join(f"{k} {v}" for k,v in listed.items()))
+check_sources()
 check_rates()
 print(len(res),'pages,',sum(len(p['rows']) for p in res),'cards')
 for k in sorted(issues):
