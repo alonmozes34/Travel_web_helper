@@ -847,6 +847,8 @@ export const en: Dictionary = {
         'Samsung lists eSIM support on these models for Japan only.',
       pixelDualEsim:
         'On Pixel 7 and later you can hold two eSIM profiles active at once, if your carrier allows it.',
+      pixelUsEsimOnly:
+        'Google states: on models sold in the US, Pixel 10 and later (except the Pixel 10 Pro Fold) can only use an eSIM, with no physical SIM card.',
       pixelOutsideRule:
         "Google's guidance covers Pixel 3a and later. Earlier generations fall outside it, and we do not state a conclusion we have not verified.",
     },

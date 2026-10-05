@@ -49,6 +49,7 @@ export type DeviceNoteKey =
   | 'samsungNorthAmerica'
   | 'samsungJapan'
   | 'pixelDualEsim'
+  | 'pixelUsEsimOnly'
   | 'pixelOutsideRule';
 
 export type DeviceGroup = {
@@ -74,7 +75,7 @@ export const deviceSources: Record<DeviceSourceId, { url: string; checkedOn: str
     url: 'https://www.samsung.com/uk/support/mobile-devices/galaxy-esim-and-supported-network-carriers/',
     checkedOn: '2026-10-05',
   },
-  pixel: { url: 'https://support.google.com/pixelphone/answer/9449293', checkedOn: '2026-10-04' },
+  pixel: { url: 'https://support.google.com/pixelphone/answer/9449293', checkedOn: '2026-10-05' },
 };
 
 export const deviceGroups: readonly DeviceGroup[] = [
@@ -359,7 +360,9 @@ export const deviceGroups: readonly DeviceGroup[] = [
       'Pixel 3a XL',
       'Pixel 3a',
     ],
-    notes: ['pixelDualEsim'],
+    // "Important [US only]: If you have a Pixel 10 or later, except the
+    // Pixel 10 Pro Fold, you can only use an eSIM." — Google, read 5 October 2026.
+    notes: ['pixelDualEsim', 'pixelUsEsimOnly'],
     sources: ['pixel'],
   },
   {
