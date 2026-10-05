@@ -822,6 +822,11 @@ export const en: Dictionary = {
       'samsung-galaxy-s': 'Galaxy S',
       'samsung-galaxy-z': 'Galaxy Z — foldables',
       'samsung-galaxy-a': 'Galaxy A',
+      'samsung-galaxy-a-2026': 'Galaxy A57 and A37',
+      'samsung-galaxy-a-north-america': 'Galaxy A — North America only',
+      'samsung-galaxy-a-japan': 'Galaxy A — Japan only',
+      'samsung-xcover-north-america': 'Galaxy XCover — North America only',
+      'samsung-tab-north-america': 'Galaxy Tab — North America only',
       'samsung-xcover': 'Galaxy XCover',
       'samsung-tab': 'Galaxy Tab',
       'pixel-supported': 'Pixel — eSIM supported',
@@ -836,6 +841,10 @@ export const en: Dictionary = {
         'Samsung states it plainly: depending on the country of origin, eSIM may not be supported even on a model that appears in the list.',
       samsungARegion:
         'On the A series, support is limited to certain markets — Europe, North America and Korea (and, for the A54, Japan).',
+      samsungNorthAmerica:
+        'Samsung lists eSIM support on these models for North America only.',
+      samsungJapan:
+        'Samsung lists eSIM support on these models for Japan only.',
       pixelDualEsim:
         'On Pixel 7 and later you can hold two eSIM profiles active at once, if your carrier allows it.',
       pixelOutsideRule:

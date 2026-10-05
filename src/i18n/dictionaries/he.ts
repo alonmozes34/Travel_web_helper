@@ -847,6 +847,11 @@ export const he = {
       'samsung-galaxy-s': 'גלקסי S',
       'samsung-galaxy-z': 'גלקסי Z — מתקפלים',
       'samsung-galaxy-a': 'גלקסי A',
+      'samsung-galaxy-a-2026': 'גלקסי A57 ו‑A37',
+      'samsung-galaxy-a-north-america': 'גלקסי A — רק בצפון אמריקה',
+      'samsung-galaxy-a-japan': 'גלקסי A — רק ביפן',
+      'samsung-xcover-north-america': 'גלקסי XCover — רק בצפון אמריקה',
+      'samsung-tab-north-america': 'גלקסי Tab — רק בצפון אמריקה',
       'samsung-xcover': 'גלקסי XCover',
       'samsung-tab': 'גלקסי Tab',
       'pixel-supported': 'פיקסל — תומכים ב‑eSIM',
@@ -861,6 +866,10 @@ export const he = {
         'סמסונג כותבת במפורש: בהתאם למדינה שבה נרכש המכשיר, ייתכן שלא תהיה תמיכה ב‑eSIM גם בדגם שמופיע ברשימה.',
       samsungARegion:
         'בסדרת A התמיכה מוגבלת לשווקים מסוימים — אירופה, צפון אמריקה וקוריאה (ובדגם A54 גם יפן).',
+      samsungNorthAmerica:
+        'סמסונג מציינת תמיכה ב‑eSIM בדגמים האלה רק בצפון אמריקה.',
+      samsungJapan:
+        'סמסונג מציינת תמיכה ב‑eSIM בדגמים האלה רק ביפן.',
       pixelDualEsim:
         'ב‑Pixel 7 ואילך אפשר להחזיק שני פרופילי eSIM פעילים במקביל, אם חברת הסלולר מאפשרת זאת.',
       pixelOutsideRule:

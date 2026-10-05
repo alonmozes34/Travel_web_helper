@@ -46,6 +46,8 @@ export type DeviceNoteKey =
   | 'hongKongMacao'
   | 'samsungOrigin'
   | 'samsungARegion'
+  | 'samsungNorthAmerica'
+  | 'samsungJapan'
   | 'pixelDualEsim'
   | 'pixelOutsideRule';
 
@@ -65,14 +67,14 @@ export type DeviceGroup = {
 };
 
 export const deviceSources: Record<DeviceSourceId, { url: string; checkedOn: string }> = {
-  appleIphone: { url: 'https://support.apple.com/en-us/118669', checkedOn: '2026-09-20' },
-  appleIpad: { url: 'https://support.apple.com/en-us/119592', checkedOn: '2026-09-20' },
-  appleModels: { url: 'https://support.apple.com/en-us/108044', checkedOn: '2026-09-20' },
+  appleIphone: { url: 'https://support.apple.com/en-us/118669', checkedOn: '2026-10-04' },
+  appleIpad: { url: 'https://support.apple.com/en-us/119592', checkedOn: '2026-10-04' },
+  appleModels: { url: 'https://support.apple.com/en-us/108044', checkedOn: '2026-10-04' },
   samsung: {
     url: 'https://www.samsung.com/uk/support/mobile-devices/galaxy-esim-and-supported-network-carriers/',
-    checkedOn: '2026-09-20',
+    checkedOn: '2026-10-05',
   },
-  pixel: { url: 'https://support.google.com/pixelphone/answer/9449293', checkedOn: '2026-09-20' },
+  pixel: { url: 'https://support.google.com/pixelphone/answer/9449293', checkedOn: '2026-10-04' },
 };
 
 export const deviceGroups: readonly DeviceGroup[] = [
@@ -175,6 +177,7 @@ export const deviceGroups: readonly DeviceGroup[] = [
       'Galaxy S26',
       'Galaxy S26+',
       'Galaxy S26 Ultra',
+      'Galaxy S26 FE',
       'Galaxy S25',
       'Galaxy S25+',
       'Galaxy S25 Ultra',
@@ -239,6 +242,34 @@ export const deviceGroups: readonly DeviceGroup[] = [
     notes: ['samsungARegion', 'samsungOrigin'],
     sources: ['samsung'],
   },
+  // Samsung lists these two with no market beside them (read 5 October 2026).
+  {
+    id: 'samsung-galaxy-a-2026',
+    brand: 'samsung',
+    kind: 'phone',
+    support: 'yes',
+    models: ['Galaxy A57', 'Galaxy A37'],
+    notes: ['samsungOrigin'],
+    sources: ['samsung'],
+  },
+  {
+    id: 'samsung-galaxy-a-north-america',
+    brand: 'samsung',
+    kind: 'phone',
+    support: 'regional',
+    models: ['Galaxy A27', 'Galaxy A26', 'Galaxy A17 5G', 'Galaxy A16 5G'],
+    notes: ['samsungNorthAmerica', 'samsungOrigin'],
+    sources: ['samsung'],
+  },
+  {
+    id: 'samsung-galaxy-a-japan',
+    brand: 'samsung',
+    kind: 'phone',
+    support: 'regional',
+    models: ['Galaxy A25 5G', 'Galaxy A23 5G'],
+    notes: ['samsungJapan', 'samsungOrigin'],
+    sources: ['samsung'],
+  },
   {
     id: 'samsung-xcover',
     brand: 'samsung',
@@ -246,6 +277,15 @@ export const deviceGroups: readonly DeviceGroup[] = [
     support: 'yes',
     models: ['Galaxy XCover7 Pro', 'Galaxy XCover7'],
     notes: ['samsungOrigin'],
+    sources: ['samsung'],
+  },
+  {
+    id: 'samsung-xcover-north-america',
+    brand: 'samsung',
+    kind: 'phone',
+    support: 'regional',
+    models: ['Galaxy XCover6 Pro'],
+    notes: ['samsungNorthAmerica', 'samsungOrigin'],
     sources: ['samsung'],
   },
   {
@@ -269,6 +309,15 @@ export const deviceGroups: readonly DeviceGroup[] = [
       'Galaxy Tab Active5',
     ],
     notes: ['samsungOrigin'],
+    sources: ['samsung'],
+  },
+  {
+    id: 'samsung-tab-north-america',
+    brand: 'samsung',
+    kind: 'tablet',
+    support: 'regional',
+    models: ['Galaxy Tab A 11+'],
+    notes: ['samsungNorthAmerica', 'samsungOrigin'],
     sources: ['samsung'],
   },
   {
