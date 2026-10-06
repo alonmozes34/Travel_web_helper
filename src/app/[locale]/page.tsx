@@ -7,7 +7,7 @@ import { ExploreDestinations } from '@/components/content/ExploreDestinations';
 import { HeroRoute } from '@/components/content/HeroRoute';
 import { ProviderStrip } from '@/components/content/ProviderStrip';
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
-import { providersOnSite } from '@/lib/catalogue/providersOnSite';
+import { MIN_PROVIDERS_FOR_BAND, providersOnSite } from '@/lib/catalogue/providersOnSite';
 import { TrustSection } from '@/components/content/TrustSection';
 import { Faq } from '@/components/content/Faq';
 import { AffiliateDisclosure } from '@/components/content/AffiliateDisclosure';
@@ -106,11 +106,13 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
         </Container>
       </section>
 
-      <ProviderStrip
-        entries={onSite}
-        copy={dict.home.providers}
-        numberLocale={localeConfig[locale].intlLocale}
-      />
+      {onSite.length >= MIN_PROVIDERS_FOR_BAND ? (
+        <ProviderStrip
+          entries={onSite}
+          copy={dict.home.providers}
+          numberLocale={localeConfig[locale].intlLocale}
+        />
+      ) : null}
 
       <ExploreDestinations locale={locale} dict={dict} />
       <HowItWorks dict={dict} />

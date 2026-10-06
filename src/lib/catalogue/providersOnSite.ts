@@ -2,6 +2,13 @@ import { getProvider } from '@/data/providers';
 import type { Plan } from '@/lib/types/plan';
 import type { Provider } from '@/lib/types/provider';
 
+/**
+ * The band of providers on the home page waits until there are this many: with
+ * three it looked thin (the owner, 6 October 2026: "we'll hide it for now,
+ * there aren't many"). It comes back by itself when the fifth joins.
+ */
+export const MIN_PROVIDERS_FOR_BAND = 5;
+
 export type ProviderOnSite = {
   id: string;
   name: string;

@@ -26,10 +26,13 @@ export const providers: Provider[] = [
     id: 'yesim',
     name: 'Yesim',
     slug: 'yesim',
-    // No logo until one is taken from their affiliate marketing assets; the
-    // tile shows the initial on this colour. Their wordmark's orange darkened
-    // until white on it reads at 5.2:1 — the brand orange itself is 3:1.
+    // Their wordmark's orange darkened until white on it reads at 5.2:1 — the
+    // brand orange itself is 3:1. Used only where no logo is shown.
     brandColor: '#C2410C',
+    // The logo in their own site's header (yesim.app, read 6 October 2026, at
+    // the owner's request). To be swapped for the file in their affiliate
+    // creatives if it differs.
+    logo: { src: '/providers/yesim.svg', width: 582, height: 194 },
     activation: null,
     // Their API prices everything in euros. What an Israeli card is charged
     // in has not been confirmed, and on 28 September 2026 the owner saw a
@@ -40,10 +43,13 @@ export const providers: Provider[] = [
     id: 'zensim',
     name: 'ZenSim',
     slug: 'zensim',
-    // No logo yet; the tile shows the initial on this colour. Their site is
-    // lime and lilac, neither of which carries white text; this is the lilac
-    // darkened until white on it reads above 7:1.
+    // Their site is lime and lilac, neither of which carries white text; this
+    // is the lilac darkened until white on it reads above 7:1. Used only where
+    // no logo is shown.
     brandColor: '#6B21A8',
+    // The dark version of the logo in their own site's header (zensim.com,
+    // read 6 October 2026, at the owner's request).
+    logo: { src: '/providers/zensim.svg', width: 936, height: 269 },
     activation: null,
     // Their pages price in US dollars. What an Israeli card is charged in has
     // not been confirmed.

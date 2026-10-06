@@ -25,3 +25,10 @@ describe('providers on the site', () => {
     assert.deepEqual(providersOnSite([plan('nobody', ['GR'])]), []);
   });
 });
+
+describe('the providers band', () => {
+  test('waits for five providers before it appears', async () => {
+    const { MIN_PROVIDERS_FOR_BAND } = await import('@/lib/catalogue/providersOnSite');
+    assert.equal(MIN_PROVIDERS_FOR_BAND, 5);
+  });
+});

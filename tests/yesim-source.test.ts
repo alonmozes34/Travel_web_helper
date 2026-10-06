@@ -164,11 +164,16 @@ describe('the Yesim source', () => {
     );
   });
 
-  test('has a provider record, with no logo claimed', () => {
+  // Their own header logo since 6 October 2026, at the owner's request; the
+  // record must point at a file that is really there.
+  test('has a provider record, and its logo file exists', () => {
     const provider = getProvider('yesim');
     assert.equal(provider?.name, 'Yesim');
-    assert.equal(provider?.logo, undefined);
     assert.equal(provider?.activation, null);
+    assert.ok(provider?.logo, 'logo set');
+    const file = readFileSync(new URL(`../public${provider!.logo!.src}`, import.meta.url), 'utf8');
+    assert.match(file, /^<svg[\s>]/);
+    assert.doesNotMatch(file, /<script/i);
   });
 });
 
