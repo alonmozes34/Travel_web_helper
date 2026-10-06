@@ -85,7 +85,7 @@ res=[]
 with cf.ThreadPoolExecutor(6) as ex:
     for r in ex.map(get,jobs): res.append(r)
 json.dump(res,open(OUT,'w'),ensure_ascii=False)
-issues=C.defaultdict(list); rates=[]; alosim_links={}; zensim_cards=[]
+issues=C.defaultdict(list); rates=[]; alosim_links={}; alosim_from={}; zensim_cards=[]
 for p in res:
     key=f"{p['q']} {p['u']}"
     if not p['len']: issues['fetch-failed'].append(key); continue
@@ -111,7 +111,7 @@ for p in res:
             # The old addresses (/he/japan-esim) redirect, and in Hebrew the
             # redirect drops plan_id and affid (28 September 2026).
             elif not u.path.startswith('/he/destinations/'): issues['alosim-old-address'].append(f"{key}: {r['link']}")
-            alosim_links.setdefault(u.path,r['link'])
+            alosim_links.setdefault(u.path,r['link']); alosim_from.setdefault(u.path,(p['q'],p['u']))
         elif r['prov']=='zensim':
             # ZenSim: the country page on the plan's duration (the owner's
             # exception, 29 September 2026), with our affiliate id.
@@ -165,15 +165,30 @@ if failed:
         elif code=='000': issues['alosim-no-answer (two passes)'].append(link)
         else: issues['alosim-link-does-not-open-page'].append(f"HTTP {out.strip()} ← {link}")
     if recovered: print(f'alosim: {len(recovered)} links failed at first and opened on the second pass (provider hiccup, not counted):\n  '+'\n  '.join(recovered[:10]))
+# A plan aloSIM withdrew after our catalogue last refreshed is gone from their
+# page while our card still points at it, until the next refresh (5 October
+# 2026: one French Guiana plan, already gone from our page by morning). Before
+# reporting one, the same search is asked of our site again: still listed is a
+# card that lands nowhere and is reported; gone is the catalogue having caught
+# up, and is noted, not counted.
+def still_listed(path,pid):
+    q,u=alosim_from.get(path,(None,None))
+    if not q: return True
+    ours=subprocess.run(['curl','-sS','-m','90',f'{BASE}/search?to={q}&usage={u}&recheck=1'],capture_output=True,text=True).stdout
+    return (not ours) or (pid in ours)
+withdrawn=[]
 sample=sorted(alosim_links.items())[datetime.date.today().toordinal()%7::max(1,len(alosim_links)//25)][:25]
 for path,link in sample:
     page=subprocess.run(['curl','-sS','-L','-m','60','-A',UA,link],capture_output=True,text=True).stdout
     pid=U.parse_qs(U.urlparse(link).query).get('plan_id',[''])[0]
     m=re.search(r'<[^>]*data-package-id="'+re.escape(pid)+r'"[^>]*>',page)
     if not page: issues['alosim-page-fetch-failed'].append(link)
-    elif not m: issues['alosim-plan-not-on-page'].append(link)
+    elif not m:
+        if still_listed(path,pid): issues['alosim-plan-not-on-page'].append(link)
+        else: withdrawn.append(link)
     elif 'aria-pressed="true"' not in m.group(0): issues['alosim-page-opens-another-plan'].append(link)
 print(f'alosim: {len(alosim_links)} pages checked, {len(sample)} opened')
+if withdrawn: print(f'alosim: {len(withdrawn)} plans withdrawn by aloSIM and already gone from our site (not counted):\n  '+'\n  '.join(withdrawn))
 
 # ZenSim: their prices are read from their pages (the owner's exception). On a
 # sample of 25 of their pages, read the same schema.org data again and check
