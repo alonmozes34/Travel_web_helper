@@ -5,12 +5,12 @@ import { Button, buttonClasses } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { useTripExtras } from '@/components/extras/TripExtrasProvider';
 import { getCountryByCode } from '@/data/countries';
-import { localePath, type Locale } from '@/i18n/config';
+import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { OutboundLink } from '@/lib/affiliate/link';
 import { track } from '@/lib/analytics/events';
-import { defaultRentalQuery, rentalQueryToParams } from '@/lib/carRental/query';
+import { bookingLink } from '@/lib/booking/links';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import type { Discount } from '@/lib/types/discount';
 import { copyText } from './CopyCodeButton';
@@ -78,7 +78,11 @@ export function BeforeYouGo({
   onContinue: (askedAboutCar: boolean) => void;
 }) {
   const extras = useTripExtras();
-  const askCar = Boolean(extras?.carRentalOffer);
+  // Booking.com's car pages for the destination (the owner, 6 October 2026).
+  // No link (Israel, or no country) means no question, so the way on to the
+  // plan is never left without its plain button.
+  const carHref = extras ? bookingLink('cars', extras.countryCode, locale) : null;
+  const askCar = Boolean(extras?.carRentalOffer && carHref);
   const [carOpened, setCarOpened] = useState(false);
   const copy = dict.beforeYouGo;
   const provider = row.provider.name;
@@ -90,9 +94,6 @@ export function BeforeYouGo({
   }, [open, askCar, extras?.countryCode, row.plan.id]);
 
   const country = extras?.countryCode ? getCountryByCode(extras.countryCode) : undefined;
-  const carHref = extras
-    ? `${localePath(locale, '/car-rental')}${rentalQueryToParams(defaultRentalQuery(extras.countryCode ?? '', extras.tripDays))}`
-    : null;
 
   const goOn = (thenSnooze: boolean) => {
     if (discount) void copyText(discount.code);
@@ -140,7 +141,7 @@ export function BeforeYouGo({
               <a
                 href={carHref}
                 target="_blank"
-                rel="noopener"
+                rel="sponsored noopener noreferrer"
                 onClick={() => {
                   setCarOpened(true);
                   track({ name: 'car_rental_offer_yes', countryCode: extras?.countryCode ?? '', planId: row.plan.id });

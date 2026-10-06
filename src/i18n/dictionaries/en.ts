@@ -138,6 +138,13 @@ export const en: Dictionary = {
         ],
       },
       {
+        heading: 'Hotels and car rental',
+        body: [
+          'Destination pages link to hotels and car rental on Booking.com. These are affiliate links: if you book during that visit, we may earn a commission from Booking.com, at no extra cost to you.',
+          'We do not compare or rank those hotels and cars. The link opens Booking.com’s page for the country, and you choose and book there.',
+        ],
+      },
+      {
         heading: 'What we do not do',
         body: [
           'We do not take payment for placement, sell positions at the top of a list, or hide a provider who does not work with us.',
@@ -878,9 +885,9 @@ export const en: Dictionary = {
     titleTemplate: 'Before you go to {provider}',
     continueTemplate: 'Continue to the plan at {provider}',
     codeCopiedOnContinueTemplate: 'Discount code {code} is copied for you when you go on to the plan.',
-    carYes: 'Yes, compare cars',
+    carYes: 'Yes, cars on Booking.com',
     carNoTemplate: 'No, continue to the plan at {provider}',
-    carOpened: 'The car comparison opened in a new tab. You can go on to the plan from here.',
+    carOpened: 'Booking.com opened in a new tab. You can go on to the plan from here.',
     continueAndSnooze: "Continue, and don't show this for 10 minutes",
     cancel: 'Cancel',
   },
@@ -890,12 +897,21 @@ export const en: Dictionary = {
     carRental: {
       questionTemplate: 'Need a rental car in {country}?',
       questionGeneric: 'Need a rental car for your trip?',
-      body: 'Compare rental car prices for your destination.',
-      accept: 'Compare rental cars',
+      body: 'You can look for a rental car at your destination, straight on Booking.com.',
+      accept: 'Cars on Booking.com',
       decline: 'No thanks',
       opensInNewTab: '(opens in a new tab — your search stays open here)',
       dismiss: 'Dismiss this offer',
     },
+  },
+  booking: {
+    titleTemplate: 'Planning the trip to {country}?',
+    introTemplate: 'Hotels and rental cars in {country}, straight on Booking.com. We do not compare them here; we only link to their page.',
+    hotelsTemplate: 'Hotels in {country}',
+    carsTemplate: 'Car rental in {country}',
+    onBooking: 'on Booking.com',
+    opensInNewTab: '(opens in a new tab)',
+    disclosure: 'Affiliate link: if you book during this visit, we may earn a commission from Booking.com, at no extra cost to you.',
   },
   carRentalPage: {
     navLabel: 'Car rental',

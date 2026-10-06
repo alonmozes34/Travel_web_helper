@@ -21,13 +21,24 @@ export const rentalSources: readonly RentalSource[] = [
 /**
  * Whether to ask an eSIM buyer about a rental car at all.
  *
- * Only when a real rental network is connected. The demo source is always
- * "configured" so the rental page has something to run on in development, but
- * sending a traveller who has just chosen a real eSIM to a page of invented
- * rental offers would waste their trip-planning time on nothing. The demo
- * catalogue switches the question on, so the test suites still exercise it.
+ * Yes: since 6 October 2026 the answer opens Booking.com's car pages for the
+ * destination (`bookingLink`), which is a real place to rent a car. The
+ * question still stays away where no Booking link can be made — the callers
+ * check that per country.
  */
-export function carRentalOfferEnabled(env: Record<string, string | undefined> = process.env): boolean {
+export function carRentalOfferEnabled(): boolean {
+  return true;
+}
+
+/**
+ * Whether the site's own rental comparison page may be shown.
+ *
+ * Only with a real rental network connected, or on the demo catalogue the
+ * test suites run on. Booking's terms forbid comparing their cars with
+ * anyone else's, so Booking is not one of these networks, and a page of
+ * invented demo offers is never shown to a real visitor.
+ */
+export function rentalComparisonEnabled(env: Record<string, string | undefined> = process.env): boolean {
   if (env.DEMO_CATALOGUE === 'true') return true;
   return configuredRentalSources().some((source) => source.id !== demoRentalSource.id);
 }

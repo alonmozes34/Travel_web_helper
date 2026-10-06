@@ -140,6 +140,13 @@ export const he = {
         ],
       },
       {
+        heading: 'מלונות והשכרת רכב',
+        body: [
+          'בעמודי היעדים יש קישורים למלונות ולהשכרת רכב באתר Booking.com. אלה קישורי שותפים: אם תזמינו באותו ביקור, ייתכן שנקבל עמלה מ־Booking.com, בלי עלות נוספת לכם.',
+          'את המלונות והרכבים האלה אנחנו לא משווים ולא מדרגים. הקישור פותח את העמוד של Booking.com עבור המדינה, והבחירה וההזמנה נעשות שם.',
+        ],
+      },
+      {
         heading: 'מה אנחנו לא עושים',
         body: [
           'איננו מקדמים ספק בתשלום, לא מוכרים מקומות בראש הרשימה, ולא מסתירים ספק שלא עובד איתנו.',
@@ -910,9 +917,9 @@ export const he = {
     titleTemplate: 'רגע לפני שממשיכים ל־{provider}',
     continueTemplate: 'להמשך לחבילה באתר {provider}',
     codeCopiedOnContinueTemplate: 'קוד ההנחה {code} יועתק אוטומטית כשממשיכים לחבילה.',
-    carYes: 'כן, להשוואת רכבים',
+    carYes: 'כן, לרכבים ב־Booking.com',
     carNoTemplate: 'לא, להמשך לחבילה באתר {provider}',
-    carOpened: 'השוואת הרכבים נפתחה בלשונית חדשה. אפשר להמשיך לחבילה מכאן.',
+    carOpened: 'Booking.com נפתח בלשונית חדשה. אפשר להמשיך לחבילה מכאן.',
     continueAndSnooze: 'להמשך, ובלי החלון הזה ב־10 הדקות הקרובות',
     cancel: 'ביטול',
   },
@@ -922,12 +929,21 @@ export const he = {
     carRental: {
       questionTemplate: 'צריכים גם רכב שכור ב{country}?',
       questionGeneric: 'צריכים גם רכב שכור לנסיעה?',
-      body: 'השוו מחירי השכרת רכב ביעד שלכם.',
-      accept: 'השוואת רכבים',
+      body: 'אפשר לחפש רכב להשכרה ביעד שלכם, ישירות באתר Booking.com.',
+      accept: 'לרכבים ב־Booking.com',
       decline: 'לא תודה',
       opensInNewTab: '(נפתח בלשונית חדשה, החיפוש שלכם נשאר פתוח כאן)',
       dismiss: 'סגירת ההצעה',
     },
+  },
+  booking: {
+    titleTemplate: 'מתכננים את הטיול ל{country}?',
+    introTemplate: 'מלונות ורכב להשכרה ב{country}, ישירות באתר Booking.com. כאן אנחנו לא משווים אותם, רק מקשרים לעמוד שלהם.',
+    hotelsTemplate: 'מלונות ב{country}',
+    carsTemplate: 'השכרת רכב ב{country}',
+    onBooking: 'באתר Booking.com',
+    opensInNewTab: '(נפתח בלשונית חדשה)',
+    disclosure: 'קישור שותף: אם תזמינו בביקור הזה, ייתכן שנקבל עמלה מ־Booking.com, בלי עלות נוספת לכם.',
   },
   carRentalPage: {
     navLabel: 'השכרת רכב',

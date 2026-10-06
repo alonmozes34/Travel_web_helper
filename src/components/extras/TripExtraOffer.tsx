@@ -24,6 +24,7 @@ export function TripExtraOffer({
   body,
   acceptLabel,
   acceptHref,
+  acceptRel = 'noopener',
   acceptNote,
   declineLabel,
   dismissLabel,
@@ -38,6 +39,8 @@ export function TripExtraOffer({
   acceptLabel: string;
   /** Opened in a new tab, so the page behind it is never navigated away. */
   acceptHref: string;
+  /** `sponsored` when the link is an affiliate link. */
+  acceptRel?: string;
   /** Said out loud, because a new tab with no warning is a surprise. */
   acceptNote: string;
   declineLabel: string;
@@ -83,7 +86,7 @@ export function TripExtraOffer({
         <a
           href={acceptHref}
           target="_blank"
-          rel="noopener"
+          rel={acceptRel}
           onClick={onAccept}
           className={buttonClasses('primary', 'md')}
         >

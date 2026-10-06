@@ -8,7 +8,7 @@ import { getCountryByCode } from '@/data/countries';
 import { isLocale, type Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
-import { searchRentals } from '@/lib/carRental/registry';
+import { rentalComparisonEnabled, searchRentals } from '@/lib/carRental/registry';
 import { isSearchable, rentalQueryFromParams } from '@/lib/carRental/query';
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { getDisplayCurrency } from '@/lib/currencyServer';
@@ -54,6 +54,7 @@ export default async function CarRentalPage({
 }) {
   const { locale: raw } = await params;
   if (!isLocale(raw)) notFound();
+  if (!rentalComparisonEnabled()) notFound();
   const locale: Locale = raw;
   const dict = getDictionary(locale);
   const page = dict.carRentalPage;

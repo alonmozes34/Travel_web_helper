@@ -557,11 +557,23 @@ try {
   await p.waitForTimeout(300);
   check('extras', 'a second eSIM click does not stack a second offer', (await offers()) === 1);
 
-  const href = await p.getByRole('link', { name: /השוואת רכבים/ }).getAttribute('href');
-  const params = new URL('http://x' + href).searchParams;
-  const gap = (new Date(params.get('until') + 'T00:00:00Z') - new Date(params.get('from') + 'T00:00:00Z')) / 86400000;
-  check('extras', 'the country carries into the rental search', params.get('country') === 'FR', href);
-  check('extras', 'the trip length carries into the rental dates', gap === 5, `${gap} days`);
+  // The answer is Booking.com's own car page for the destination, through the
+  // CJ deep link, marked as a paid link (the owner, 6 October 2026).
+  const carLink = p.getByRole('link', { name: /לרכבים ב־Booking\.com/ });
+  const href = await carLink.getAttribute('href');
+  check('extras', 'the car answer opens Booking’s car page for the destination',
+    href === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/cars/country/fr.he.html', href);
+  check('extras', 'and it is marked as a sponsored link', /\bsponsored\b/.test((await carLink.getAttribute('rel')) ?? ''));
+
+  // The country page offers hotels and cars on Booking.com, said plainly to
+  // be links and not a comparison.
+  const booking = p.getByRole('region', { name: 'מתכננים את הטיול לצרפת?' });
+  const bookingHrefs = await booking.getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
+  check('extras', 'the country page links hotels and cars on Booking.com',
+    bookingHrefs.length === 2 && bookingHrefs[0].endsWith('www.booking.com/country/fr.he.html') && bookingHrefs[1].endsWith('www.booking.com/cars/country/fr.he.html'),
+    JSON.stringify(bookingHrefs));
+  check('extras', 'and says it does not compare them',
+    (await booking.innerText()).includes('לא משווים') && (await booking.innerText()).includes('קישור שותף'));
 
   // Declining is remembered, so a traveller comparing four plans is asked once.
   await p.getByRole('button', { name: 'לא תודה' }).click();

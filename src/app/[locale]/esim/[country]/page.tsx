@@ -19,6 +19,7 @@ import { getDisplayCurrency } from "@/lib/currencyServer";
 import { ResultsView } from "@/components/results/ResultsView";
 import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
 import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
+import { BookingLinks } from "@/components/booking/BookingLinks";
 import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { CountryFacts } from "@/components/content/CountryFacts";
 import { getPriceSummary } from "@/lib/priceHistory/store";
@@ -281,6 +282,8 @@ export default async function CountryPage({
             </TripExtrasProvider>
           </>
         )}
+
+        <BookingLinks countryCode={country.code} countryName={name} locale={locale} dict={dict} />
 
         <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
 

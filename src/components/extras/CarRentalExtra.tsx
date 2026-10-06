@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { getCountryByCode } from '@/data/countries';
-import { localePath, type Locale } from '@/i18n/config';
+import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import { track } from '@/lib/analytics/events';
-import { defaultRentalQuery, rentalQueryToParams } from '@/lib/carRental/query';
+import { bookingLink } from '@/lib/booking/links';
 import { declineTripExtra } from '@/lib/tripExtras/dismissal';
 import { TripExtraOffer } from './TripExtraOffer';
 
@@ -26,13 +26,13 @@ export function CarRentalExtra({
   locale,
   dict,
   countryCode,
-  tripDays,
   planId,
 }: {
   locale: Locale;
   dict: Dictionary;
   /** The first stop of the trip. A multi-stop traveller edits it in the form. */
   countryCode: string | undefined;
+  /** Booking's car pages take no dates through the link, so this is unused for now. */
   tripDays: number;
   /** The plan whose click raised this, carried into the events. */
   planId: string;
@@ -49,11 +49,11 @@ export function CarRentalExtra({
     track({ name: 'car_rental_offer_shown', countryCode: countryCode ?? '', planId });
   }, [countryCode, planId]);
 
-  if (dismissed) return null;
+  /** Booking.com's car pages for the destination (the owner, 6 October 2026). */
+  const href = bookingLink('cars', countryCode, locale);
+  if (dismissed || !href) return null;
 
   const country = countryCode ? getCountryByCode(countryCode) : undefined;
-  const query = defaultRentalQuery(countryCode ?? '', tripDays);
-  const href = `${localePath(locale, '/car-rental')}${rentalQueryToParams(query)}`;
   const copy = dict.tripExtras.carRental;
 
   return (
@@ -68,6 +68,7 @@ export function CarRentalExtra({
       body={copy.body}
       acceptLabel={copy.accept}
       acceptHref={href}
+      acceptRel="sponsored noopener noreferrer"
       acceptNote={copy.opensInNewTab}
       declineLabel={copy.decline}
       dismissLabel={copy.dismiss}
