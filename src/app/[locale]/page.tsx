@@ -5,6 +5,9 @@ import { HeroSearch } from '@/components/search/HeroSearch';
 import { HowItWorks } from '@/components/content/HowItWorks';
 import { ExploreDestinations } from '@/components/content/ExploreDestinations';
 import { HeroRoute } from '@/components/content/HeroRoute';
+import { ProviderStrip } from '@/components/content/ProviderStrip';
+import { getCatalogue } from '@/lib/catalogue/getCatalogue';
+import { providersOnSite } from '@/lib/catalogue/providersOnSite';
 import { TrustSection } from '@/components/content/TrustSection';
 import { Faq } from '@/components/content/Faq';
 import { AffiliateDisclosure } from '@/components/content/AffiliateDisclosure';
@@ -12,10 +15,14 @@ import { isLocale, localeConfig, localePath } from '@/i18n/config';
 import { getDictionary } from '@/i18n/getDictionary';
 import { siteUrl } from '@/lib/site';
 
+/** The providers' band reads the live catalogue (cached in memory), so it is current. */
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
+  const onSite = providersOnSite((await getCatalogue()).plans);
 
   /**
    * WebSite structured data, so the brand is understood as a name rather than
@@ -98,6 +105,12 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
           </ul>
         </Container>
       </section>
+
+      <ProviderStrip
+        entries={onSite}
+        copy={dict.home.providers}
+        numberLocale={localeConfig[locale].intlLocale}
+      />
 
       <ExploreDestinations locale={locale} dict={dict} />
       <HowItWorks dict={dict} />

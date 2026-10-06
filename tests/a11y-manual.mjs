@@ -240,7 +240,9 @@ for (const path of ['/', '/esim/thailand?days=10&usage=regular', '/search?to=DE:
   const result = await sp.evaluate(() => {
     const clipped = [];
     for (const el of document.querySelectorAll('body *')) {
-      if (el.closest('.sr-only') || !el.offsetParent || !el.textContent.trim()) continue;
+      // The providers' band scrolls past its own edges by design; its button
+      // shows the same providers standing still, checked below.
+      if (el.closest('.sr-only') || el.closest('[data-marquee]') || !el.offsetParent || !el.textContent.trim()) continue;
       const cs = getComputedStyle(el);
       const hides = [cs.overflow, cs.overflowX, cs.overflowY].includes('hidden');
       if (hides && (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2)) clipped.push(el.textContent.trim().slice(0, 30));
@@ -370,6 +372,34 @@ const slider = sr.getByRole('slider').first();
 const valueText = (await slider.count()) ? await slider.getAttribute('aria-valuetext') : null;
 ok('the price slider reads a price, not a raw number', !!valueText && /[₪$€£]/.test(valueText), String(valueText));
 await sr.close();
+
+// 2.2.2 Pause, stop, hide: the providers' band moves by itself, so it must
+// stop on request — and say who the providers are without the motion.
+const band = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+await band.goto(BASE + '/', { waitUntil: 'networkidle' });
+const state = () => band.evaluate(() => {
+  const t = document.querySelector('.provider-marquee-track');
+  return t ? t.getAnimations()[0]?.playState ?? 'none' : 'missing';
+});
+const before = await state();
+const listed = await band.locator('section[aria-labelledby="providers-title"] ul.sr-only li').count();
+await band.getByRole('button', { name: 'עצירת התנועה' }).click();
+await band.waitForTimeout(200);
+const after = await state();
+ok('the providers band moves, and its button stops it', before === 'running' && after !== 'running', `${before} → ${after === 'running' ? 'still running' : 'stopped'}`);
+ok('the providers are listed for screen readers without the motion', listed > 0, `${listed} providers`);
+// Stopped, the band is a wrapped list: under the spacing of 1.4.12 at phone
+// width, nothing in it is cut off and nothing pushes the page sideways.
+await band.setViewportSize({ width: 390, height: 844 });
+await band.addStyleTag({ content: SPACING });
+await band.waitForTimeout(300);
+const still = await band.evaluate(() => {
+  const ul = document.querySelector('section[aria-labelledby="providers-title"] ul:not(.sr-only)');
+  const cut = ul ? [...ul.querySelectorAll('li')].filter((li) => li.scrollWidth > li.clientWidth + 2).length : -1;
+  return { cut, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+});
+ok('stopped, every provider shows whole, even with wide text spacing', still.cut === 0 && still.overflow <= 1, JSON.stringify(still));
+await band.close();
 
 await kb.close();
 await browser.close();

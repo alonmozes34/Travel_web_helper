@@ -172,6 +172,13 @@ export const en: Dictionary = {
     heroDescriptor: 'Compare travel eSIM plans',
     heroSubtitle:
       'Compare travel eSIM plans in one place and pick the one that fits your trip.',
+    providers: {
+      title: 'The providers we compare',
+      subtitle: 'Every provider that joins the comparison appears here by itself. Listed by name, never by commission.',
+      statsTemplate: '{plans} plans · {destinations} destinations',
+      pause: 'Pause the motion',
+      play: 'Resume the motion',
+    },
     explore: {
       eyebrow: 'Ideas for the next trip',
       title: 'Where to this time?',

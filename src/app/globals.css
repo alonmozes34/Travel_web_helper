@@ -204,3 +204,28 @@
 @keyframes route-dash {
   to { stroke-dashoffset: -140; }
 }
+
+/* The providers' band (ProviderStrip): two identical passes slide by one
+   pass's width, so the loop has no seam. It stops under the pointer, while
+   anything in the section has keyboard focus, when paused by its button, and
+   entirely under reduced motion — the global rule above would otherwise jump
+   it once to its end. Mirrored for right-to-left pages. */
+@keyframes provider-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes provider-marquee-rtl {
+  from { transform: translateX(0); }
+  to { transform: translateX(50%); }
+}
+.provider-marquee {
+  /* The band fades out at both edges instead of being cut by them. */
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+}
+.provider-marquee-track { animation: provider-marquee 40s linear infinite; }
+[dir="rtl"] .provider-marquee-track { animation-name: provider-marquee-rtl; }
+.provider-marquee:hover .provider-marquee-track,
+section:focus-within > .provider-marquee .provider-marquee-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .provider-marquee-track { animation: none !important; }
+}

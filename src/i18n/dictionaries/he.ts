@@ -178,6 +178,13 @@ export const he = {
     heroDescriptor: 'השוואת חבילות eSIM לחו״ל',
     heroSubtitle:
       'משווים חבילות eSIM לחו״ל במקום אחד ובוחרים את החבילה שמתאימה לטיול שלכם.',
+    providers: {
+      title: 'הספקים שאנחנו משווים',
+      subtitle: 'כל ספק שמצטרף להשוואה מופיע כאן מעצמו. הסדר לפי שם, לא לפי עמלה.',
+      statsTemplate: '{plans} חבילות · {destinations} יעדים',
+      pause: 'עצירת התנועה',
+      play: 'הפעלת התנועה',
+    },
     explore: {
       eyebrow: 'השראה לטיול הבא',
       title: 'לאן טסים הפעם?',
