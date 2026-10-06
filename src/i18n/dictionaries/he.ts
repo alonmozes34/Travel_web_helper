@@ -917,7 +917,6 @@ export const he = {
     titleTemplate: 'רגע לפני שממשיכים ל־{provider}',
     continueTemplate: 'להמשך לחבילה באתר {provider}',
     codeCopiedOnContinueTemplate: 'קוד ההנחה {code} יועתק אוטומטית כשממשיכים לחבילה.',
-    carYes: 'כן, לרכבים ב־Booking.com',
     carNoTemplate: 'לא, להמשך לחבילה באתר {provider}',
     carOpened: 'Booking.com נפתח בלשונית חדשה. אפשר להמשיך לחבילה מכאן.',
     continueAndSnooze: 'להמשך, ובלי החלון הזה ב־10 הדקות הקרובות',
@@ -926,11 +925,11 @@ export const he = {
   tripExtras: {
     heading: 'עוד דבר אחד לטיול',
     esimChosen: 'נבחרה חבילת eSIM',
-    carRental: {
-      questionTemplate: 'צריכים גם רכב שכור ב{country}?',
-      questionGeneric: 'צריכים גם רכב שכור לנסיעה?',
-      body: 'אפשר לחפש רכב להשכרה ביעד שלכם, ישירות באתר Booking.com.',
-      accept: 'לרכבים ב־Booking.com',
+    booking: {
+      questionTemplate: 'צריכים גם מלון או רכב ב{country}?',
+      body: 'מלונות ורכבים להשכרה ביעד שלכם, ישירות באתר Booking.com. אותם אנחנו לא משווים, רק מקשרים.',
+      hotelsTemplate: 'מלונות ב{country}',
+      carsTemplate: 'השכרת רכב ב{country}',
       decline: 'לא תודה',
       opensInNewTab: '(נפתח בלשונית חדשה, החיפוש שלכם נשאר פתוח כאן)',
       dismiss: 'סגירת ההצעה',

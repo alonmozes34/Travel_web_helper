@@ -30,3 +30,12 @@ describe('the rental comparison page', () => {
     assert.equal(rentalComparisonEnabled({ DEMO_CATALOGUE: 'true' }), true);
   });
 });
+
+describe('the Booking.com logo', () => {
+  test('is a plain SVG with nothing that could run', async () => {
+    const { readFileSync } = await import('node:fs');
+    const svg = readFileSync(new URL('../public/providers/booking.svg', import.meta.url), 'utf8');
+    assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+    assert.doesNotMatch(svg, /<script|\bon[a-z]+=|href=|<foreignObject|<image/i);
+  });
+});

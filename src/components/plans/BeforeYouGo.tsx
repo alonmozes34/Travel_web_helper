@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button, buttonClasses } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { useTripExtras } from '@/components/extras/TripExtrasProvider';
+import { BookingLogo } from '@/components/booking/BookingLogo';
 import { getCountryByCode } from '@/data/countries';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
@@ -78,11 +79,13 @@ export function BeforeYouGo({
   onContinue: (askedAboutCar: boolean) => void;
 }) {
   const extras = useTripExtras();
-  // Booking.com's car pages for the destination (the owner, 6 October 2026).
-  // No link (Israel, or no country) means no question, so the way on to the
+  // Booking.com's hotels and car pages for the destination (the owner,
+  // 6 October 2026). No link (Israel, or no country) means no question, so the way on to the
   // plan is never left without its plain button.
   const carHref = extras ? bookingLink('cars', extras.countryCode, locale) : null;
-  const askCar = Boolean(extras?.carRentalOffer && carHref);
+  const hotelsHref = extras ? bookingLink('hotels', extras.countryCode, locale) : null;
+  const country = extras?.countryCode ? getCountryByCode(extras.countryCode) : undefined;
+  const askCar = Boolean(extras?.carRentalOffer && carHref && hotelsHref && country);
   const [carOpened, setCarOpened] = useState(false);
   const copy = dict.beforeYouGo;
   const provider = row.provider.name;
@@ -93,7 +96,6 @@ export function BeforeYouGo({
     }
   }, [open, askCar, extras?.countryCode, row.plan.id]);
 
-  const country = extras?.countryCode ? getCountryByCode(extras.countryCode) : undefined;
 
   const goOn = (thenSnooze: boolean) => {
     if (discount) void copyText(discount.code);
@@ -128,31 +130,38 @@ export function BeforeYouGo({
     >
       <div className="grid gap-4">
 
-        {askCar && carHref ? (
+        {askCar && carHref && hotelsHref && country ? (
           <div className="rounded-md border border-line p-4">
-            <p className="font-head font-semibold">
-              <span aria-hidden="true">🚗 </span>
-              {country
-                ? interpolate(dict.tripExtras.carRental.questionTemplate, { country: country.names[locale] })
-                : dict.tripExtras.carRental.questionGeneric}
-            </p>
-            <p className="mt-1 text-sm text-ink-2">{dict.tripExtras.carRental.body}</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <a
-                href={carHref}
-                target="_blank"
-                rel="sponsored noopener noreferrer"
-                onClick={() => {
-                  setCarOpened(true);
-                  track({ name: 'car_rental_offer_yes', countryCode: extras?.countryCode ?? '', planId: row.plan.id });
-                }}
-                className={buttonClasses('secondary', 'md', 'w-full border-brand py-2 text-center')}
-              >
-                {copy.carYes}
-                <span className="sr-only"> {dict.tripExtras.carRental.opensInNewTab}</span>
-              </a>
-              {toPlan(interpolate(copy.carNoTemplate, { provider }), 'primary')}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="font-head font-semibold">
+                {interpolate(dict.tripExtras.booking.questionTemplate, { country: country.names[locale] })}
+              </p>
+              <BookingLogo className="border border-line" />
             </div>
+            <p className="mt-1 text-sm text-ink-2">{dict.tripExtras.booking.body}</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {[
+                { kind: 'hotels', icon: '🏨', href: hotelsHref, label: dict.tripExtras.booking.hotelsTemplate },
+                { kind: 'cars', icon: '🚗', href: carHref, label: dict.tripExtras.booking.carsTemplate },
+              ].map((link) => (
+                <a
+                  key={link.kind}
+                  href={link.href}
+                  target="_blank"
+                  rel="sponsored noopener noreferrer"
+                  onClick={() => {
+                    setCarOpened(true);
+                    track({ name: 'car_rental_offer_yes', countryCode: extras?.countryCode ?? '', planId: row.plan.id });
+                  }}
+                  className={buttonClasses('secondary', 'md', 'w-full border-brand py-2 text-center')}
+                >
+                  <span aria-hidden="true">{link.icon} </span>
+                  {interpolate(link.label, { country: country.names[locale] })}
+                  <span className="sr-only"> {dict.tripExtras.booking.opensInNewTab}</span>
+                </a>
+              ))}
+            </div>
+            <div className="mt-3">{toPlan(interpolate(copy.carNoTemplate, { provider }), 'primary')}</div>
             <p className="mt-2 text-sm text-ink-2" aria-live="polite">
               {carOpened ? copy.carOpened : ''}
             </p>

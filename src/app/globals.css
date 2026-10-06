@@ -229,3 +229,13 @@ section:focus-within > .provider-marquee .provider-marquee-track { animation-pla
 @media (prefers-reduced-motion: reduce) {
   .provider-marquee-track { animation: none !important; }
 }
+
+/* The Booking card after an eSIM is chosen (BookingExtra) rises into place
+   once. Under reduced motion the global rule above makes it simply appear. */
+@keyframes trip-extra-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.trip-extra-in {
+  animation: trip-extra-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}

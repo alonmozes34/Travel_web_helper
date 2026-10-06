@@ -885,7 +885,6 @@ export const en: Dictionary = {
     titleTemplate: 'Before you go to {provider}',
     continueTemplate: 'Continue to the plan at {provider}',
     codeCopiedOnContinueTemplate: 'Discount code {code} is copied for you when you go on to the plan.',
-    carYes: 'Yes, cars on Booking.com',
     carNoTemplate: 'No, continue to the plan at {provider}',
     carOpened: 'Booking.com opened in a new tab. You can go on to the plan from here.',
     continueAndSnooze: "Continue, and don't show this for 10 minutes",
@@ -894,11 +893,11 @@ export const en: Dictionary = {
   tripExtras: {
     heading: 'One more thing for your trip',
     esimChosen: 'eSIM plan selected',
-    carRental: {
-      questionTemplate: 'Need a rental car in {country}?',
-      questionGeneric: 'Need a rental car for your trip?',
-      body: 'You can look for a rental car at your destination, straight on Booking.com.',
-      accept: 'Cars on Booking.com',
+    booking: {
+      questionTemplate: 'Need a hotel or a car in {country} too?',
+      body: 'Hotels and rental cars at your destination, straight on Booking.com. We do not compare those, we only link to them.',
+      hotelsTemplate: 'Hotels in {country}',
+      carsTemplate: 'Car rental in {country}',
       decline: 'No thanks',
       opensInNewTab: '(opens in a new tab — your search stays open here)',
       dismiss: 'Dismiss this offer',

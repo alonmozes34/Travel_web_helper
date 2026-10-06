@@ -2,6 +2,7 @@ import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import { bookingLink } from '@/lib/booking/links';
+import { BookingLogo } from './BookingLogo';
 
 /**
  * Hotels and car rental for the destination, on Booking.com (the owner,
@@ -29,9 +30,12 @@ export function BookingLinks({
 
   return (
     <section aria-labelledby="booking-title" className="mt-10 max-w-[80ch] rounded-[20px] border border-line bg-surface p-5 md:p-6">
-      <h2 id="booking-title" className="font-head text-xl font-semibold">
-        {interpolate(copy.titleTemplate, { country: countryName })}
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="booking-title" className="font-head text-xl font-semibold">
+          {interpolate(copy.titleTemplate, { country: countryName })}
+        </h2>
+        <BookingLogo className="border border-line" />
+      </div>
       <p className="mt-1 text-ink-2">{interpolate(copy.introTemplate, { country: countryName })}</p>
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {links.map((link) => (

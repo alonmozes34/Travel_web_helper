@@ -532,7 +532,8 @@ try {
 
 // ══ car rental cross-sell ════════════════════════════════════════════════
 try {
-  const OFFER = 'עוד דבר אחד לטיול';
+  const OFFER = 'צריכים גם מלון או רכב ב';
+  const OFFER_TITLE = 'צריכים גם מלון או רכב בצרפת?';
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1000 } });
   const p = await ctx.newPage();
   await p.goto(B + '/esim/france?to=FR:5&usage=regular', { waitUntil: 'domcontentloaded' });
@@ -549,7 +550,7 @@ try {
   check('extras', 'the eSIM page is not navigated away from', p.url() === urlBefore);
 
   const body = await p.locator('body').innerText();
-  check('extras', 'the offer names the destination', body.includes('רכב שכור בצרפת'));
+  check('extras', 'the offer names the destination', body.includes('צריכים גם מלון או רכב בצרפת?'));
   check('extras', 'the offer says the link opens elsewhere', body.includes('נפתח בלשונית חדשה'));
 
   // A second plan must not stack a second offer.
@@ -557,13 +558,17 @@ try {
   await p.waitForTimeout(300);
   check('extras', 'a second eSIM click does not stack a second offer', (await offers()) === 1);
 
-  // The answer is Booking.com's own car page for the destination, through the
-  // CJ deep link, marked as a paid link (the owner, 6 October 2026).
-  const carLink = p.getByRole('link', { name: /לרכבים ב־Booking\.com/ });
-  const href = await carLink.getAttribute('href');
-  check('extras', 'the car answer opens Booking’s car page for the destination',
-    href === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/cars/country/fr.he.html', href);
-  check('extras', 'and it is marked as a sponsored link', /\bsponsored\b/.test((await carLink.getAttribute('rel')) ?? ''));
+  // The card opens Booking.com's own hotels and car pages for the destination,
+  // through the CJ deep link, marked as paid links (the owner, 6 October 2026).
+  const offer = p.locator('section').filter({ hasText: OFFER_TITLE });
+  const offerLinks = await offer.getByRole('link').evaluateAll((as) => as.map((a) => [a.getAttribute('href'), a.getAttribute('rel')]));
+  check('extras', 'the card links Booking’s hotels and car pages for the destination',
+    offerLinks.length === 2
+      && offerLinks[0][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/country/fr.he.html'
+      && offerLinks[1][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/cars/country/fr.he.html',
+    JSON.stringify(offerLinks.map((l) => l[0])));
+  check('extras', 'and both are marked as sponsored links', offerLinks.every((l) => /\bsponsored\b/.test(l[1] ?? '')));
+  check('extras', 'the card carries Booking’s logo', (await offer.getByRole('img', { name: 'Booking.com' }).count()) === 1);
 
   // The country page offers hotels and cars on Booking.com, said plainly to
   // be links and not a comparison.
