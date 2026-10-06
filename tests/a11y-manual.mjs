@@ -11,7 +11,7 @@ const ok = (label, pass, extra = '') => out.push(`${pass ? 'PASS' : 'FAIL'}  ${l
 const browser = await chromium.launch();
 
 // 1.4.10 Reflow: usable at 320 CSS px with no horizontal scrolling.
-for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14', '/devices', '/esim', '/privacy', '/car-rental?country=FR&pickup=Paris%20CDG']) {
+for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14', '/devices', '/esim', '/privacy', '/contact', '/car-rental?country=FR&pickup=Paris%20CDG']) {
   const page = await browser.newPage({ viewport: { width: 320, height: 700 } });
   await page.goto(BASE + path, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
@@ -168,7 +168,7 @@ await thumb.close();
 // 1.3.1 Info and relationships: exactly one H1 per page, and no level skipped
 // for visual weight. A screen-reader user navigates by heading; a jump from
 // H1 to H3 makes them guess whether they missed a section.
-for (const path of ['/', '/esim/thailand?days=14&usage=regular', '/search?to=DE:1,US:14&usage=regular', '/accessibility', '/about', '/en/about', '/guides', '/guides/choose', '/guides/how-much-data', '/en/guides/install', '/disclosure', '/privacy', '/en/privacy', '/terms', '/devices', '/en/devices', '/esim', '/en/esim', '/car-rental?country=FR&pickup=Paris%20CDG', '/en']) {
+for (const path of ['/', '/esim/thailand?days=14&usage=regular', '/search?to=DE:1,US:14&usage=regular', '/accessibility', '/about', '/en/about', '/guides', '/guides/choose', '/guides/how-much-data', '/en/guides/install', '/disclosure', '/privacy', '/en/privacy', '/terms', '/devices', '/en/devices', '/esim', '/en/esim', '/car-rental?country=FR&pickup=Paris%20CDG', '/en', '/contact']) {
   const h = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await h.goto(BASE + path, { waitUntil: 'domcontentloaded' });
   await h.waitForTimeout(500);
@@ -400,6 +400,36 @@ const still = await band.evaluate(() => {
 });
 ok('stopped, every provider shows whole, even with wide text spacing', still.cut === 0 && still.overflow <= 1, JSON.stringify(still));
 await band.close();
+
+// 3.3.1 / 3.3.3 / 4.1.3 The contact form: errors are named next to their
+// fields and listed where focus lands; a message that cannot be sent says so
+// and never says "sent". The test server has no email key, so the honest
+// answer here is "not active yet".
+const cf = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+await cf.goto(BASE + '/contact', { waitUntil: 'networkidle' });
+await cf.getByRole('button', { name: 'שליחה' }).click();
+await cf.waitForTimeout(800);
+const afterEmpty = await cf.evaluate(() => ({
+  focusedAlert: document.activeElement?.getAttribute('role') === 'alert',
+  emailInvalid: document.getElementById('contact-email')?.getAttribute('aria-invalid') === 'true',
+  emailDescribed: (document.getElementById('contact-email')?.getAttribute('aria-describedby') || '').includes('contact-email-error'),
+  links: [...document.querySelectorAll('[role="alert"] a[href^="#contact-"]')].length,
+}));
+ok('an empty contact form: focus on the list of errors, each field marked and described', afterEmpty.focusedAlert && afterEmpty.emailInvalid && afterEmpty.emailDescribed && afterEmpty.links >= 2, JSON.stringify(afterEmpty));
+await cf.addScriptTag({ path: 'node_modules/axe-core/axe.min.js' });
+const cfErrors = await cf.evaluate(() => window.axe.run({ runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] }));
+ok('the contact form with errors passes axe', cfErrors.violations.length === 0, cfErrors.violations.map((v) => `${v.id}×${v.nodes.length}`).join(', '));
+await cf.getByLabel(/אימייל/).fill('dana@example.com');
+await cf.getByLabel(/ההודעה/).fill('בדיקה');
+await cf.waitForTimeout(2800);
+await cf.getByRole('button', { name: 'שליחה' }).click();
+await cf.waitForTimeout(1200);
+const honest = await cf.evaluate(() => ({
+  alert: document.querySelector('[role="alert"]')?.textContent || '',
+  claimsSent: /ההודעה נשלחה/.test(document.body.innerText),
+}));
+ok('without an email key the form says it did not send, and never "sent"', /לא נשלחה/.test(honest.alert) && !honest.claimsSent, honest.alert.slice(0, 80));
+await cf.close();
 
 await kb.close();
 await browser.close();

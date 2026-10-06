@@ -22,6 +22,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
    * actually stores with.
    */
   const legalLinks = [
+    { href: localePath(locale, '/contact'), label: dict.contactPage.navLabel },
     { href: localePath(locale, '/about'), label: dict.aboutPage.navLabel },
     { href: localePath(locale, '/accessibility'), label: dict.accessibility.navLabel },
     { href: localePath(locale, '/disclosure'), label: dict.footer.disclosureLink },

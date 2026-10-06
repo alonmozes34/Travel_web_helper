@@ -13,8 +13,11 @@ import { TRIP_EXTRAS_KEY } from '@/lib/tripExtras/dismissal';
  * keys and fails if one is missing here, so the page cannot quietly become
  * untrue.
  *
- * Note what is absent, and is absent in the code too: no accounts, no forms,
- * no payments, no analytics provider, no advertising network, no profiling.
+ * Note what is absent, and is absent in the code too: no accounts, no
+ * payments, no analytics provider, no advertising network, no profiling. The
+ * one form that takes personal details is the contact form (since 6 October
+ * 2026), which stores nothing and sends one email — see
+ * `src/lib/contact/contact.ts` and the "contact form" section of the page.
  * `src/lib/analytics/events.ts` names events and sends none.
  */
 export type StorageKind = 'cookie' | 'local' | 'session';
@@ -42,4 +45,4 @@ export const storedItems: readonly StoredItem[] = [
  * Shown on the page. A privacy notice with no date asks to be trusted about
  * software that changes weekly.
  */
-export const privacyReviewedOn = '2026-09-23';
+export const privacyReviewedOn = '2026-10-06';

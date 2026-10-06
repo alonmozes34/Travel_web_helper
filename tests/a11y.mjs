@@ -21,6 +21,8 @@ const PAGES = [
   ['multi-stop search', '/search?to=DE:1,US:14&usage=regular'],
   ['empty search', '/search'],
   ['accessibility statement', '/accessibility'],
+  ['contact form', '/contact'],
+  ['contact form, english', '/en/contact'],
   ['affiliate disclosure', '/disclosure'],
   ['about', '/about'],
   ['about (English)', '/en/about'],

@@ -100,7 +100,7 @@ export default async function PrivacyPage({
         <p className="mt-4 max-w-[70ch] text-ink-2">{page.storage.clearing}</p>
       </section>
 
-      {[page.logs, page.outbound, page.rights, page.changes].map((section) => (
+      {[page.logs, page.contactForm, page.outbound, page.rights, page.changes].map((section) => (
         <section key={section.heading} className="mt-10 max-w-[70ch]">
           <h2 className="font-head text-xl font-semibold">{section.heading}</h2>
           {section.body.map((paragraph) => (

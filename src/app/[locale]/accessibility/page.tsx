@@ -10,7 +10,9 @@ import {
   hasContactRoute,
   isAccessibilityStatementComplete,
 } from '@/data/accessibility';
-import { isLocale } from '@/i18n/config';
+import Link from 'next/link';
+import { isLocale, localePath } from '@/i18n/config';
+import { contactConfigured } from '@/lib/contact/contact';
 import { getDictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 
@@ -220,6 +222,17 @@ export default async function AccessibilityPage({ params }: { params: Promise<{ 
             {copy.noContactYet}
           </p>
         )}
+        {/* A second route, listed only once the form can actually send. */}
+        {contactConfigured() ? (
+          <p className="mt-4 text-ink-2">
+            <Link
+              href={`${localePath(locale, '/contact')}?topic=accessibility`}
+              className="inline-flex min-h-6 items-center font-semibold text-brand underline"
+            >
+              {copy.contactFormLink}
+            </Link>
+          </p>
+        ) : null}
       </section>
 
       {accessibilityStatement.lastReviewedAt ? (

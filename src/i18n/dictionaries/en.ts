@@ -685,6 +685,7 @@ export const en: Dictionary = {
     contactTitle: 'Reporting an accessibility problem',
     contactIntro:
       'Found something that is not accessible? We want to know — that report is the one that helps us fix it.',
+    contactFormLink: 'Or use the contact form, under "An accessibility barrier"',
     coordinatorLabel: 'Accessibility coordinator',
     phoneLabel: 'Phone',
     emailLabel: 'Email',
@@ -1024,11 +1025,51 @@ export const en: Dictionary = {
     body: 'If the trip has another stop, compare that too — one regional plan is sometimes cheaper than two country plans.',
   },
 
+  contactPage: {
+    navLabel: 'Contact',
+    title: 'Contact us',
+    intro: 'A question, a problem with a plan or a link, an accessibility barrier, or an idea for working together: write to us, and the answer will come to the email address you leave.',
+    topicLegend: 'What is it about?',
+    topics: {
+      general: 'A general question',
+      plan: 'A problem with a plan or a link',
+      accessibility: 'An accessibility barrier',
+      partnership: 'Working together',
+      other: 'Something else',
+    },
+    nameLabel: 'Name',
+    emailLabel: 'Email',
+    emailHint: 'So we can reply. We will not use it for anything else.',
+    messageLabel: 'Message',
+    optional: '(optional)',
+    required: '(required)',
+    privacyNote:
+      'Your message is sent to the site’s inbox through the email service Resend, and is not stored on the site. You do not have to give any details, but without an email address we cannot reply.',
+    privacyLink: 'Details in the privacy notice',
+    submit: 'Send',
+    sending: 'Sending…',
+    sentTitle: 'Message sent',
+    sentBody: 'Thank you. We will reply to the email address you left.',
+    another: 'Send another message',
+    fixTitle: 'Please fix before sending:',
+    errors: {
+      topic: { required: 'Choose what it is about', invalid: 'Choose what it is about', tooLong: 'Choose what it is about' },
+      name: { required: 'The name is too long', invalid: 'The name is too long', tooLong: 'The name is too long' },
+      email: { required: 'Enter an email address so we can reply', invalid: 'That email address does not look right', tooLong: 'That email address does not look right' },
+      message: { required: 'Write your message', invalid: 'Write your message', tooLong: 'The message is too long (up to 4,000 characters)' },
+    },
+    unavailable: 'The form is not active yet, and the message was not sent. Meanwhile you can write to us directly:',
+    rateLimited: 'Many messages were sent from here in a short time, and this one was not sent. Try again in a few minutes, or write directly:',
+    failed: 'Something went wrong, and the message was not sent. Try again, or write to us directly:',
+    notYetTitle: 'The form will be active soon',
+    notYetBody: 'Meanwhile you can write to us by email:',
+    directTemplate: 'Prefer email? You can always write directly to {email}.',
+  },
   privacyPage: {
     navLabel: 'Privacy',
     title: 'Privacy notice',
     intro:
-      'This site asks you for nothing. There is no sign-up, no form, no payment, and no way for us to know who you are. What is kept on your own device is listed here in full.',
+      'This site asks you for nothing. There is no sign-up and no payment, and no way for us to know who you are unless you write to us through the contact form. What is kept on your own device, and what happens to a message you send, is listed here in full.',
     reviewedTemplate: 'Checked against the code on {date}.',
     operator: {
       heading: 'Who runs this site',
@@ -1042,7 +1083,7 @@ export const en: Dictionary = {
       intro: 'None of the following exists on this site, and that is checkable in the code:',
       items: [
         'No user accounts and no sign-up.',
-        'Not one form that collects personal details.',
+        'No form that collects personal details, except the contact form described below.',
         'No payments and no card details. Buying always happens on the provider’s own site.',
         'No analytics tool. The module that names events on this site sends them nowhere.',
         'No ad networks, no tracking pixels, no profiling.',
@@ -1077,6 +1118,16 @@ export const en: Dictionary = {
         'We do not read those logs to identify anyone, do not combine them with anything, and do not build profiles from them. They exist to run and secure the server.',
       ],
     },
+    contactForm: {
+      heading: 'The contact form',
+      body: [
+        'If you write to us on the "Contact" page, we receive what you filled in: the topic, the message, your email address, and your name if you chose to give it. The site does not store any of it.',
+        'The message is sent once, through the email service Resend (a US company), to the site’s inbox. The only copy that remains is that email.',
+        'The details are used only to reply to you. They are not used for mailings or advertising, and are not passed to anyone else.',
+        'You are not legally required to give these details. Without an email address we simply cannot reply.',
+        'The email is kept in the inbox for as long as it is needed to deal with your message. You can ask to see it or to have it deleted, at the address at the foot of this page.',
+      ],
+    },
     outbound: {
       heading: 'Links to providers',
       body: [
@@ -1088,8 +1139,8 @@ export const en: Dictionary = {
     rights: {
       heading: 'Your rights',
       body: [
-        'Because we hold nothing that identifies you, there is no record for you to ask to see, correct or delete.',
-        'What is stored sits in your browser and is entirely under your control — clearing site data removes all of it.',
+        'The only thing that identifies you and reaches us is a message you sent through the contact form. You can ask to see it, correct it or have it deleted.',
+        'Everything else sits in your browser and is entirely under your control — clearing site data removes all of it.',
         'If you have a privacy question or concern anyway, write to us and you will get a straight answer.',
       ],
     },
