@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Button, buttonClasses } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { useTripExtras } from '@/components/extras/TripExtrasProvider';
@@ -15,6 +15,7 @@ import { bookingLink } from '@/lib/booking/links';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import type { Discount } from '@/lib/types/discount';
 import { copyText } from './CopyCodeButton';
+import { PlanName } from './PlanName';
 
 /** How long "continue, and don't show this again" holds. The owner's figure. */
 const SNOOZE_MS = 10 * 60 * 1000;
@@ -89,6 +90,10 @@ export function BeforeYouGo({
   const [carOpened, setCarOpened] = useState(false);
   const copy = dict.beforeYouGo;
   const provider = row.provider.name;
+  // Every way on to the plan says which plan, as the card's own buttons do:
+  // "continue to the plan at Yesim" does not say which of a page of Yesim
+  // plans it opens. Described from inside the dialog — see PlanName.
+  const planNameId = useId();
 
   useEffect(() => {
     if (open && askCar) {
@@ -114,6 +119,7 @@ export function BeforeYouGo({
       rel={link.rel}
       target={link.target}
       onClick={() => goOn(thenSnooze)}
+      aria-describedby={planNameId}
       className={buttonClasses(variant, 'md', 'w-full py-2 text-center')}
     >
       {label}
@@ -129,6 +135,9 @@ export function BeforeYouGo({
       closeLabel={dict.common.close}
     >
       <div className="grid gap-4">
+        <p id={planNameId} className="sr-only">
+          <PlanName row={row} dict={dict} locale={locale} />
+        </p>
 
         {askCar && carHref && hotelsHref && country ? (
           <div className="rounded-md border border-line p-4">

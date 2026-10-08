@@ -17,6 +17,7 @@ import { CoverageNote } from './CoverageNote';
 import { DataFact, FairUsageNote, NetworkFact, ValidityFact } from './PlanFacts';
 import { PlanCta } from './PlanCta';
 import { PlanDetails } from './PlanDetails';
+import { PlanName } from './PlanName';
 import { ProviderCell } from './ProviderCell';
 import { ShareSearch } from '@/components/results/ShareSearch';
 
@@ -79,8 +80,6 @@ export function PlanListItem({
   const detailsId = useId();
   const headingId = useId();
   const Heading = headingLevel === 4 ? 'h4' : 'h3';
-  const dataText = plan.isUnlimited ? dict.units.unlimited : formatData(plan.dataAmountMb, locale);
-  const daysText = `${plan.validityDays} ${plan.validityDays === 1 ? dict.units.day : dict.units.days}`;
 
   const status = !row.coversTrip
     ? { tone: 'warn' as const, text: dict.plan.shortValidity }
@@ -104,19 +103,9 @@ export function PlanListItem({
       )}
     >
       {/* What a screen reader lists when moving from plan to plan by heading.
-          Hidden: the card already shows the same three things, larger. The
-          provider's name is Latin, marked so the reader can switch voice. */}
+          Hidden: the card already shows the same three things, larger. */}
       <Heading id={headingId} className="sr-only">
-        {(() => {
-          const [before, after = ''] = dict.results.cardHeadingTemplate.split('{provider}');
-          return (
-            <>
-              {before}
-              <span lang="en">{row.provider.name}</span>
-              {interpolate(after, { data: dataText, days: daysText })}
-            </>
-          );
-        })()}
+        <PlanName row={row} dict={dict} locale={locale} />
       </Heading>
       <div className="flex flex-wrap items-center justify-between gap-2">
         {/* The plan's own name is under "more details": the button opens the

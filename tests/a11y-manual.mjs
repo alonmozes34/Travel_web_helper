@@ -2,6 +2,7 @@
  * The checks axe cannot make: reflow, zoom, keyboard-only completion of the
  * funnel, visible focus, and WCAG 2.2 target sizes.
  */
+import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:3000';
@@ -375,60 +376,117 @@ await sr.close();
 
 // 2.2.2 Pause, stop, hide: the providers' band moves by itself, so it must
 // stop on request — and say who the providers are without the motion.
+// The band waits for MIN_PROVIDERS_FOR_BAND providers (6 October 2026). The
+// real catalogues the nightly builds, Yesim and ZenSim, are two, so there it
+// is rightly absent, and the runs of 7 and 8 October timed out looking for
+// its button. So: first, the band is on the page exactly when the site lists
+// enough providers; then, when it is, every check below. The demo lists
+// eight, so there the band must show and every check must run.
+const minForBand = Number(readFileSync('src/lib/catalogue/providersOnSite.ts', 'utf8').match(/MIN_PROVIDERS_FOR_BAND = (\d+)/)?.[1]);
+const status = await (await fetch(`${BASE}/api/status`)).json();
+const providersListed = Object.values(status.listedPlansByProvider ?? {}).filter((n) => n > 0).length;
+const demoCatalogue = (status.configured ?? []).includes('mock');
 const band = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 await band.goto(BASE + '/', { waitUntil: 'networkidle' });
-const state = () => band.evaluate(() => {
-  const t = document.querySelector('.provider-marquee-track');
-  return t ? t.getAnimations()[0]?.playState ?? 'none' : 'missing';
-});
-const before = await state();
-const listed = await band.locator('section[aria-labelledby="providers-title"] ul.sr-only li').count();
-await band.getByRole('button', { name: 'עצירת התנועה' }).click();
-await band.waitForTimeout(200);
-const after = await state();
-ok('the providers band moves, and its button stops it', before === 'running' && after !== 'running', `${before} → ${after === 'running' ? 'still running' : 'stopped'}`);
-ok('the providers are listed for screen readers without the motion', listed > 0, `${listed} providers`);
-// Stopped, the band is a wrapped list: under the spacing of 1.4.12 at phone
-// width, nothing in it is cut off and nothing pushes the page sideways.
-await band.setViewportSize({ width: 390, height: 844 });
-await band.addStyleTag({ content: SPACING });
-await band.waitForTimeout(300);
-const still = await band.evaluate(() => {
-  const ul = document.querySelector('section[aria-labelledby="providers-title"] ul:not(.sr-only)');
-  const cut = ul ? [...ul.querySelectorAll('li')].filter((li) => li.scrollWidth > li.clientWidth + 2).length : -1;
-  return { cut, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
-});
-ok('stopped, every provider shows whole, even with wide text spacing', still.cut === 0 && still.overflow <= 1, JSON.stringify(still));
+const bandShown = (await band.locator('section[aria-labelledby="providers-title"]').count()) > 0;
+ok('the providers band is on the home page exactly when enough providers are listed',
+  Number.isInteger(minForBand) && bandShown === (providersListed >= minForBand),
+  `${providersListed} providers listed, band ${bandShown ? 'shown' : 'hidden'}, shown from ${minForBand}`);
+if (bandShown) {
+  const state = () => band.evaluate(() => {
+    const t = document.querySelector('.provider-marquee-track');
+    return t ? t.getAnimations()[0]?.playState ?? 'none' : 'missing';
+  });
+  const before = await state();
+  const listed = await band.locator('section[aria-labelledby="providers-title"] ul.sr-only li').count();
+  await band.getByRole('button', { name: 'עצירת התנועה' }).click();
+  await band.waitForTimeout(200);
+  const after = await state();
+  ok('the providers band moves, and its button stops it', before === 'running' && after !== 'running', `${before} → ${after === 'running' ? 'still running' : 'stopped'}`);
+  ok('the providers are listed for screen readers without the motion', listed > 0, `${listed} providers`);
+  // Stopped, the band is a wrapped list: under the spacing of 1.4.12 at phone
+  // width, nothing in it is cut off and nothing pushes the page sideways.
+  await band.setViewportSize({ width: 390, height: 844 });
+  await band.addStyleTag({ content: SPACING });
+  await band.waitForTimeout(300);
+  const still = await band.evaluate(() => {
+    const ul = document.querySelector('section[aria-labelledby="providers-title"] ul:not(.sr-only)');
+    const cut = ul ? [...ul.querySelectorAll('li')].filter((li) => li.scrollWidth > li.clientWidth + 2).length : -1;
+    return { cut, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+  });
+  ok('stopped, every provider shows whole, even with wide text spacing', still.cut === 0 && still.overflow <= 1, JSON.stringify(still));
+}
 await band.close();
+
+// 2.4.4 / 4.1.2 The before-you-go sheet: with it open, each way on to the plan
+// says which plan, as a screen reader is actually given it. The page behind a
+// modal dialog is inert, and a description that points out of the dialog is
+// dropped: on 8 October the links pointed at the card's heading, the check
+// above passed on the attribute, and Chrome gave them no description. So this
+// reads Chrome's own accessibility tree. The demo's plans link nowhere, so it
+// has no sheet; on the real catalogues every card has one.
+if (!demoCatalogue) {
+  const bg = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await bg.goto(`${BASE}/esim/thailand?to=TH:10&usage=regular`, { waitUntil: 'networkidle' });
+  await bg.waitForTimeout(1200);
+  const cta = bg.locator('main article a[href^="http"]:visible', { hasText: /לחבילה באתר/ }).first();
+  const planName = await cta.evaluate((el) => {
+    const id = el.closest('article')?.getAttribute('aria-labelledby');
+    return (id && document.getElementById(id)?.textContent?.trim()) || '';
+  });
+  await cta.click();
+  const opened = await bg.waitForSelector('dialog[open]', { timeout: 5000 }).then(() => true, () => false);
+  const cdp = await bg.context().newCDPSession(bg);
+  const { nodes } = await cdp.send('Accessibility.getFullAXTree');
+  const toPlan = nodes.filter((n) => !n.ignored && n.role?.value === 'link' && /להמשך/.test(n.name?.value ?? ''));
+  const unnamed = toPlan.filter((n) => (n.description?.value ?? '').replace(/\s+/g, ' ').trim() !== planName.replace(/\s+/g, ' '));
+  ok('the open before-you-go sheet: each way on to the plan is described by the plan',
+    opened && planName.length > 0 && toPlan.length > 0 && unnamed.length === 0,
+    opened ? `${toPlan.length - unnamed.length}/${toPlan.length} say "${planName}"` : 'the sheet did not open');
+  await bg.close();
+}
 
 // 3.3.1 / 3.3.3 / 4.1.3 The contact form: errors are named next to their
 // fields and listed where focus lands; a message that cannot be sent says so
 // and never says "sent". The test server has no email key, so the honest
-// answer here is "not active yet".
+// answer here is "not active yet". Only the demo shows the form without a
+// key; a build on the real catalogues shows the address in its place. This
+// suite first got that far on 8 October, once the band no longer stopped it.
 const cf = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 await cf.goto(BASE + '/contact', { waitUntil: 'networkidle' });
-await cf.getByRole('button', { name: 'שליחה' }).click();
-await cf.waitForTimeout(800);
-const afterEmpty = await cf.evaluate(() => ({
-  focusedAlert: document.activeElement?.getAttribute('role') === 'alert',
-  emailInvalid: document.getElementById('contact-email')?.getAttribute('aria-invalid') === 'true',
-  emailDescribed: (document.getElementById('contact-email')?.getAttribute('aria-describedby') || '').includes('contact-email-error'),
-  links: [...document.querySelectorAll('[role="alert"] a[href^="#contact-"]')].length,
-}));
-ok('an empty contact form: focus on the list of errors, each field marked and described', afterEmpty.focusedAlert && afterEmpty.emailInvalid && afterEmpty.emailDescribed && afterEmpty.links >= 2, JSON.stringify(afterEmpty));
-await cf.addScriptTag({ path: 'node_modules/axe-core/axe.min.js' });
-const cfErrors = await cf.evaluate(() => window.axe.run({ runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] }));
-ok('the contact form with errors passes axe', cfErrors.violations.length === 0, cfErrors.violations.map((v) => `${v.id}×${v.nodes.length}`).join(', '));
-await cf.getByLabel(/אימייל/).fill('dana@example.com');
-await cf.getByLabel(/ההודעה/).fill('בדיקה');
-await cf.waitForTimeout(2800);
-await cf.getByRole('button', { name: 'שליחה' }).click();
-await cf.waitForTimeout(1200);
-const honest = await cf.evaluate(() => ({
-  alert: document.querySelector('[role="alert"]')?.textContent || '',
-  claimsSent: /ההודעה נשלחה/.test(document.body.innerText),
-}));
-ok('without an email key the form says it did not send, and never "sent"', /לא נשלחה/.test(honest.alert) && !honest.claimsSent, honest.alert.slice(0, 80));
+const formShown = (await cf.getByRole('button', { name: 'שליחה' }).count()) > 0;
+if (demoCatalogue) ok('the demo shows the contact form, so it is checked here', formShown);
+if (formShown) {
+  await cf.getByRole('button', { name: 'שליחה' }).click();
+  await cf.waitForTimeout(800);
+  const afterEmpty = await cf.evaluate(() => ({
+    focusedAlert: document.activeElement?.getAttribute('role') === 'alert',
+    emailInvalid: document.getElementById('contact-email')?.getAttribute('aria-invalid') === 'true',
+    emailDescribed: (document.getElementById('contact-email')?.getAttribute('aria-describedby') || '').includes('contact-email-error'),
+    links: [...document.querySelectorAll('[role="alert"] a[href^="#contact-"]')].length,
+  }));
+  ok('an empty contact form: focus on the list of errors, each field marked and described', afterEmpty.focusedAlert && afterEmpty.emailInvalid && afterEmpty.emailDescribed && afterEmpty.links >= 2, JSON.stringify(afterEmpty));
+  await cf.addScriptTag({ path: 'node_modules/axe-core/axe.min.js' });
+  const cfErrors = await cf.evaluate(() => window.axe.run({ runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] }));
+  ok('the contact form with errors passes axe', cfErrors.violations.length === 0, cfErrors.violations.map((v) => `${v.id}×${v.nodes.length}`).join(', '));
+  await cf.getByLabel(/אימייל/).fill('dana@example.com');
+  await cf.getByLabel(/ההודעה/).fill('בדיקה');
+  await cf.waitForTimeout(2800);
+  await cf.getByRole('button', { name: 'שליחה' }).click();
+  await cf.waitForTimeout(1200);
+  const honest = await cf.evaluate(() => ({
+    alert: document.querySelector('[role="alert"]')?.textContent || '',
+    claimsSent: /ההודעה נשלחה/.test(document.body.innerText),
+  }));
+  ok('without an email key the form says it did not send, and never "sent"', /לא נשלחה/.test(honest.alert) && !honest.claimsSent, honest.alert.slice(0, 80));
+} else {
+  const instead = await cf.evaluate(() => ({
+    soon: /הטופס יפעל בקרוב/.test(document.querySelector('main')?.innerText ?? ''),
+    address: document.querySelectorAll('main a[href^="mailto:"]').length,
+    claimsSent: /ההודעה נשלחה/.test(document.body.innerText),
+  }));
+  ok('without the form, the page says it is not active yet and gives the address, never "sent"', instead.soon && instead.address > 0 && !instead.claimsSent, JSON.stringify(instead));
+}
 await cf.close();
 
 await kb.close();
