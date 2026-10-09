@@ -881,15 +881,6 @@ export const en: Dictionary = {
     },
   },
 
-  beforeYouGo: {
-    titleTemplate: 'Before you go to {provider}',
-    continueTemplate: 'Continue to the plan at {provider}',
-    codeCopiedOnContinueTemplate: 'Discount code {code} is copied for you when you go on to the plan.',
-    carNoTemplate: 'No, continue to the plan at {provider}',
-    carOpened: 'Booking.com opened in a new tab. You can go on to the plan from here.',
-    continueAndSnooze: "Continue, and don't show this for 10 minutes",
-    cancel: 'Cancel',
-  },
   tripExtras: {
     heading: 'One more thing for your trip',
     esimChosen: 'eSIM plan selected',

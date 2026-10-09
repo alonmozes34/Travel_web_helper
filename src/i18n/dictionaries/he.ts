@@ -905,7 +905,6 @@ export const he = {
       link: 'להשוואת חבילות',
     },
   },
-
   /**
    * Trip extras. Car rental is the first and, for now, the only one.
    *
@@ -913,15 +912,6 @@ export const he = {
    * traveller has already left for the provider, so its job is to be useful
    * on the way back, not to interrupt anything.
    */
-  beforeYouGo: {
-    titleTemplate: 'רגע לפני שממשיכים ל־{provider}',
-    continueTemplate: 'להמשך לחבילה באתר {provider}',
-    codeCopiedOnContinueTemplate: 'קוד ההנחה {code} יועתק אוטומטית כשממשיכים לחבילה.',
-    carNoTemplate: 'לא, להמשך לחבילה באתר {provider}',
-    carOpened: 'Booking.com נפתח בלשונית חדשה. אפשר להמשיך לחבילה מכאן.',
-    continueAndSnooze: 'להמשך, ובלי החלון הזה ב־10 הדקות הקרובות',
-    cancel: 'ביטול',
-  },
   tripExtras: {
     heading: 'עוד דבר אחד לטיול',
     esimChosen: 'נבחרה חבילת eSIM',

@@ -418,32 +418,43 @@ if (bandShown) {
 }
 await band.close();
 
-// 2.4.4 / 4.1.2 The before-you-go sheet: with it open, each way on to the plan
-// says which plan, as a screen reader is actually given it. The page behind a
-// modal dialog is inert, and a description that points out of the dialog is
-// dropped: on 8 October the links pointed at the card's heading, the check
-// above passed on the attribute, and Chrome gave them no description. So this
-// reads Chrome's own accessibility tree. The demo's plans link nowhere, so it
-// has no sheet; on the real catalogues every card has one.
+// The way out, in order (the owner, 9 October 2026): the plan first, then
+// Booking. Booking pay only for a booking finished in the same visit, and on
+// a phone a new tab looks like the same window — so until that day, a sheet
+// on the way out that offered Booking first sent visitors to Booking, and
+// back again to buy the eSIM, leaving it. Now the plan's button opens the
+// plan in a new tab with nothing asked on the way, and the Booking card
+// waits on this page, its links opening a new tab of their own. Real
+// catalogues only: the demo's plans link nowhere. Nothing outside the site is
+// loaded — the provider's tab is stopped before it leaves, so no click is
+// counted at a provider.
 if (!demoCatalogue) {
-  const bg = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-  await bg.goto(`${BASE}/esim/thailand?to=TH:10&usage=regular`, { waitUntil: 'networkidle' });
-  await bg.waitForTimeout(1200);
-  const cta = bg.locator('main article a[href^="http"]:visible', { hasText: /לחבילה באתר/ }).first();
-  const planName = await cta.evaluate((el) => {
-    const id = el.closest('article')?.getAttribute('aria-labelledby');
-    return (id && document.getElementById(id)?.textContent?.trim()) || '';
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const out = await ctx.newPage();
+  await out.goto(`${BASE}/esim/thailand?to=TH:10&usage=regular`, { waitUntil: 'networkidle' });
+  await out.waitForTimeout(1200);
+  const left = [];
+  await ctx.route((url) => !url.href.startsWith(BASE), (route) => {
+    left.push(route.request().url());
+    return route.abort();
   });
-  await cta.click();
-  const opened = await bg.waitForSelector('dialog[open]', { timeout: 5000 }).then(() => true, () => false);
-  const cdp = await bg.context().newCDPSession(bg);
-  const { nodes } = await cdp.send('Accessibility.getFullAXTree');
-  const toPlan = nodes.filter((n) => !n.ignored && n.role?.value === 'link' && /להמשך/.test(n.name?.value ?? ''));
-  const unnamed = toPlan.filter((n) => (n.description?.value ?? '').replace(/\s+/g, ' ').trim() !== planName.replace(/\s+/g, ' '));
-  ok('the open before-you-go sheet: each way on to the plan is described by the plan',
-    opened && planName.length > 0 && toPlan.length > 0 && unnamed.length === 0,
-    opened ? `${toPlan.length - unnamed.length}/${toPlan.length} say "${planName}"` : 'the sheet did not open');
-  await bg.close();
+  const cta = out.locator('main article a[href^="http"]:visible', { hasText: /לחבילה באתר/ }).first();
+  const href = await cta.getAttribute('href');
+  const [tab] = await Promise.all([ctx.waitForEvent('page', { timeout: 5000 }).catch(() => null), cta.click()]);
+  await out.waitForTimeout(600);
+  const after = await out.evaluate(() => {
+    const card = document.getElementById('booking-extra-title')?.closest('section');
+    return {
+      sheet: Boolean(document.querySelector('dialog[open]')),
+      card: Boolean(card),
+      cardLinks: card ? [...card.querySelectorAll('a[href]')].map((a) => a.getAttribute('target')) : [],
+    };
+  });
+  ok('the plan’s button opens the plan in a new tab, with no sheet on the way',
+    Boolean(tab) && !after.sheet && left.some((url) => url.split('?')[0] === href.split('?')[0]), JSON.stringify({ tab: Boolean(tab), sheet: after.sheet, opened: left[0]?.slice(0, 60) }));
+  ok('then Booking is offered on this page, opening a tab of its own',
+    after.card && after.cardLinks.length === 2 && after.cardLinks.every((t) => t === '_blank'), JSON.stringify(after.cardLinks));
+  await ctx.close();
 }
 
 // 3.3.1 / 3.3.3 / 4.1.3 The contact form: errors are named next to their

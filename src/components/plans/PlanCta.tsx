@@ -10,8 +10,6 @@ import { outboundLink } from "@/lib/affiliate/link";
 import { track } from "@/lib/analytics/events";
 import type { ComparisonRow } from "@/lib/comparison/buildComparison";
 import { isPresentableDiscount } from "@/lib/types/discount";
-import { useTripExtras } from "@/components/extras/TripExtrasProvider";
-import { BeforeYouGo, beforeYouGoSnoozed } from "./BeforeYouGo";
 import { copyText } from "./CopyCodeButton";
 
 /**
@@ -64,17 +62,12 @@ export function PlanCta({
   describedBy?: string;
 }) {
   const [noted, setNoted] = useState(false);
-  const [beforeYouGo, setBeforeYouGo] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   // A code the traveller has to type at the provider's checkout. It is copied
-  // on the way out, without a question — the owner: the question on the way
-  // out is the rental car, not the code.
+  // on the way out, without a question.
   const { discount } = row.plan;
   const codeToType =
     discount && !discount.appliedByLink && isPresentableDiscount(discount, demoDataEnabled) ? discount : null;
-  // The car question, when a real rental network is connected.
-  const askCar = Boolean(useTripExtras()?.carRentalOffer);
-  const hasDialog = askCar;
 
   async function copyCodeOnTheWay() {
     if (codeToType && (await copyText(codeToType.code))) setCodeCopied(true);
@@ -104,19 +97,14 @@ export function PlanCta({
             aria-describedby={describedBy}
             rel={link.rel}
             target={link.target}
-            onClick={(event) => {
-              if (hasDialog && !beforeYouGoSnoozed()) {
-                event.preventDefault();
-                setBeforeYouGo(true);
-                return;
-              }
+            // Straight to the plan, with nothing asked on the way. Hotels and
+            // cars on Booking.com are offered after, on this page: Booking pay
+            // only for a booking finished in the same visit, and offered first
+            // — in a sheet on the way out, until 9 October 2026 — Booking was
+            // the page a phone visitor had to leave to go back and buy the
+            // eSIM (the owner, 9 October 2026).
+            onClick={() => {
               void copyCodeOnTheWay();
-              if (hasDialog) {
-                // Snoozed: straight through, and no car question on the page
-                // either — "not for ten minutes" means it.
-                track({ name: "provider_clicked", planId: row.plan.id, providerId: row.plan.providerId });
-                return;
-              }
               recordClick();
             }}
             className={buttonClasses("primary", size, "grow sm:grow-0")}
@@ -174,24 +162,6 @@ export function PlanCta({
               : `${Math.round((row.plan.dataAmountMb / MB_PER_GB) * 10) / 10}GB`,
           })}
         </p>
-      ) : null}
-      {link && hasDialog ? (
-        <BeforeYouGo
-          open={beforeYouGo}
-          onClose={() => setBeforeYouGo(false)}
-          row={row}
-          discount={codeToType}
-          link={link}
-          dict={dict}
-          locale={locale}
-          onContinue={(askedAboutCar) => {
-            void copyCodeOnTheWay();
-            track({ name: "provider_clicked", planId: row.plan.id, providerId: row.plan.providerId });
-            // Asked in the dialog already: the page does not ask again.
-            if (!askedAboutCar) onChosen?.();
-            setBeforeYouGo(false);
-          }}
-        />
       ) : null}
       {/* "You don't pay here" is said once under the list, not on every
           card; only the demo's dead button needs a word of its own. */}
