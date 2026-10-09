@@ -26,6 +26,12 @@ answer automated clients with an empty page, so Yesim is checked by hand.
 ZenSim cards: the link has our affiliate id and the card's data and days; on a
 sample of 25 of their pages, the list price is read again and every card from
 that page must show it, at one exchange rate for the run.
+Saily cards: the link is our tracking link carrying the plan's own saily.com
+page with that plan selected; the plan is in Saily's partner API with the
+card's data and days, and the shekel price matches the API's dollar price at
+one rate for the run. On a sample of 25 of their pages, the page must still
+sell the plan at that price (their schema.org data) — when it does not, the
+list `npm run check:saily` writes is out of date: rerun it and release.
 Exchange rates: the rates on /api/status (those prices are converted at, and
 those the "before you go" facts quote) are fresh and within 2% of the Bank of
 Israel's representative rates, and the rates implied by Yesim's and ZenSim's
@@ -38,6 +44,7 @@ import os, datetime, time
 BASE=(sys.argv[1] if len(sys.argv)>1 else 'https://www.yeshklita.com').rstrip('/')
 OUT=os.environ.get('REGRESSION_OUT','/tmp/live-regression.json')
 YESIM=json.loads(subprocess.run(['curl','-sS','-m','90','https://api.yesim.app/api_v0.1/api/prices?partner=5581'],capture_output=True,text=True).stdout)
+SAILY={i['identifier']:i for i in json.loads(subprocess.run(['curl','-sS','-m','90','https://web.saily.com/v3/partners/plans?utm_source=yeshklita'],capture_output=True,text=True).stdout or '{}').get('items',[])}
 _countries=open(os.path.join(os.path.dirname(__file__),'..','src','data','countries.generated.ts')).read()
 codes=sorted(set(re.findall(r"code: '([A-Z]{2})'",_countries)))
 usages=['navigation','light','regular','heavy','hotspot','unlimited']
@@ -61,16 +68,16 @@ def parse(s):
         a=m.group(0)
         if '🧩' in a:
             # The combination card: one link per leg, no plan headline.
-            legs=len(re.findall(r'<li',a)); links=len(re.findall(r'href="https://(?:yesim\.app|alosim\.com|zensim\.com)',a))
+            legs=len(re.findall(r'<li',a)); links=len(re.findall(r'href="https://(?:yesim\.app|alosim\.com|zensim\.com|go\.saily\.site)',a))
             rows.append({'combo':True,'legs':legs,'links':links,'ok':True}); continue
         face=re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]+>',' ',a.split('עוד פרטים')[0])))
         h=re.search(r'(ללא הגבלה|([\d.]+)(GB|MB))\s*·\s*,?\s*(\d+)\s*(ימים|יום)',face)
         pr=re.search(r'בערך\s*₪\s?([\d,]+(?:\.\d+)?)',face) or re.search(r'₪\s?([\d,]+(?:\.\d+)?)',face)
-        link=re.search(r'href="(https://(?:yesim\.app|alosim\.com|zensim\.com)[^"]*)"',a)
+        link=re.search(r'href="(https://(?:yesim\.app|alosim\.com|zensim\.com|go\.saily\.site)[^"]*)"',a)
         rows.append({'unl':bool(h) and h.group(1)=='ללא הגבלה','mb':(float(h.group(2))*(1024 if h.group(3)=='GB' else 1)) if h and h.group(2) else None,
             'days':int(h.group(4)) if h else None,'ils':float(pr.group(1).replace(',','')) if pr else None,
             'status':'fits' if 'מספיק לכל הטיול' in face else 'short','link':html.unescape(link.group(1)) if link else None,
-            'prov':(None if not link else 'yesim' if 'yesim.app' in link.group(1) else 'zensim' if 'zensim.com' in link.group(1) else 'alosim'),'ok':bool(h and pr)})
+            'prov':(None if not link else 'yesim' if 'yesim.app' in link.group(1) else 'zensim' if 'zensim.com' in link.group(1) else 'saily' if 'go.saily.site' in link.group(1) else 'alosim'),'ok':bool(h and pr)})
     return rows
 def get(job):
     legs,u=job
@@ -85,7 +92,7 @@ res=[]
 with cf.ThreadPoolExecutor(6) as ex:
     for r in ex.map(get,jobs): res.append(r)
 json.dump(res,open(OUT,'w'),ensure_ascii=False)
-issues=C.defaultdict(list); rates=[]; alosim_links={}; alosim_from={}; zensim_cards=[]
+issues=C.defaultdict(list); rates=[]; alosim_links={}; alosim_from={}; zensim_cards=[]; saily_cards=[]; saily_rates=[]
 for p in res:
     key=f"{p['q']} {p['u']}"
     if not p['len']: issues['fetch-failed'].append(key); continue
@@ -123,6 +130,22 @@ for p in res:
             card_allow='UNLIMITED' if r['unl'] else (f"{int(r['mb'])//1024}GB" if r['mb'] and r['mb']>=1024 else f"{int(r['mb'] or 0)}MB")
             if int(m.group(3))!=r['days'] or allow!=card_allow: issues['zensim-link≠card'].append(f"{key}: card {card_allow}/{r['days']}d link {allow}/{m.group(3)}d")
             zensim_cards.append((u.path,pid,r['ils'],key,r['link']))
+        elif r['prov']=='saily':
+            # Saily: our TUNE link, carrying the plan's own page with the plan
+            # selected (Saily's API gives that page for every plan).
+            dest=U.urlparse((qs.get('url') or [''])[0]); dq=U.parse_qs(dest.query)
+            pid=(dq.get('selectedPlan') or [''])[0]
+            if u.path!='/aff_c' or qs.get('offer_id')!=['101'] or qs.get('aff_id')!=['17062'] or dest.netloc!='saily.com' or not re.fullmatch(r'/esim-[a-z0-9-]+/?',dest.path) or not pid:
+                issues['saily-link-shape'].append(f"{key}: {r['link']}"); continue
+            plan=SAILY.get(pid)
+            if not plan: issues['saily-link-not-in-api'].append(f"{key}: {r['link']}"); continue
+            b=plan['balances'][0]
+            api_allow='unlimited' if plan['is_unlimited'] else (f"{b['amount']}gb" if b['unit']=='GB' else f"{b['amount']}mb")
+            card_allow='unlimited' if r['unl'] else (f"{int(r['mb'])//1024}gb" if r['mb'] and r['mb']>=1024 else f"{int(r['mb'] or 0)}mb")
+            if plan['duration']['amount']!=r['days'] or api_allow!=card_allow: issues['saily-link≠card'].append(f"{key}: card {card_allow}/{r['days']}d plan {api_allow}/{plan['duration']['amount']}d")
+            usd=plan['price']['amount_with_tax']/100
+            saily_cards.append((dest.path.rstrip('/')+'/',pid,usd,key,r['link']))
+            saily_rates.append((r['ils']/usd,key,r['link'],usd,r['ils']))
         else:
             m=re.fullmatch(r'(/(?:country|regions|global)/[a-z0-9-]+)/(\d+)days-([0-9a-z]+)-esim-data-plan/',u.path)
             if not m or qs.get('partner_id')!=['5581']: issues['yesim-link-shape'].append(f"{key}: {r['link']}"); continue
@@ -220,6 +243,38 @@ if zensim_cards:
             if abs(rate/zmed-1)>0.02: issues['zensim-price≠page'].append(f"{key}: ${usd} shown as ₪{ils} (rate {rate:.3f} vs {zmed:.3f}) {link}")
         print(f'zensim ILS/USD median {zmed:.4f} over {len(zrates)} cards from {len(zsample)} pages')
         zmed_all=zmed
+# Saily: the site lists a plan only if its page sold it at the API's price
+# when `npm run check:saily` last ran. On a sample of 25 of their pages, read
+# the schema.org data again: a plan the page no longer sells, or sells at
+# another price, means that list is out of date.
+saily_med=None
+if saily_cards:
+    spaths=sorted({c[0] for c in saily_cards})
+    ssample=spaths[datetime.date.today().toordinal()%5::max(1,len(spaths)//25)][:25]
+    sold={}; unread=[]
+    for path in ssample:
+        page=subprocess.run(['curl','-sS','-m','60','-r','0-98303','-A',UA,'https://saily.com'+path],capture_output=True,text=True).stdout
+        def walk(o):
+            if isinstance(o,list): [walk(x) for x in o]
+            elif isinstance(o,dict):
+                if o.get('@type')=='Offer' and isinstance(o.get('sku'),str) and o.get('priceCurrency')=='USD':
+                    sold[o['sku']]=float(o.get('price') or 0)
+                [walk(x) for x in o.values()]
+        for blk in re.findall(r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>',page,re.S):
+            try: walk(json.loads(blk))
+            except ValueError: pass
+        if '"Offer"' not in page: unread.append(path)
+    if unread: issues['saily-page-unreadable'].append(', '.join(unread))
+    for path,pid,usd,key,link in saily_cards:
+        if path not in ssample or path in unread: continue
+        if pid not in sold: issues['saily-plan-not-on-page (rerun npm run check:saily)'].append(f"{key}: {link}")
+        elif abs(sold[pid]-usd)>0.005: issues['saily-price≠page (rerun npm run check:saily)'].append(f"{key}: API ${usd}, page ${sold[pid]} {link}")
+    print(f'saily: {len(saily_cards)} cards, {len(ssample)} of {len(spaths)} pages read again')
+if saily_rates:
+    saily_med=statistics.median(x[0] for x in saily_rates)
+    for rate,key,link,usd,ils in saily_rates:
+        if abs(rate/saily_med-1)>0.02: issues['saily-price≠api'].append(f"{key}: ${usd} shown as ₪{ils} (rate {rate:.3f} vs {saily_med:.3f}) {link}")
+    print(f'saily ILS/USD median {saily_med:.4f} over {len(saily_rates)} cards')
 if rates:
     med=statistics.median(x[0] for x in rates)
     for rate,key,link,eur,ils in rates:
@@ -262,6 +317,7 @@ def check_rates():
     applied=[]
     if rates_med is not None and 'EUR' in official: applied.append(('Yesim (EUR)',rates_med,official['EUR']))
     if zmed_all is not None and 'USD' in official: applied.append(('ZenSim (USD)',zmed_all,official['USD']))
+    if saily_med is not None and 'USD' in official: applied.append(('Saily (USD)',saily_med,official['USD']))
     for label,used,ref in applied:
         # Prices may carry a provider's own discount or rounding, so the band is wider.
         if abs(used/ref-1)>0.05: issues['applied-rate≠bank-of-israel'].append(f"{label}: prices imply ₪{used:.4f}, Bank of Israel ₪{ref:.4f}")

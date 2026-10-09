@@ -6,6 +6,7 @@ import { mergeResults, type ProviderSource, type SkippedRecord } from '@/lib/sou
 import type { RateSource } from '@/lib/sources/RateSource';
 import { ecbRateSource } from '@/lib/sources/ecb/ecbRateSource';
 import { alosimCredentialsFromEnv, alosimSource } from '@/lib/sources/alosim/alosimSource';
+import { sailyAffiliateIdFromEnv, sailySource } from '@/lib/sources/saily/sailySource';
 import { yesimPartnerIdFromEnv, yesimSource } from '@/lib/sources/yesim/yesimSource';
 import { zensimAffiliateIdFromEnv, zensimSource } from '@/lib/sources/zensim/zensimSource';
 import { mockPlanSource, mockRateSource } from '@/lib/sources/mockPlanSource';
@@ -57,8 +58,8 @@ export type CatalogueSources = { plans: ProviderSource[]; rates: RateSource[] };
  * The sources in play.
  *
  * Plans come from every provider configured in the environment — aloSIM
- * (`ALOSIM_CLIENT_ID`/`ALOSIM_CLIENT_SECRET`), Yesim (`YESIM_PARTNER_ID`) and
- * ZenSim (`ZENSIM_AFFILIATE_ID`). The demo catalogue is never mixed in with them: a real price beside
+ * (`ALOSIM_CLIENT_ID`/`ALOSIM_CLIENT_SECRET`), Yesim (`YESIM_PARTNER_ID`),
+ * ZenSim (`ZENSIM_AFFILIATE_ID`) and Saily (`SAILY_AFFILIATE_ID`). The demo catalogue is never mixed in with them: a real price beside
  * an invented one tells a traveller nothing, and a search engine would index
  * the invented one as an offer. It runs only where it is asked for by name
  * (`DEMO_CATALOGUE=true`), for development and the test suites, and only when
@@ -73,10 +74,12 @@ export function planSourcesFromEnv(env: Record<string, string | undefined> = pro
   const alosim = alosimCredentialsFromEnv(env);
   const yesim = yesimPartnerIdFromEnv(env);
   const zensim = zensimAffiliateIdFromEnv(env);
+  const saily = sailyAffiliateIdFromEnv(env);
   const real = [
     ...(alosim ? [alosimSource({ credentials: alosim })] : []),
     ...(yesim ? [yesimSource({ partnerId: yesim })] : []),
     ...(zensim ? [zensimSource({ affiliateId: zensim })] : []),
+    ...(saily ? [sailySource({ affiliateId: saily })] : []),
   ];
   if (real.length > 0) return real;
   return env.DEMO_CATALOGUE === 'true' ? [mockPlanSource()] : [];

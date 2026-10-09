@@ -79,6 +79,22 @@ for ZenSim only:
 Neither extends to any other provider without the owner saying so. If ZenSim
 ever offer a feed or plan links, switch to those.
 
+**Saily: their pages may be read to check their feed, and for nothing else
+(the owner, 9 October 2026).** Saily's partner API carries prices and a
+plan-level link for every plan, but on 9 October 150 of its 1,184 plans were
+not what the plan's own saily.com page sold (Thailand unlimited 7 days:
+US$28.99 in the API, another plan at US$20.99 on the page). The owner chose
+"connect now, checked against their site". So:
+
+- prices and plans come from the API only; a plan is listed only when its
+  page sells it at the API's price, per `src/data/saily-offered.generated.ts`;
+- that list is written by `npm run check:saily` from the schema.org data on
+  their pages — run from a session, because saily.com's Cloudflare challenges
+  some networks, so the live server never reads saily.com;
+- when the nightly live check reports a Saily plan its page no longer sells,
+  rerun `npm run check:saily` and release. Do not widen this to reading
+  Saily's prices from their pages.
+
 ## Versions
 
 The owner asked to be able to follow what changed. Every change that reaches

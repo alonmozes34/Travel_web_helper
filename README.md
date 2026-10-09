@@ -97,8 +97,9 @@ would otherwise inherit. `npm run test:e2e` fails if a page stops carrying an
 
 > **Live plans come from aloSIM's Store API**, when `ALOSIM_CLIENT_ID` and
 > `ALOSIM_CLIENT_SECRET` are set, **Yesim's Prices API**, when
-> `YESIM_PARTNER_ID` is set, **and ZenSim's own country pages**, when
-> `ZENSIM_AFFILIATE_ID` is set. The demo catalogue in this repository is
+> `YESIM_PARTNER_ID` is set, **ZenSim's own country pages**, when
+> `ZENSIM_AFFILIATE_ID` is set, **and Saily's partner API**, when
+> `SAILY_AFFILIATE_ID` is set. The demo catalogue in this repository is
 > invented, runs only with `DEMO_CATALOGUE=true`, and is never shown beside a
 > real one. See [Plan data](#plan-data).
 
@@ -456,6 +457,7 @@ Where plans come from is decided in one place, `planSourcesFromEnv` in
 | `ALOSIM_CLIENT_ID` + `ALOSIM_CLIENT_SECRET` | aloSIM's Store API, refreshed every three hours |
 | `YESIM_PARTNER_ID` | Yesim's Prices API (no key; the id is the one in our links), refreshed every three hours |
 | `ZENSIM_AFFILIATE_ID` | ZenSim's country pages — the schema.org data they publish for search engines — refreshed every six hours. The one provider read from its website, by the owner's exception of 29 September 2026: ZenSim have no price feed. Single-country plans only; the link opens the plan's duration, not the plan |
+| `SAILY_AFFILIATE_ID` | Saily's partner API (no key; `17062` is the id in our links), refreshed every three hours. A plan is listed only if its own saily.com page sells it at the API's price — on 9 October 2026, 151 of the API's plans were not — per `src/data/saily-offered.generated.ts`, which `npm run check:saily` writes from the schema.org data on their pages (the owner's permission of 9 October 2026, for this check only). The live server never reads saily.com: Cloudflare challenges some networks' requests there |
 | neither, `DEMO_CATALOGUE=true` | the invented demo catalogue — development and tests only |
 | neither | empty; every page says it has nothing yet |
 

@@ -1,6 +1,6 @@
 {
   "name": "yeshklita",
-  "version": "0.39.1",
+  "version": "0.40.0",
   "private": true,
   "engines": {
     "node": ">=20.9.0"
@@ -20,6 +20,7 @@
     "generate:brand": "tsx scripts/generate-brand-assets.ts",
     "fetch:impact": "tsx scripts/fetch-impact.ts",
     "import:alosim": "tsx scripts/import-alosim-links.ts",
+    "check:saily": "tsx scripts/check-saily-pages.ts",
     "test:live": "python3 scripts/live-regression.py",
     "test:nightly": "bash scripts/nightly.sh"
   },

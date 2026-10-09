@@ -8,7 +8,7 @@
 #   1. lint, typecheck, unit tests
 #   2. a build on the demo catalogue, and the browser suites against it:
 #      accessibility (axe + manual), smoke, features, negative
-#   3. a build on Yesim's and ZenSim's real catalogues (no keys needed) and
+#   3. a build on Yesim's, ZenSim's and Saily's real catalogues (no keys needed) and
 #      the accessibility suite against it — real data breaks layouts that the
 #      demo does not (it found a 4px overflow on 28 September 2026)
 #   4. the live regression against the production site: 940 searches, every
@@ -104,8 +104,8 @@ else
 fi
 
 line ""
-line "## Real catalogues (Yesim + ZenSim)"
-REAL_ENV="YESIM_PARTNER_ID=5581 ZENSIM_AFFILIATE_ID=yeshklita"
+line "## Real catalogues (Yesim, ZenSim, Saily)"
+REAL_ENV="YESIM_PARTNER_ID=5581 ZENSIM_AFFILIATE_ID=yeshklita SAILY_AFFILIATE_ID=17062"
 if env $REAL_ENV npm run build > "$LOGS/build-yesim.log" 2>&1 && start_server 7102 $REAL_ENV; then
   export BASE_URL=http://localhost:7102
   # ZenSim's first read takes ~20s and the page does not wait for it; wait

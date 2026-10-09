@@ -4,7 +4,7 @@ import { mockProviders } from './mockProviders';
 /**
  * Providers whose plans reach the site from a real source.
  *
- * `activation` is null for both: neither API says whether a plan
+ * `activation` is null for all: no source says whether a plan
  * installs by QR code, by app, or both, and the page says "not stated" rather
  * than repeating what their marketing suggests.
  */
@@ -52,6 +52,22 @@ export const providers: Provider[] = [
     logo: { src: '/providers/zensim.svg', width: 936, height: 269 },
     activation: null,
     // Their pages price in US dollars. What an Israeli card is charged in has
+    // not been confirmed.
+    billingCurrency: 'not-confirmed',
+  },
+  {
+    id: 'saily',
+    name: 'Saily',
+    slug: 'saily',
+    // Their wordmark is black; this is the near-black of their site's text.
+    // Used only where no logo is shown.
+    brandColor: '#141414',
+    // The logo in their own site's header (saily.com, read 9 October 2026),
+    // without its moving wave: black on the white logo tile, where the owner
+    // asked for it to be seen clearly.
+    logo: { src: '/providers/saily.svg', width: 1000, height: 421 },
+    activation: null,
+    // Their API prices in US dollars. What an Israeli card is charged in has
     // not been confirmed.
     billingCurrency: 'not-confirmed',
   },

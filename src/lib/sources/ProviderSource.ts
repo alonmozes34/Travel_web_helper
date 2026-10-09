@@ -59,6 +59,10 @@ export const skipReasons = [
   'unsupported-currency',
   'unknown-provider',
   'out-of-stock',
+  /** Sold as something the comparison cannot hold — a subscription that renews. */
+  'unsupported-plan-type',
+  /** The provider's own page does not sell it at the feed's price, so a link to it would land elsewhere. */
+  'not-offered',
 ] as const;
 
 export type SkipReason = (typeof skipReasons)[number];

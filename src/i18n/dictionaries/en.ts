@@ -82,7 +82,7 @@ export const en: Dictionary = {
       {
         heading: 'Where the prices come from',
         body: [
-          'From the providers themselves: aloSIM and Yesim through the interfaces they provide to partners, and ZenSim from the data they publish on their own site. Prices are refreshed several times a day.',
+          'From the providers themselves: aloSIM, Yesim and Saily through the interfaces they provide to partners, and ZenSim from the data they publish on their own site. A Saily plan is shown only if their own site sells it at the same price. Prices are refreshed several times a day.',
           'What a provider does not state — for example, after how much data the speed drops — is shown as "not stated". We never fill in details by guessing.',
           'Everything else comes from open sources: city names in the search from GeoNames (CC BY 4.0), destination facts from Wikidata and CLDR, and exchange rates from the European Central Bank.',
         ],

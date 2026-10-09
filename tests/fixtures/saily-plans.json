@@ -1,0 +1,746 @@
+[
+ {
+  "balances": [
+   {
+    "amount": 20,
+    "is_unlimited": false,
+    "type": "DATA",
+    "unit": "GB"
+   }
+  ],
+  "category": "standard",
+  "covered_countries": [
+   "TH"
+  ],
+  "destination_url": "https%3A%2F%2Fsaily.com%2Fesim-thailand%3Faff_transaction_id%3D%7Btransaction_id%7D%26aff_offer_id%3D%7Boffer_id%7D%26aff_id%3D%7Baff_id%7D%26selectedPlan%3Ddc49ebde-ea79-4054-80af-28e27130e1c2",
+  "duration": {
+   "amount": 30,
+   "unit": "day"
+  },
+  "identifier": "dc49ebde-ea79-4054-80af-28e27130e1c2",
+  "is_unlimited": false,
+  "merchant_plans": [
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 1999,
+     "currency": "USD",
+     "identifier": "MjpxTlhQSXBhOHJJMjBiSFVVQzgxMEp0c3lFbm56X3BoT3FSS2xLYmtSd3BZPTpQcmljZTo5Njo1NjAwLlVTRC4xOTk5"
+    }
+   },
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 1999,
+     "currency": "USD",
+     "identifier": "MjpxTlhQSXBhOHJJMjBiSFVVQzgxMEp0c3lFbm56X3BoT3FSS2xLYmtSd3BZPTpQcmljZTo5Njo1NjAwLlVTRC4xOTk5"
+    }
+   }
+  ],
+  "name": "Thailand 20GB 30 days",
+  "price": {
+   "amount_with_tax": 1999,
+   "currency": "USD",
+   "identifier": "MjpxTlhQSXBhOHJJMjBiSFVVQzgxMEp0c3lFbm56X3BoT3FSS2xLYmtSd3BZPTpQcmljZTo5Njo1NjAwLlVTRC4xOTk5"
+  },
+  "pricing_slug": "esim-thailand"
+ },
+ {
+  "balances": [
+   {
+    "amount": 999,
+    "is_unlimited": true,
+    "type": "DATA",
+    "unit": "GB"
+   }
+  ],
+  "category": "standard",
+  "covered_countries": [
+   "TH"
+  ],
+  "destination_url": "https%3A%2F%2Fsaily.com%2Fesim-thailand%3Faff_transaction_id%3D%7Btransaction_id%7D%26aff_offer_id%3D%7Boffer_id%7D%26aff_id%3D%7Baff_id%7D%26selectedPlan%3D519ff24a-7cf1-46e8-b6e8-8e102868efe6",
+  "duration": {
+   "amount": 7,
+   "unit": "day"
+  },
+  "identifier": "519ff24a-7cf1-46e8-b6e8-8e102868efe6",
+  "is_unlimited": true,
+  "merchant_plans": [
+   {
+    "metadata": {
+     "throttled_speed": {
+      "amount": 1024,
+      "unit": "KBPS"
+     },
+     "unrestricted_data": {
+      "amount": 5,
+      "unit": "GB"
+     },
+     "unrestricted_data_after": {
+      "interval": 1,
+      "unit": "DAY"
+     }
+    },
+    "price": {
+     "amount_with_tax": 2899,
+     "currency": "USD",
+     "identifier": "MjpaVUhuTUI5MnhOQVJUdjdwTEhHVnJheTJBT3Ayb3lTSUE2WTg1VW1ONHdNPTpQcmljZTo5Njo3NDExLlVTRC4yODk5"
+    }
+   },
+   {
+    "metadata": {
+     "throttled_speed": {
+      "amount": 1024,
+      "unit": "KBPS"
+     },
+     "unrestricted_data": {
+      "amount": 5,
+      "unit": "GB"
+     },
+     "unrestricted_data_after": {
+      "interval": 1,
+      "unit": "DAY"
+     }
+    },
+    "price": {
+     "amount_with_tax": 2899,
+     "currency": "USD",
+     "identifier": "MjpaVUhuTUI5MnhOQVJUdjdwTEhHVnJheTJBT3Ayb3lTSUE2WTg1VW1ONHdNPTpQcmljZTo5Njo3NDExLlVTRC4yODk5"
+    }
+   }
+  ],
+  "name": "Thailand UNLIMITED 7 days",
+  "price": {
+   "amount_with_tax": 2899,
+   "currency": "USD",
+   "identifier": "MjpaVUhuTUI5MnhOQVJUdjdwTEhHVnJheTJBT3Ayb3lTSUE2WTg1VW1ONHdNPTpQcmljZTo5Njo3NDExLlVTRC4yODk5"
+  },
+  "pricing_slug": "esim-thailand"
+ },
+ {
+  "balances": [
+   {
+    "amount": 999,
+    "is_unlimited": true,
+    "type": "DATA",
+    "unit": "GB"
+   }
+  ],
+  "category": "standard",
+  "covered_countries": [
+   "MX"
+  ],
+  "destination_url": "https%3A%2F%2Fsaily.com%2Fesim-mexico%3Faff_transaction_id%3D%7Btransaction_id%7D%26aff_offer_id%3D%7Boffer_id%7D%26aff_id%3D%7Baff_id%7D%26selectedPlan%3D0393d57a-c784-4b7a-8014-b4cf6dc180d3",
+  "duration": {
+   "amount": 30,
+   "unit": "day"
+  },
+  "identifier": "0393d57a-c784-4b7a-8014-b4cf6dc180d3",
+  "is_unlimited": true,
+  "merchant_plans": [
+   {
+    "metadata": {
+     "throttled_speed": {
+      "amount": 1024,
+      "unit": "KBPS"
+     },
+     "unrestricted_data": {
+      "amount": 3,
+      "unit": "GB"
+     },
+     "unrestricted_data_after": {
+      "interval": 1,
+      "unit": "DAY"
+     }
+    },
+    "price": {
+     "amount_with_tax": 7199,
+     "currency": "USD",
+     "identifier": "MjpEX0VocW1CdEZaYXRBSHFyS1NYVVdpcmhramRadXA2cVB6LUdwT3FCNUZnPTpQcmljZTo5Njo3MzgyLlVTRC43MTk5"
+    }
+   },
+   {
+    "metadata": {
+     "throttled_speed": {
+      "amount": 1024,
+      "unit": "KBPS"
+     },
+     "unrestricted_data": {
+      "amount": 3,
+      "unit": "GB"
+     },
+     "unrestricted_data_after": {
+      "interval": 1,
+      "unit": "DAY"
+     }
+    },
+    "price": {
+     "amount_with_tax": 7199,
+     "currency": "USD",
+     "identifier": "MjpEX0VocW1CdEZaYXRBSHFyS1NYVVdpcmhramRadXA2cVB6LUdwT3FCNUZnPTpQcmljZTo5Njo3MzgyLlVTRC43MTk5"
+    }
+   }
+  ],
+  "name": "Mexico UNLIMITED 30 days",
+  "price": {
+   "amount_with_tax": 7199,
+   "currency": "USD",
+   "identifier": "MjpEX0VocW1CdEZaYXRBSHFyS1NYVVdpcmhramRadXA2cVB6LUdwT3FCNUZnPTpQcmljZTo5Njo3MzgyLlVTRC43MTk5"
+  },
+  "pricing_slug": "esim-mexico"
+ },
+ {
+  "balances": [
+   {
+    "amount": 999,
+    "is_unlimited": true,
+    "type": "DATA",
+    "unit": "GB"
+   }
+  ],
+  "category": "standard",
+  "covered_countries": [
+   "AU",
+   "CN",
+   "HK",
+   "IN",
+   "ID",
+   "JP",
+   "KZ",
+   "MO",
+   "MY",
+   "NZ",
+   "PK",
+   "PH",
+   "SG",
+   "KR",
+   "LK",
+   "TW",
+   "TH",
+   "UZ",
+   "VN",
+   "BD",
+   "KH",
+   "LA"
+  ],
+  "destination_url": "https%3A%2F%2Fsaily.com%2Fesim-asia-and-oceania%3Faff_transaction_id%3D%7Btransaction_id%7D%26aff_offer_id%3D%7Boffer_id%7D%26aff_id%3D%7Baff_id%7D%26selectedPlan%3D2a287b0e-03b3-4a1b-a0e8-20ea901e3c7f",
+  "duration": {
+   "amount": 10,
+   "unit": "day"
+  },
+  "identifier": "2a287b0e-03b3-4a1b-a0e8-20ea901e3c7f",
+  "is_unlimited": true,
+  "merchant_plans": [
+   {
+    "metadata": {
+     "throttled_speed": {
+      "amount": 1024,
+      "unit": "KBPS"
+     },
+     "unrestricted_data": {
+      "amount": 5,
+      "unit": "GB"
+     },
+     "unrestricted_data_after": {
+      "interval": 1,
+      "unit": "DAY"
+     }
+    },
+    "price": {
+     "amount_with_tax": 3899,
+     "currency": "USD",
+     "identifier": "Mjo5LXNHWnVkZzhlaUFqa0hoX1R5YjVoalllWUliMXhxb3QwN2h4VkpPbklJPTpQcmljZTo5Njo3MDAwLlVTRC4zODk5"
+    }
+   },
+   {
+    "metadata": {
+     "throttled_speed": {
+      "amount": 1024,
+      "unit": "KBPS"
+     },
+     "unrestricted_data": {
+      "amount": 5,
+      "unit": "GB"
+     },
+     "unrestricted_data_after": {
+      "interval": 1,
+      "unit": "DAY"
+     }
+    },
+    "price": {
+     "amount_with_tax": 3899,
+     "currency": "USD",
+     "identifier": "Mjo5LXNHWnVkZzhlaUFqa0hoX1R5YjVoalllWUliMXhxb3QwN2h4VkpPbklJPTpQcmljZTo5Njo3MDAwLlVTRC4zODk5"
+    }
+   }
+  ],
+  "name": "Asia and Oceania UNLIMITED 10 days",
+  "price": {
+   "amount_with_tax": 3899,
+   "currency": "USD",
+   "identifier": "Mjo5LXNHWnVkZzhlaUFqa0hoX1R5YjVoalllWUliMXhxb3QwN2h4VkpPbklJPTpQcmljZTo5Njo3MDAwLlVTRC4zODk5"
+  },
+  "pricing_slug": "esim-asia-and-oceania",
+  "region": "ASA"
+ },
+ {
+  "balances": [
+   {
+    "amount": 10,
+    "is_unlimited": false,
+    "type": "DATA",
+    "unit": "GB"
+   }
+  ],
+  "category": "standard",
+  "covered_countries": [
+   "HI"
+  ],
+  "destination_url": "https%3A%2F%2Fsaily.com%2Fesim-united-states%2Fhawaii%3Faff_transaction_id%3D%7Btransaction_id%7D%26aff_offer_id%3D%7Boffer_id%7D%26aff_id%3D%7Baff_id%7D%26selectedPlan%3Ddf2f3919-8b3e-4ac2-91c7-2cd0c2ccf27d",
+  "duration": {
+   "amount": 30,
+   "unit": "day"
+  },
+  "identifier": "df2f3919-8b3e-4ac2-91c7-2cd0c2ccf27d",
+  "is_unlimited": false,
+  "merchant_plans": [
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 2299,
+     "currency": "USD",
+     "identifier": "MjpQa0dXaDd6RW4yMENsTkVfeXNzVlhhdXhUTE94N3VmeFY0WEdsMVZfREdJPTpQcmljZTo5Njo2NjgxLlVTRC4yMjk5"
+    }
+   },
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 2299,
+     "currency": "USD",
+     "identifier": "MjpQa0dXaDd6RW4yMENsTkVfeXNzVlhhdXhUTE94N3VmeFY0WEdsMVZfREdJPTpQcmljZTo5Njo2NjgxLlVTRC4yMjk5"
+    }
+   }
+  ],
+  "name": "Hawaii 10GB 30 days",
+  "price": {
+   "amount_with_tax": 2299,
+   "currency": "USD",
+   "identifier": "MjpQa0dXaDd6RW4yMENsTkVfeXNzVlhhdXhUTE94N3VmeFY0WEdsMVZfREdJPTpQcmljZTo5Njo2NjgxLlVTRC4yMjk5"
+  },
+  "pricing_slug": "esim-united-states/hawaii"
+ },
+ {
+  "balances": [
+   {
+    "amount": 5,
+    "is_unlimited": false,
+    "type": "DATA",
+    "unit": "GB"
+   }
+  ],
+  "category": "ultra",
+  "covered_countries": [
+   "AD",
+   "AE",
+   "AF",
+   "AL",
+   "AM",
+   "AR",
+   "AT",
+   "AU",
+   "AZ",
+   "BD",
+   "BE",
+   "BG",
+   "BL",
+   "BO",
+   "BR",
+   "CA",
+   "CH",
+   "CL",
+   "CN",
+   "CO",
+   "CR",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "DO",
+   "DZ",
+   "EC",
+   "EE",
+   "EG",
+   "ES",
+   "FI",
+   "FJ",
+   "FO",
+   "FR",
+   "GB",
+   "GE",
+   "GF",
+   "GG",
+   "GH",
+   "GI",
+   "GP",
+   "GR",
+   "GT",
+   "HK",
+   "HN",
+   "HR",
+   "HU",
+   "ID",
+   "IE",
+   "IL",
+   "IN",
+   "IQ",
+   "IS",
+   "IT",
+   "JE",
+   "JM",
+   "JO",
+   "JP",
+   "KH",
+   "KR",
+   "KW",
+   "KZ",
+   "LI",
+   "LK",
+   "LT",
+   "LU",
+   "LV",
+   "MA",
+   "MC",
+   "ME",
+   "MF",
+   "MO",
+   "MQ",
+   "MT",
+   "MX",
+   "MY",
+   "MZ",
+   "NG",
+   "NI",
+   "NL",
+   "NO",
+   "NZ",
+   "OM",
+   "PA",
+   "PE",
+   "PH",
+   "PK",
+   "PL",
+   "PR",
+   "PT",
+   "PY",
+   "QA",
+   "RE",
+   "RO",
+   "RS",
+   "RW",
+   "SA",
+   "SE",
+   "SG",
+   "SI",
+   "SK",
+   "SV",
+   "TH",
+   "TN",
+   "TR",
+   "TW",
+   "UA",
+   "US",
+   "UY",
+   "UZ",
+   "VN",
+   "WS",
+   "ZA",
+   "MU",
+   "XK",
+   "GU",
+   "TZ",
+   "MD",
+   "BA",
+   "LA"
+  ],
+  "destination_url": "https%3A%2F%2Fsaily.com%2Fesim-global%3Faff_transaction_id%3D%7Btransaction_id%7D%26aff_offer_id%3D%7Boffer_id%7D%26aff_id%3D%7Baff_id%7D%26selectedPlan%3D71505b76-be12-11f0-a507-0e567d396d3b",
+  "duration": {
+   "amount": 30,
+   "unit": "day"
+  },
+  "identifier": "71505b76-be12-11f0-a507-0e567d396d3b",
+  "is_unlimited": false,
+  "merchant_plans": [
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 2999,
+     "currency": "USD",
+     "identifier": "MjpEUm91SHdCUGpSbU0tQ0dsdTNJV01YMURtYV8tem1xV3JYOGlVMDlkM3lVPTpQcmljZTo5Njo2ODQzLlVTRC4yOTk5"
+    }
+   },
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 2999,
+     "currency": "USD",
+     "identifier": "MjpEUm91SHdCUGpSbU0tQ0dsdTNJV01YMURtYV8tem1xV3JYOGlVMDlkM3lVPTpQcmljZTo5Njo2ODQzLlVTRC4yOTk5"
+    }
+   }
+  ],
+  "name": "Global 5GB 30 days",
+  "price": {
+   "amount_with_tax": 2999,
+   "currency": "USD",
+   "identifier": "MjpEUm91SHdCUGpSbU0tQ0dsdTNJV01YMURtYV8tem1xV3JYOGlVMDlkM3lVPTpQcmljZTo5Njo2ODQzLlVTRC4yOTk5"
+  },
+  "pricing_slug": "esim-global",
+  "region": "GLB"
+ },
+ {
+  "balances": [
+   {
+    "amount": 1,
+    "is_unlimited": false,
+    "type": "DATA",
+    "unit": "GB"
+   }
+  ],
+  "category": "standard",
+  "covered_countries": [
+   "AE",
+   "AL",
+   "AM",
+   "AR",
+   "AT",
+   "AU",
+   "BE",
+   "BG",
+   "BL",
+   "BR",
+   "CA",
+   "CH",
+   "CL",
+   "CN",
+   "CO",
+   "CR",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "DO",
+   "EC",
+   "EE",
+   "ES",
+   "FI",
+   "FJ",
+   "FO",
+   "FR",
+   "GB",
+   "GD",
+   "GF",
+   "GG",
+   "GH",
+   "GI",
+   "GP",
+   "GR",
+   "GT",
+   "GY",
+   "HK",
+   "HN",
+   "HR",
+   "HU",
+   "ID",
+   "IE",
+   "IL",
+   "IN",
+   "IS",
+   "IT",
+   "JE",
+   "JM",
+   "JP",
+   "KH",
+   "KR",
+   "KZ",
+   "LI",
+   "LK",
+   "LT",
+   "LU",
+   "LV",
+   "MC",
+   "ME",
+   "MF",
+   "MQ",
+   "MT",
+   "MX",
+   "MY",
+   "MZ",
+   "NI",
+   "NL",
+   "NO",
+   "NZ",
+   "PA",
+   "PE",
+   "PH",
+   "PL",
+   "PR",
+   "PT",
+   "PY",
+   "QA",
+   "RE",
+   "RO",
+   "RS",
+   "SA",
+   "SE",
+   "SG",
+   "SI",
+   "SK",
+   "SV",
+   "TH",
+   "TR",
+   "TW",
+   "US",
+   "UY",
+   "VN",
+   "WS",
+   "ZA",
+   "AD",
+   "AF",
+   "AZ",
+   "BA",
+   "BD",
+   "BO",
+   "DZ",
+   "EG",
+   "GE",
+   "GU",
+   "IQ",
+   "JO",
+   "KW",
+   "LA",
+   "MA",
+   "MO",
+   "MU",
+   "NG",
+   "OM",
+   "PK",
+   "RW",
+   "TN",
+   "UA",
+   "UZ",
+   "XK"
+  ],
+  "destination_url": "https%3A%2F%2Fsaily.com%2Fesim-global%3Faff_transaction_id%3D%7Btransaction_id%7D%26aff_offer_id%3D%7Boffer_id%7D%26aff_id%3D%7Baff_id%7D%26selectedPlan%3Dabbb6c4b-602b-4ed0-b384-20f3ce91dc24",
+  "duration": {
+   "amount": 7,
+   "unit": "day"
+  },
+  "identifier": "abbb6c4b-602b-4ed0-b384-20f3ce91dc24",
+  "is_unlimited": false,
+  "merchant_plans": [
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 899,
+     "currency": "USD",
+     "identifier": "MjpzU3J1TVJLRWRPOTlXVnZPRDFxTFJzM0dnMmRzWThHeFVydzFaMEd1Q0QwPTpQcmljZTo5NjozMzQ0LlVTRC44OTk="
+    }
+   },
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 899,
+     "currency": "USD",
+     "identifier": "MjpzU3J1TVJLRWRPOTlXVnZPRDFxTFJzM0dnMmRzWThHeFVydzFaMEd1Q0QwPTpQcmljZTo5NjozMzQ0LlVTRC44OTk="
+    }
+   }
+  ],
+  "name": "Global 1GB 7 days",
+  "price": {
+   "amount_with_tax": 899,
+   "currency": "USD",
+   "identifier": "MjpzU3J1TVJLRWRPOTlXVnZPRDFxTFJzM0dnMmRzWThHeFVydzFaMEd1Q0QwPTpQcmljZTo5NjozMzQ0LlVTRC44OTk="
+  },
+  "pricing_slug": "esim-global",
+  "region": "GLB"
+ },
+ {
+  "balances": [
+   {
+    "amount": 5,
+    "is_unlimited": false,
+    "type": "DATA",
+    "unit": "GB"
+   }
+  ],
+  "category": "standard",
+  "covered_countries": [
+   "AT",
+   "BE",
+   "BG",
+   "CH",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "EE",
+   "ES",
+   "FI",
+   "FR",
+   "GB",
+   "GI",
+   "GR",
+   "HR",
+   "HU",
+   "IE",
+   "IS",
+   "IT",
+   "LI",
+   "LT",
+   "LU",
+   "LV",
+   "MT",
+   "NL",
+   "NO",
+   "PL",
+   "PT",
+   "RO",
+   "SE",
+   "SI",
+   "SK",
+   "TR"
+  ],
+  "destination_url": "https%3A%2F%2Fsaily.com%2Fesim-europe%3Faff_transaction_id%3D%7Btransaction_id%7D%26aff_offer_id%3D%7Boffer_id%7D%26aff_id%3D%7Baff_id%7D%26selectedPlan%3D4073686d-4e13-45f6-b665-d9500f551f6b",
+  "duration": {
+   "amount": 30,
+   "unit": "day"
+  },
+  "identifier": "4073686d-4e13-45f6-b665-d9500f551f6b",
+  "is_unlimited": false,
+  "merchant_plans": [
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 1949,
+     "currency": "USD",
+     "identifier": "MjpvbHZQMThGSVR3OGZJM2pMb0RXV0JIUGUyWUZXdDZndFdfdV9kc0hFREhzPTpQcmljZTo5NjozMzMwLlVTRC4xOTQ5"
+    }
+   },
+   {
+    "metadata": {},
+    "price": {
+     "amount_with_tax": 1949,
+     "currency": "USD",
+     "identifier": "MjpvbHZQMThGSVR3OGZJM2pMb0RXV0JIUGUyWUZXdDZndFdfdV9kc0hFREhzPTpQcmljZTo5NjozMzMwLlVTRC4xOTQ5"
+    }
+   }
+  ],
+  "name": "Europe 5GB 30 days",
+  "price": {
+   "amount_with_tax": 1949,
+   "currency": "USD",
+   "identifier": "MjpvbHZQMThGSVR3OGZJM2pMb0RXV0JIUGUyWUZXdDZndFdfdV9kc0hFREhzPTpQcmljZTo5NjozMzMwLlVTRC4xOTQ5"
+  },
+  "pricing_slug": "esim-europe",
+  "region": "EU"
+ }
+]
