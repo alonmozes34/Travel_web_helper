@@ -239,3 +239,15 @@ section:focus-within > .provider-marquee .provider-marquee-track { animation-pla
 .trip-extra-in {
   animation: trip-extra-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
+/* The Booking card, brought into view as the visitor comes back from the
+   plan's tab: outlined for three seconds, pulsing twice. Under reduced motion
+   the outline stays still (the rule above stops the pulse). */
+@keyframes trip-extra-call {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(22 191 182 / 0); }
+  50% { box-shadow: 0 0 0 10px rgb(22 191 182 / 0.35); }
+}
+.trip-extra-call {
+  outline: 3px solid var(--color-teal);
+  outline-offset: 4px;
+  animation: trip-extra-call 1.2s ease-in-out 2;
+}

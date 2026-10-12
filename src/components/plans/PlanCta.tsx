@@ -10,6 +10,8 @@ import { outboundLink } from "@/lib/affiliate/link";
 import { track } from "@/lib/analytics/events";
 import type { ComparisonRow } from "@/lib/comparison/buildComparison";
 import { isPresentableDiscount } from "@/lib/types/discount";
+import { BookingReminder, bookingReminderDue } from "@/components/extras/BookingReminder";
+import { useTripExtras } from "@/components/extras/TripExtrasProvider";
 import { copyText } from "./CopyCodeButton";
 
 /**
@@ -63,6 +65,10 @@ export function PlanCta({
 }) {
   const [noted, setNoted] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  // The reminder that hotels and cars wait on this page. Mounted from its
+  // first opening, so closing it hands focus back to this button.
+  const [reminder, setReminder] = useState<"open" | "closed" | null>(null);
+  const extras = useTripExtras();
   // A code the traveller has to type at the provider's checkout. It is copied
   // on the way out, without a question.
   const { discount } = row.plan;
@@ -97,13 +103,18 @@ export function PlanCta({
             aria-describedby={describedBy}
             rel={link.rel}
             target={link.target}
-            // Straight to the plan, with nothing asked on the way. Hotels and
-            // cars on Booking.com are offered after, on this page: Booking pay
-            // only for a booking finished in the same visit, and offered first
-            // — in a sheet on the way out, until 9 October 2026 — Booking was
-            // the page a phone visitor had to leave to go back and buy the
-            // eSIM (the owner, 9 October 2026).
-            onClick={() => {
+            // To the plan. Hotels and cars on Booking.com are offered after,
+            // on this page: Booking pay only for a booking finished in the
+            // same visit, and offered first — in a sheet on the way out, until
+            // 9 October 2026 — Booking was the page a phone visitor had to
+            // leave to go back and buy the eSIM. The first click of a visit
+            // only says so (`BookingReminder`, 12 October 2026).
+            onClick={(event) => {
+              if (bookingReminderDue(extras, locale)) {
+                event.preventDefault();
+                setReminder("open");
+                return;
+              }
               void copyCodeOnTheWay();
               recordClick();
             }}
@@ -162,6 +173,23 @@ export function PlanCta({
               : `${Math.round((row.plan.dataAmountMb / MB_PER_GB) * 10) / 10}GB`,
           })}
         </p>
+      ) : null}
+      {link && reminder && extras?.countryCode ? (
+        <BookingReminder
+          open={reminder === "open"}
+          onClose={() => setReminder("closed")}
+          onContinue={() => {
+            void copyCodeOnTheWay();
+            recordClick();
+            setReminder("closed");
+          }}
+          row={row}
+          link={link}
+          discount={codeToType}
+          countryCode={extras.countryCode}
+          dict={dict}
+          locale={locale}
+        />
       ) : null}
       {/* "You don't pay here" is said once under the list, not on every
           card; only the demo's dead button needs a word of its own. */}

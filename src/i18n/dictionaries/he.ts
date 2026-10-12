@@ -923,6 +923,20 @@ export const he = {
       decline: 'לא תודה',
       opensInNewTab: '(נפתח בלשונית חדשה, החיפוש שלכם נשאר פתוח כאן)',
       dismiss: 'סגירת ההצעה',
+      /** Read out when the traveller comes back to this tab and the card is brought into view. */
+      waitingTemplate: 'מחכה לכם כאן: מלונות והשכרת רכב ב{country} ב־Booking.com.',
+    },
+    /**
+     * Said once a visit, on the first click through to a plan: the plan opens
+     * in a new tab, and the hotels and cars wait here. Only said — no link to
+     * Booking in it, so nobody is sent there before the eSIM is bought.
+     */
+    reminder: {
+      titleTemplate: 'החבילה של {provider} נפתחת בלשונית חדשה',
+      bodyTemplate: 'אחרי שתקנו את ה־eSIM, חזרו ללשונית הזו: מחכים לכם כאן מלונות והשכרת רכב ב{country} באתר Booking.com.',
+      codeTemplate: 'קוד ההנחה {code} יועתק אוטומטית כשממשיכים לחבילה.',
+      continueTemplate: 'הבנתי, להמשך לחבילה באתר {provider}',
+      cancel: 'ביטול',
     },
   },
   booking: {

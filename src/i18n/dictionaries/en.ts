@@ -892,6 +892,14 @@ export const en: Dictionary = {
       decline: 'No thanks',
       opensInNewTab: '(opens in a new tab — your search stays open here)',
       dismiss: 'Dismiss this offer',
+      waitingTemplate: 'Waiting for you here: hotels and car rental in {country} on Booking.com.',
+    },
+    reminder: {
+      titleTemplate: 'The {provider} plan opens in a new tab',
+      bodyTemplate: 'Once you have bought the eSIM, come back to this tab: hotels and car rental in {country} on Booking.com are waiting for you here.',
+      codeTemplate: 'Discount code {code} is copied for you when you go on to the plan.',
+      continueTemplate: 'Got it, continue to the plan at {provider}',
+      cancel: 'Cancel',
     },
   },
   booking: {

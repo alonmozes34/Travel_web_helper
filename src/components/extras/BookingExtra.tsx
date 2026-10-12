@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BookingLogo } from '@/components/booking/BookingLogo';
 import { getCountryByCode } from '@/data/countries';
 import type { Locale } from '@/i18n/config';
@@ -49,6 +49,47 @@ export function BookingExtra({
   }, [countryCode, planId]);
 
   const country = countryCode ? getCountryByCode(countryCode) : undefined;
+  const card = useRef<HTMLElement>(null);
+  const said = useRef<HTMLParagraphElement>(null);
+  const waiting = country ? interpolate(dict.tripExtras.booking.waitingTemplate, { country: country.names[locale] }) : '';
+
+  // The card appears as the plan opens in a new tab, which a phone jumps to;
+  // by the time the visitor is back, they are scrolled down among the plans
+  // and the card above is out of sight (the owner, 12 October 2026). So when
+  // they come back to this tab, it is brought into view, outlined for a
+  // moment, and said for a screen reader. Only the DOM is touched here — a
+  // highlight that comes and goes is not state worth a render.
+  useEffect(() => {
+    let done = false;
+    let unmark: number | undefined;
+    const bring = () => {
+      const el = card.current;
+      if (done || !el) return;
+      done = true;
+      const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' });
+      el.classList.add('trip-extra-call');
+      unmark = window.setTimeout(() => el.classList.remove('trip-extra-call'), 3000);
+      if (said.current) said.current.textContent = waiting;
+    };
+    const back = () => {
+      if (document.visibilityState === 'visible') bring();
+    };
+    // Still here a moment later (the new tab was opened in the background, or
+    // not at all): bring it now. Otherwise, on the way back.
+    const settle = window.setTimeout(() => {
+      if (document.visibilityState === 'visible' && document.hasFocus()) bring();
+    }, 800);
+    document.addEventListener('visibilitychange', back);
+    window.addEventListener('focus', back);
+    return () => {
+      window.clearTimeout(settle);
+      window.clearTimeout(unmark);
+      document.removeEventListener('visibilitychange', back);
+      window.removeEventListener('focus', back);
+    };
+  }, [waiting]);
+
   const hotels = bookingLink('hotels', countryCode, locale);
   const cars = bookingLink('cars', countryCode, locale);
   if (dismissed || !country || !hotels || !cars) return null;
@@ -67,9 +108,11 @@ export function BookingExtra({
 
   return (
     <section
+      ref={card}
       aria-labelledby="booking-extra-title"
-      className="on-night bg-night-band trip-extra-in relative mb-6 rounded-[20px] p-5 text-on-night shadow-lg md:p-6"
+      className="on-night bg-night-band trip-extra-in relative mb-6 scroll-mt-24 rounded-[20px] p-5 text-on-night shadow-lg md:p-6"
     >
+      <p ref={said} role="status" className="sr-only" />
       <button
         type="button"
         onClick={decline}

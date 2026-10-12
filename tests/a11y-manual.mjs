@@ -418,18 +418,19 @@ if (bandShown) {
 }
 await band.close();
 
-// The way out, in order (the owner, 9 October 2026): the plan first, then
-// Booking. Booking pay only for a booking finished in the same visit, and on
-// a phone a new tab looks like the same window — so until that day, a sheet
-// on the way out that offered Booking first sent visitors to Booking, and
-// back again to buy the eSIM, leaving it. Now the plan's button opens the
-// plan in a new tab with nothing asked on the way, and the Booking card
-// waits on this page, its links opening a new tab of their own. Real
-// catalogues only: the demo's plans link nowhere. Nothing outside the site is
-// loaded — the provider's tab is stopped before it leaves, so no click is
-// counted at a provider.
+// The way out, in order (the owner, 9 and 12 October 2026): the plan first,
+// then Booking. Booking pay only for a booking finished in the same visit,
+// and on a phone a new tab looks like the same window — so until 9 October a
+// sheet that offered Booking first sent visitors to Booking, and back again
+// to buy the eSIM, leaving it. Now the first click of a visit only says that
+// the plan opens in a new tab and that hotels and cars wait here — with no
+// link to Booking in it — and its link opens the plan. Back on this page, the
+// Booking card is brought into view, outlined and said; the next click goes
+// straight to its plan. Real catalogues only: the demo's plans link nowhere.
+// Nothing outside the site is loaded — the provider's tab is stopped before
+// it leaves, so no click is counted at a provider.
 if (!demoCatalogue) {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const out = await ctx.newPage();
   await out.goto(`${BASE}/esim/thailand?to=TH:10&usage=regular`, { waitUntil: 'networkidle' });
   await out.waitForTimeout(1200);
@@ -438,22 +439,68 @@ if (!demoCatalogue) {
     left.push(route.request().url());
     return route.abort();
   });
-  const cta = out.locator('main article a[href^="http"]:visible', { hasText: /לחבילה באתר/ }).first();
-  const href = await cta.getAttribute('href');
-  const [tab] = await Promise.all([ctx.waitForEvent('page', { timeout: 5000 }).catch(() => null), cta.click()]);
-  await out.waitForTimeout(600);
-  const after = await out.evaluate(() => {
-    const card = document.getElementById('booking-extra-title')?.closest('section');
-    return {
-      sheet: Boolean(document.querySelector('dialog[open]')),
-      card: Boolean(card),
-      cardLinks: card ? [...card.querySelectorAll('a[href]')].map((a) => a.getAttribute('target')) : [],
+  const ctas = out.locator('main article a[href^="http"]:visible', { hasText: /לחבילה באתר/ });
+  const href = await ctas.first().getAttribute('href');
+  let tabs = 0;
+  ctx.on('page', () => { tabs += 1; });
+  await ctas.first().scrollIntoViewIfNeeded();
+  await ctas.first().click();
+  await out.waitForTimeout(500);
+  const told = await out.evaluate(() => {
+    const d = document.querySelector('dialog[open]');
+    return d && {
+      title: d.querySelector('h2')?.textContent ?? '',
+      toBooking: d.querySelectorAll('a[href*="booking.com"], a[href*="tkqlhce"]').length,
+      onward: [...d.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')),
     };
   });
-  ok('the plan’s button opens the plan in a new tab, with no sheet on the way',
-    Boolean(tab) && !after.sheet && left.some((url) => url.split('?')[0] === href.split('?')[0]), JSON.stringify({ tab: Boolean(tab), sheet: after.sheet, opened: left[0]?.slice(0, 60) }));
-  ok('then Booking is offered on this page, opening a tab of its own',
-    after.card && after.cardLinks.length === 2 && after.cardLinks.every((t) => t === '_blank'), JSON.stringify(after.cardLinks));
+  ok('the first click says the plan opens in a new tab and Booking waits here — and sends nowhere yet',
+    Boolean(told) && /נפתחת בלשונית חדשה/.test(told.title) && told.toBooking === 0 && told.onward.length === 1 && told.onward[0] === href && tabs === 0,
+    JSON.stringify({ told, tabs }));
+  if (told) {
+    await out.addScriptTag({ path: 'node_modules/axe-core/axe.min.js' });
+    const axeOpen = await out.evaluate(() => window.axe.run(document.querySelector('dialog[open]'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] }));
+    ok('the reminder passes axe', axeOpen.violations.length === 0, axeOpen.violations.map((v) => `${v.id}×${v.nodes.length}`).join(', '));
+    // Read as a screen reader is given it: the way on is described by the plan.
+    const planName = await ctas.first().evaluate((el) => {
+      const id = el.closest('article')?.getAttribute('aria-labelledby');
+      return (id && document.getElementById(id)?.textContent?.trim()) || '';
+    });
+    const cdp = await ctx.newCDPSession(out);
+    const { nodes } = await cdp.send('Accessibility.getFullAXTree');
+    const onward = nodes.filter((n) => !n.ignored && n.role?.value === 'link' && /להמשך לחבילה/.test(n.name?.value ?? ''));
+    ok('its way on to the plan is described by the plan',
+      onward.length === 1 && (onward[0].description?.value ?? '').replace(/\s+/g, ' ').trim() === planName.replace(/\s+/g, ' '),
+      `${onward[0]?.description?.value ?? 'no description'} / ${planName}`);
+    const [tab] = await Promise.all([ctx.waitForEvent('page', { timeout: 5000 }).catch(() => null), out.locator('dialog[open] a[href]').click()]);
+    await out.waitForTimeout(400);
+    const gone = await out.evaluate(() => !document.querySelector('dialog[open]'));
+    ok('its link opens the plan in a new tab, and the reminder closes',
+      Boolean(tab) && gone && left.some((url) => url.split('?')[0] === href.split('?')[0]), JSON.stringify({ tab: Boolean(tab), gone, opened: left[0]?.slice(0, 60) }));
+    await out.bringToFront();
+    await out.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await out.waitForTimeout(1500);
+    const back = await out.evaluate(() => {
+      const card = document.getElementById('booking-extra-title')?.closest('section');
+      const r = card?.getBoundingClientRect();
+      return {
+        card: Boolean(card),
+        inView: Boolean(r && r.top < window.innerHeight && r.bottom > 0),
+        outlined: Boolean(card?.classList.contains('trip-extra-call')),
+        said: card?.querySelector('[role="status"]')?.textContent ?? '',
+        targets: card ? [...card.querySelectorAll('a[href]')].map((a) => a.getAttribute('target')) : [],
+      };
+    });
+    ok('back on this page, the Booking card is in view, outlined and said, opening a tab of its own',
+      back.card && back.inView && back.outlined && /Booking\.com/.test(back.said) && back.targets.length === 2 && back.targets.every((t) => t === '_blank'),
+      JSON.stringify(back));
+    tabs = 0;
+    await ctas.nth(1).scrollIntoViewIfNeeded();
+    await ctas.nth(1).click();
+    await out.waitForTimeout(500);
+    const again = await out.evaluate(() => Boolean(document.querySelector('dialog[open]')));
+    ok('the next click goes straight to its plan', !again && tabs === 1, JSON.stringify({ again, tabs }));
+  }
   await ctx.close();
 }
 
