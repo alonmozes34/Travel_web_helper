@@ -17,7 +17,9 @@ export function dashboardAccess(authorization: string | null, env: Record<string
   const password = env.DASHBOARD_PASSWORD?.trim() ?? '';
   if (!password) return 'unset';
   if (password.length < DASHBOARD_MIN_PASSWORD) return 'weak';
-  return isAuthorised(authorization, password) ? 'ok' : 'denied';
+  // A value pasted into Vercel with its quotes around it: either spelling opens.
+  const unquoted = /^(["'])(.+)\1$/.exec(password)?.[2]?.trim();
+  return [password, unquoted].some((candidate) => candidate && isAuthorised(authorization, candidate)) ? 'ok' : 'denied';
 }
 
 export const isDashboardPath = (pathname: string) => pathname === '/admin' || pathname.startsWith('/admin/');

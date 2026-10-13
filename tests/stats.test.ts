@@ -365,6 +365,18 @@ describe('who may open the dashboard', () => {
     assert.equal(dashboardAccess(`Basic ${btoa(':')}`, env), 'denied');
     assert.equal(dashboardAccess(basic('a-long-enough-password'), env), 'ok');
   });
+
+  test('a password typed with a space at the end, or set in Vercel inside quotes, still opens', () => {
+    const env = { DASHBOARD_PASSWORD: 'a-long-enough-password' };
+    assert.equal(dashboardAccess(basic('a-long-enough-password '), env), 'ok');
+    assert.equal(dashboardAccess(basic(' a-long-enough-password'), env), 'ok');
+    const quoted = { DASHBOARD_PASSWORD: '"a-long-enough-password"' };
+    assert.equal(dashboardAccess(basic('a-long-enough-password'), quoted), 'ok');
+    assert.equal(dashboardAccess(basic('"a-long-enough-password"'), quoted), 'ok');
+    assert.equal(dashboardAccess(basic('a-long-enough-passwor'), quoted), 'denied');
+    assert.equal(dashboardAccess(basic('with inner spaces kept'), { DASHBOARD_PASSWORD: 'with inner spaces kept' }), 'ok');
+    assert.equal(dashboardAccess(basic('withinnerspaceskept'), { DASHBOARD_PASSWORD: 'with inner spaces kept' }), 'denied');
+  });
 });
 
 describe('the counts never reach the comparison', () => {

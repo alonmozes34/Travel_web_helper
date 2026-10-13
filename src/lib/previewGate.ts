@@ -49,21 +49,40 @@ export function gateMode(env: GateEnv): GateDecision {
  * The username is ignored: there is one credential, not accounts. Anything
  * malformed is a failure rather than an exception — this runs on every
  * request, and a crash here would be a far louder failure than a 401.
+ *
+ * Browsers send the credentials as UTF-8, and `atob` hands back bytes, so a
+ * password with a Hebrew letter in it never matched (the owner could not
+ * open the dashboard, 13 October 2026). The bytes are read as UTF-8 first,
+ * and as they came for a browser that sent Latin-1; both sides are
+ * normalised, so the same letters typed on another keyboard still match.
  */
 export function isAuthorised(header: string | null, password: string): boolean {
-  if (!header?.startsWith('Basic ')) return false;
+  if (!password || !header?.startsWith('Basic ')) return false;
 
-  let decoded: string;
+  let bytes: string;
   try {
-    decoded = atob(header.slice('Basic '.length).trim());
+    bytes = atob(header.slice('Basic '.length).trim());
   } catch {
     return false;
   }
 
-  const separator = decoded.indexOf(':');
-  if (separator === -1) return false;
+  // A space before or after is not part of a password anyone means to type:
+  // the configured value is trimmed, so the typed one is too.
+  const wanted = password.trim().normalize('NFC');
+  return [utf8(bytes), bytes].some((decoded) => {
+    if (decoded === null) return false;
+    const separator = decoded.indexOf(':');
+    return separator !== -1 && constantTimeEquals(decoded.slice(separator + 1).trim().normalize('NFC'), wanted);
+  });
+}
 
-  return constantTimeEquals(decoded.slice(separator + 1), password);
+/** `atob`'s bytes read as UTF-8, or null when they are not UTF-8. */
+function utf8(bytes: string): string | null {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bytes, (char) => char.charCodeAt(0)));
+  } catch {
+    return null;
+  }
 }
 
 /**

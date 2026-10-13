@@ -49,6 +49,21 @@ describe('preview gate', () => {
     assert.ok(isAuthorised(header('', 'letmein'), 'letmein'));
   });
 
+  test('a password with Hebrew or accented letters is accepted, as browsers send it', () => {
+    // Browsers send UTF-8; until 13 October 2026 these were refused.
+    assert.ok(isAuthorised(header('admin', 'סיסמהארוכה123'), 'סיסמהארוכה123'));
+    assert.ok(isAuthorised(header('admin', 'pässwörd-long-1'), 'pässwörd-long-1'));
+    // An older browser's Latin-1, and the same letter composed another way.
+    assert.ok(isAuthorised(`Basic ${Buffer.from('admin:pässwörd-long-1', 'latin1').toString('base64')}`, 'pässwörd-long-1'));
+    assert.ok(isAuthorised(header('admin', 'pa\u0308sswort-long'), 'p\u00e4sswort-long'));
+    assert.equal(isAuthorised(header('admin', 'סיסמהארוכה124'), 'סיסמהארוכה123'), false);
+  });
+
+  test('an empty configured password accepts nothing, not even an empty one', () => {
+    assert.equal(isAuthorised(header('user', ''), ''), false);
+    assert.equal(isAuthorised(`Basic ${btoa(':')}`, ''), false);
+  });
+
   test('a password containing a colon survives the split', () => {
     assert.ok(isAuthorised(header('user', 'a:b:c'), 'a:b:c'));
   });
