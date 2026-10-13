@@ -68,14 +68,14 @@ export type DeviceGroup = {
 };
 
 export const deviceSources: Record<DeviceSourceId, { url: string; checkedOn: string }> = {
-  appleIphone: { url: 'https://support.apple.com/en-us/118669', checkedOn: '2026-10-04' },
-  appleIpad: { url: 'https://support.apple.com/en-us/119592', checkedOn: '2026-10-04' },
-  appleModels: { url: 'https://support.apple.com/en-us/108044', checkedOn: '2026-10-04' },
+  appleIphone: { url: 'https://support.apple.com/en-us/118669', checkedOn: '2026-10-11' },
+  appleIpad: { url: 'https://support.apple.com/en-us/119592', checkedOn: '2026-10-11' },
+  appleModels: { url: 'https://support.apple.com/en-us/108044', checkedOn: '2026-10-11' },
   samsung: {
     url: 'https://www.samsung.com/uk/support/mobile-devices/galaxy-esim-and-supported-network-carriers/',
-    checkedOn: '2026-10-05',
+    checkedOn: '2026-10-11',
   },
-  pixel: { url: 'https://support.google.com/pixelphone/answer/9449293', checkedOn: '2026-10-05' },
+  pixel: { url: 'https://support.google.com/pixelphone/answer/9449293', checkedOn: '2026-10-11' },
 };
 
 export const deviceGroups: readonly DeviceGroup[] = [

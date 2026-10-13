@@ -226,6 +226,19 @@ describe('the buy link', () => {
     assert.equal(buyLinkLandsOnPlan(plan.plan), false);
   });
 
+  test('a plan linked to the page of a country it does not cover gets no link — and so is not shown', () => {
+    // As in the Store API on 13 October 2026: a "French West Indies" plan,
+    // linked to French Guiana's page, which does not sell it.
+    const westIndies = { ...thai5gb, url: thai5gb.url.replace('thailand-esim', 'french-guiana-esim') };
+    assert.equal(alosimLinkFor(westIndies, ['BL', 'GP', 'MQ', 'MF'], { toPlan: true }), null);
+    const plan = mapAlosimPlan(westIndies, 'T', (item) => alosimLinkFor(item, ['BL', 'GP', 'MQ', 'MF'], { toPlan: true }));
+    assert.ok('plan' in plan);
+    assert.equal(buyLinkLandsOnPlan(plan.plan), false);
+    // The same page for a plan that does cover French Guiana keeps its link.
+    assert.ok(alosimLinkFor(westIndies, ['GF'], { toPlan: true }));
+    assert.ok(alosimLinkFor(westIndies, ['GF', 'GP'], { toPlan: true }));
+  });
+
   test('where the page\'s current address is not known, a Hebrew reader gets the English link, which keeps the plan', () => {
     const link = alosimLinkFor(thai5gb, ['TH'], { toPlan: true, pagePaths: {} })!;
     assert.equal(link.byLocale?.he, undefined);

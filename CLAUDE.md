@@ -132,4 +132,8 @@ suites including `npm run test:a11y`, version it if a visitor would notice,
 push, and tell the owner in Hebrew what failed and what was done. A provider's
 momentary outage is fixed by making the check tolerate it, never by deleting
 the check; a test is never skipped or weakened to get green. Device changes
-are applied only as copied from the manufacturer's own page.
+are applied only as copied from the manufacturer's own page. A weekly devices
+run that finds no change still moves the `checkedOn` dates in
+`src/data/devices.ts` to the day the pages were read: the page shows that
+date, and on 13 October 2026 the owner read an unmoved date as "not checked
+this week".
