@@ -2,6 +2,7 @@ import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import { bookingLink } from '@/lib/booking/links';
+import { CountedLink } from '@/components/stats/CountedLink';
 import { BookingLogo } from './BookingLogo';
 
 /**
@@ -23,8 +24,8 @@ export function BookingLinks({
 }) {
   const copy = dict.booking;
   const links = [
-    { kind: 'hotels', icon: '🏨', label: copy.hotelsTemplate, href: bookingLink('hotels', countryCode, locale) },
-    { kind: 'cars', icon: '🚗', label: copy.carsTemplate, href: bookingLink('cars', countryCode, locale) },
+    { kind: 'hotels' as const, icon: '🏨', label: copy.hotelsTemplate, href: bookingLink('hotels', countryCode, locale) },
+    { kind: 'cars' as const, icon: '🚗', label: copy.carsTemplate, href: bookingLink('cars', countryCode, locale) },
   ].filter((link): link is typeof link & { href: string } => Boolean(link.href));
   if (links.length === 0) return null;
 
@@ -40,7 +41,8 @@ export function BookingLinks({
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {links.map((link) => (
           <li key={link.kind} className="min-w-0">
-            <a
+            <CountedLink
+              event={{ e: 'booking', step: `page-${link.kind}`, to: countryCode }}
               href={link.href}
               target="_blank"
               rel="sponsored noopener noreferrer"
@@ -56,7 +58,7 @@ export function BookingLinks({
                 <span className="block text-sm font-normal text-ink-2">{copy.onBooking}</span>
               </span>
               <span className="sr-only"> {copy.opensInNewTab}</span>
-            </a>
+            </CountedLink>
           </li>
         ))}
       </ul>

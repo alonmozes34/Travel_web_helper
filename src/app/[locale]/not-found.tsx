@@ -36,7 +36,8 @@ export default function NotFound() {
   const prefix = english ? '/en' : '';
 
   return (
-    <section className="on-night bg-hero text-on-night">
+    // `data-page-missing`: counted as a page that does not exist (`PageCount`).
+    <section data-page-missing="" className="on-night bg-hero text-on-night">
       <Container className="py-16 md:py-24">
         <p className="font-head text-sm font-semibold tracking-wide text-sky">{t.code}</p>
         <h1 className="mt-2 font-head text-4xl font-bold tracking-tight text-on-night md:text-5xl">{t.title}</h1>

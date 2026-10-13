@@ -368,6 +368,65 @@ business details.
   readers as filters change, and every layout is checked for horizontal
   overflow at phone, tablet and desktop widths.
 
+## The owner's dashboard
+
+`/admin` is a private page that shows how the site is used (the owner,
+13 October 2026): visits and where they came from, device, visitor country,
+pages viewed, destinations searched and for how long, searches that found
+nothing, clicks to each provider and for which destination, where in the list
+the clicked plan stood, and every step of the Booking.com offer. 7, 30 or 90
+days, each figure beside the period before.
+
+**What is counted, and what never is.** The owner chose "anonymous, no
+cookies; country only". The browser sends one small message per event to
+`/api/e` (`src/lib/stats/client.ts`); the server turns it into counters for
+the day and forgets the message (`src/lib/stats/events.ts`). Only day totals
+are stored — `search:JP` → 12 — never an event, a visit, a visitor or a time.
+Every counter name is built from a value checked against a known list (a
+route, a country code we hold, a provider we list, a usage level, a
+currency), so nothing a visitor typed can become a name; `tests/stats.test.ts`
+throws addresses, emails and markup at it to prove that. No cookie, no
+storage, no identifier, no IP: the visitor's country is the two-letter code
+Vercel puts in `x-vercel-ip-country`, and the device class comes from the
+user agent, which is not kept. Global Privacy Control, Do Not Track and robots
+are not counted (headless Chromium included, so the test suites count only
+when they say so). Each day expires by itself after 400 days. Nothing in the
+comparison, the catalogue or the sources may import the stats — a test fails
+if one does — so the ranking cannot learn from them. The privacy page says
+all of this, and has to change with any new counter.
+
+**Where.** Upstash Redis, one hash per day (`yk:stats:<YYYY-MM-DD>`, Israel
+time), through its REST interface: one pipelined request per event. Without a
+store nothing is counted and the dashboard says so. The test servers run
+`STATS_STORE=memory`.
+
+**Who can open it.** `DASHBOARD_PASSWORD`, asked for by the browser's own
+sign-in box (Basic authentication over HTTPS), checked in `src/proxy.ts`
+before the locale routing and again on the page. Unset, `/admin` is a 404; under
+12 characters, it is refused. The page has its own root layout
+(`src/app/admin/layout.tsx`): no header, no footer and no counting of itself.
+`noindex`, `no-store`.
+
+**Emails.** `/api/cron/daily-stats` runs every morning (`vercel.json`; 05:05
+UTC, within the hour on Hobby). It sends an alert email for anything in
+`src/lib/stats/alerts.ts` that holds and was not sent in the last three days
+— a source that failed to load, a listed provider with no click for three
+days while the site sent at least 15, a sharp drop in visits, many 404s, a
+trip searched five times in a week with no answer — and on Sundays the week's
+summary (`src/lib/stats/report.ts`). Through Resend, to `CONTACT_TO` or the
+statement's address. Commissions are not read in: the owner did not choose
+that, and each programme's own dashboard shows them.
+
+**To switch it on (the owner, in Vercel):**
+
+1. Storage → Marketplace → **Upstash for Redis** → create a free database and
+   connect it to this project. Vercel adds `KV_REST_API_URL` and
+   `KV_REST_API_TOKEN` itself.
+2. Settings → Environment Variables → `DASHBOARD_PASSWORD`, at least 12
+   characters, Production only.
+3. Redeploy. `CRON_SECRET`, if set, keeps the daily job to Vercel's own call;
+   `RESEND_API_KEY` is the one the contact form already uses.
+
 ## SEO
 
 Country pages carry per-locale titles, descriptions, canonical URLs and

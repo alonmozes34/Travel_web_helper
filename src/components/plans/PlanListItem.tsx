@@ -54,6 +54,7 @@ export function PlanListItem({
   canSelect,
   onSelect,
   onChosen,
+  position,
   headingLevel = 3,
 }: {
   row: ComparisonRow;
@@ -69,6 +70,8 @@ export function PlanListItem({
   onSelect: (selected: boolean) => void;
   /** Raised when this row's outbound link is followed. */
   onChosen?: () => void;
+  /** Where in the list it stands, from 1; counted with the click. */
+  position?: number;
   /** 3 under the list's own heading; 4 inside the "too short" section. */
   headingLevel?: 3 | 4;
 }) {
@@ -177,6 +180,8 @@ export function PlanListItem({
           onChosen={onChosen}
           demoDataEnabled={demoDataEnabled}
           describedBy={headingId}
+          position={position}
+          destination={countryCodes.length === 1 ? countryCodes[0] : null}
           share={
             <ShareSearch
               compact

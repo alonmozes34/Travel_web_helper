@@ -56,7 +56,9 @@ start_server() {
     echo "port $port is already serving — refusing to test an unknown server" >> "$LOGS/server-$port.log"
     return 1
   fi
-  setsid env "$@" PORT="$port" npx next start -p "$port" > "$LOGS/server-$port.log" 2>&1 &
+  # The dashboard's counts go to memory, never a real store, behind a test
+  # password the suites know (tests/a11y.mjs, tests/features.mjs).
+  setsid env "$@" STATS_STORE=memory DASHBOARD_PASSWORD=test-dashboard-password PORT="$port" npx next start -p "$port" > "$LOGS/server-$port.log" 2>&1 &
   SERVER_PID=$!
   for _ in $(seq 1 60); do
     kill -0 "$SERVER_PID" 2>/dev/null || return 1

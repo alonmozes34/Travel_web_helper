@@ -95,6 +95,28 @@ US$28.99 in the API, another plan at US$20.99 on the page). The owner chose
   rerun `npm run check:saily` and release. Do not widen this to reading
   Saily's prices from their pages.
 
+## The dashboard counts anonymously, and only that
+
+The owner chose (13 October 2026) "anonymous, no cookies; country only", a
+private page only they can open, a weekly summary email and alerts — and not
+automatic commission import. Israel's Privacy Protection Law (Amendment 13,
+in force 14 August 2025) treats IP addresses and identifiers as personal
+data, so this is the line:
+
+- Only day totals, built by `countersFor` in `src/lib/stats/events.ts` from
+  values checked against known lists. Never a cookie, browser storage, an
+  identifier, an IP address, a timestamp finer than the day, or anything a
+  visitor typed. Global Privacy Control and Do Not Track are honoured.
+- A new counter changes the privacy page in the same commit
+  (`privacyPage.stats` in both dictionaries).
+- The stats never reach the comparison: nothing under `src/lib/comparison`,
+  `catalogue`, `sources`, `affiliate` or `src/data` imports `@/lib/stats`
+  (`tests/stats.test.ts`). Rankings never use usage or commission data.
+- The password, the Upstash token and the Resend key live in Vercel only —
+  never in chat, code or the control page.
+- Test servers run `STATS_STORE=memory` with `DASHBOARD_PASSWORD=test-dashboard-password`;
+  a suite never writes to the real store.
+
 ## Versions
 
 The owner asked to be able to follow what changed. Every change that reaches

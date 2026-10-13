@@ -246,6 +246,38 @@ for (const [label, path, expect] of [
   check('currency', 'the trip survives the currency redirect', next.includes('to=FR') && next.includes('usage=regular'), next);
 }
 
+// ── dashboard: the owner's page, and the endpoint that counts ─────────────
+// Safe against production too: nothing here is counted, and the dashboard is
+// either closed (404, no password set) or asks for one (401) — never served.
+{
+  const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
+  for (const [label, headers] of [
+    ['no password', {}],
+    ['a wrong password', { authorization: `Basic ${btoa('owner:not-the-password-at-all')}` }],
+    ['an empty password', { authorization: `Basic ${btoa(':')}` }],
+  ]) {
+    const response = await fetch(`${B}/admin`, { headers, redirect: 'manual' });
+    const body = await response.text();
+    check('dashboard', `/admin with ${label} is not served`, [401, 404].includes(response.status) && !body.includes('איך משתמשים באתר'), String(response.status));
+    if (response.status === 401) {
+      check('dashboard', `/admin with ${label} asks the browser for a password`, /^Basic /.test(response.headers.get('www-authenticate') ?? ''));
+    }
+    check('dashboard', `/admin with ${label} is never cached or indexed`, (response.headers.get('cache-control') ?? '').includes('no-store'));
+  }
+  const prefixed = await fetch(`${B}/en/admin`, { redirect: 'manual' });
+  check('dashboard', '/en/admin does not exist', prefixed.status === 404, String(prefixed.status));
+
+  const asGet = await fetch(`${B}/api/e`);
+  check('dashboard', 'the counting endpoint takes no GET', asGet.status === 405, String(asGet.status));
+  for (const [label, body] of [
+    ['junk', 'not json'],
+    ['an unknown event', JSON.stringify({ e: 'pageview', path: '/' })],
+    ['an oversized body', 'x'.repeat(10_000)],
+  ]) {
+    const response = await fetch(`${B}/api/e`, { method: 'POST', body, headers: { 'user-agent': CHROME, origin: B } });
+    check('dashboard', `the counting endpoint answers ${label} with 204 and no cookie`, response.status === 204 && !response.headers.get('set-cookie'), String(response.status));
+  }
+}
 
 console.log(out.join('\n'));
 

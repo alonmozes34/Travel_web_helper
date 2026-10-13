@@ -45,7 +45,7 @@ export function CouponChip({
   if (savings <= 0) return null;
 
   return (
-    <WithCopy code={discount!.code} dict={dict}>
+    <WithCopy code={discount!.code} provider={row.plan.providerId} dict={dict}>
       <Chip>
         <Ltr className="tnum">
           {interpolate(dict.plan.couponTemplate, {
@@ -109,15 +109,15 @@ function PromotionChip({
     </Chip>
   );
   // A code already in the link has nothing to copy.
-  return discount.appliedByLink ? chip : <WithCopy code={discount.code} dict={dict}>{chip}</WithCopy>;
+  return discount.appliedByLink ? chip : <WithCopy code={discount.code} provider={row.plan.providerId} dict={dict}>{chip}</WithCopy>;
 }
 
 /** The chip, and beside it a button that copies the code. */
-function WithCopy({ code, dict, children }: { code: string; dict: Dictionary; children: ReactNode }) {
+function WithCopy({ code, provider, dict, children }: { code: string; provider: string; dict: Dictionary; children: ReactNode }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {children}
-      <CopyCodeButton code={code} label={dict.plan.copyCode} copiedLabel={dict.plan.codeCopied} />
+      <CopyCodeButton code={code} provider={provider} label={dict.plan.copyCode} copiedLabel={dict.plan.codeCopied} />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { interpolate } from "@/i18n/interpolate";
 import { MB_PER_GB } from "@/lib/formatters/data";
 import { outboundLink } from "@/lib/affiliate/link";
 import { track } from "@/lib/analytics/events";
+import { count } from "@/lib/stats/client";
 import type { ComparisonRow } from "@/lib/comparison/buildComparison";
 import { isPresentableDiscount } from "@/lib/types/discount";
 import { BookingReminder, bookingReminderDue } from "@/components/extras/BookingReminder";
@@ -35,6 +36,8 @@ export function PlanCta({
   demoDataEnabled = false,
   share,
   describedBy,
+  position,
+  destination = null,
 }: {
   row: ComparisonRow;
   dict: Dictionary;
@@ -62,6 +65,10 @@ export function PlanCta({
    * apart; described by the heading, each says which plan it belongs to.
    */
   describedBy?: string;
+  /** Where in the list it stood, from 1 — counted with the click, as is the destination. */
+  position?: number;
+  /** The searched country, when the search was for one. */
+  destination?: string | null;
 }) {
   const [noted, setNoted] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
@@ -89,6 +96,15 @@ export function PlanCta({
       planId: row.plan.id,
       providerId: row.plan.providerId,
     });
+    if (position) {
+      count({
+        e: "click",
+        provider: row.plan.providerId,
+        to: destination,
+        pos: position,
+        cheapest: row.badges.includes("cheapest"),
+      });
+    }
     onChosen?.();
   }
 
@@ -113,6 +129,7 @@ export function PlanCta({
               if (bookingReminderDue(extras, locale)) {
                 event.preventDefault();
                 setReminder("open");
+                count({ e: "booking", step: "reminder", to: extras?.countryCode ?? null });
                 return;
               }
               void copyCodeOnTheWay();
@@ -180,6 +197,7 @@ export function PlanCta({
           onClose={() => setReminder("closed")}
           onContinue={() => {
             void copyCodeOnTheWay();
+            count({ e: "booking", step: "continued", to: extras.countryCode ?? null });
             recordClick();
             setReminder("closed");
           }}

@@ -249,6 +249,7 @@ export function ResultsView({
     canSelect: selectedIds.length < MAX_COMPARE,
     onSelect: (isSelected: boolean) => toggleSelected(row.plan.id, isSelected),
     onChosen: () => tripExtras?.choose(row.plan.id),
+    position: visible.indexOf(row) + 1,
   });
 
   return (

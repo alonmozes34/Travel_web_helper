@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { cn } from '@/components/ui/cn';
+import { count } from '@/lib/stats/client';
 
 /**
  * Copies a discount code, and says so where a screen reader hears it.
@@ -21,11 +22,14 @@ export async function copyText(text: string): Promise<boolean> {
 
 export function CopyCodeButton({
   code,
+  provider,
   label,
   copiedLabel,
   className,
 }: {
   code: string;
+  /** Whose code: counted by provider, never the code itself. */
+  provider?: string;
   label: string;
   copiedLabel: string;
   className?: string;
@@ -42,7 +46,11 @@ export function CopyCodeButton({
     <>
       <button
         type="button"
-        onClick={async () => setCopied(await copyText(code))}
+        onClick={async () => {
+          const done = await copyText(code);
+          setCopied(done);
+          if (done && provider) count({ e: 'code', provider });
+        }}
         className={cn(
           'inline-flex min-h-11 items-center justify-center gap-1.5 rounded-sm border border-teal-ink bg-surface px-3 text-sm font-semibold text-teal-ink hover:bg-teal-50',
           className,

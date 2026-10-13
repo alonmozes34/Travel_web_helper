@@ -4,6 +4,11 @@
  * No analytics provider is installed. This module exists so that the important
  * actions already have stable names and typed payloads — wiring a provider
  * later means implementing `track` once, not hunting for call sites.
+ *
+ * The site's own anonymous day totals, which the owner's dashboard reads, are
+ * a separate and much narrower thing: `count()` in `src/lib/stats/client.ts`,
+ * with what it may send fixed in `src/lib/stats/events.ts`. Nothing here
+ * feeds them.
  */
 
 export type AnalyticsEvent =

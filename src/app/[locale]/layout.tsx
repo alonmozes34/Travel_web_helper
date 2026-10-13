@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import '../globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { PageCount } from '@/components/stats/PageCount';
 import { CurrencyProvider } from '@/components/providers/CurrencyProvider';
 import { isLocale, localeConfig, localePath, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/getDictionary';
@@ -131,6 +132,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
             {children}
           </main>
           <Footer locale={locale} dict={dict} />
+          <PageCount />
         </CurrencyProvider>
       </body>
     </html>

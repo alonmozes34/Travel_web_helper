@@ -13,6 +13,7 @@ import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { Combination } from '@/lib/comparison/buildCombination';
 import { track } from '@/lib/analytics/events';
+import { count } from '@/lib/stats/client';
 import { useTripExtras } from '@/components/extras/TripExtrasProvider';
 import { formatData } from '@/lib/formatters/data';
 import { formatPrice } from '@/lib/formatters/price';
@@ -100,6 +101,8 @@ export function CombinationCard({
                 opensInNewTab={dict.plan.opensInNewTab}
                 onChosen={() => {
                   track({ name: 'provider_clicked', planId: leg.plan.id, providerId: leg.plan.providerId });
+                  // Counted apart from the list: position 0 is "a leg of a combination".
+                  count({ e: 'click', provider: leg.plan.providerId, to: leg.countryCodes.length === 1 ? leg.countryCodes[0] : null, pos: 0, cheapest: false });
                   // A leg of a combination is a chosen plan like any other.
                   tripExtras?.choose(leg.plan.id);
                   setNoted(true);

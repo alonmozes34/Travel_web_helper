@@ -145,6 +145,35 @@ const dialog = await audit(page, 'comparison dialog open');
 console.log(`comparison dialog open: ${dialog.violations.length} violation types`);
 await page.close();
 
+// The owner's dashboard (13 October 2026), behind its own password. A few
+// counts are sent first, so its tables are audited full rather than empty;
+// the test servers count into memory (STATS_STORE=memory), never a real store.
+{
+  const PASSWORD = process.env.DASHBOARD_PASSWORD ?? 'test-dashboard-password';
+  const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
+  for (const event of [
+    { e: 'view', path: '/esim/japan', entry: true, ref: 'www.google.com' },
+    { e: 'search', to: [{ cc: 'FR', days: 5 }, { cc: 'IT', days: 4 }], usage: 'regular', gb: false, currency: 'ILS', count: 0 },
+    { e: 'click', provider: 'yesim', to: 'JP', pos: 1, cheapest: true },
+    { e: 'booking', step: 'hotels', to: 'JP' },
+  ]) {
+    await fetch(`${BASE}/api/e`, { method: 'POST', body: JSON.stringify(event), headers: { 'user-agent': CHROME, origin: BASE } });
+  }
+  for (const [label, viewport] of [['dashboard', { width: 1400, height: 1000 }], ['dashboard, phone', { width: 390, height: 844 }]]) {
+    const owner = await browser.newContext({ httpCredentials: { username: 'owner', password: PASSWORD }, viewport });
+    const dash = await owner.newPage();
+    const response = await dash.goto(`${BASE}/admin`, { waitUntil: 'domcontentloaded' });
+    if (response?.status() !== 200) {
+      findings.push({ label, id: 'not-served', impact: 'serious', help: `/admin answered ${response?.status()} — is DASHBOARD_PASSWORD set on the test server?`, nodes: 0, example: '' });
+    } else {
+      await dash.$$eval('details', (all) => all.forEach((d) => { d.open = true; }));
+      const result = await audit(dash, label);
+      console.log(`${label}: ${result.violations.length} violation types, ${result.passes.length} rules passing`);
+    }
+    await owner.close();
+  }
+}
+
 console.log('\n--- violations ---');
 if (findings.length === 0) console.log('none');
 for (const f of findings) {

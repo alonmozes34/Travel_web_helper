@@ -700,6 +700,60 @@ try {
   await p.close();
 } catch (e) { check('run', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ── the owner's dashboard: a real browser is counted, robots and opt-outs are not
+// The test servers run with STATS_STORE=memory and a test DASHBOARD_PASSWORD
+// (scripts/nightly.sh). Headless Chromium says so in its user agent and is
+// dropped as a robot, so the visitor here wears an ordinary Chrome's.
+try {
+  const PASSWORD = process.env.DASHBOARD_PASSWORD ?? 'test-dashboard-password';
+  const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
+  const owner = await b.newContext({ httpCredentials: { username: 'owner', password: PASSWORD }, viewport: { width: 1400, height: 1000 } });
+  const admin = await owner.newPage();
+  const tiles = async () => {
+    const response = await admin.goto(`${B}/admin?days=7`, { waitUntil: 'domcontentloaded' });
+    if (response?.status() !== 200) throw new Error(`/admin answered ${response?.status()} — is DASHBOARD_PASSWORD set on the server?`);
+    const read = async (label) => Number((await admin.locator('li', { hasText: label }).first().locator('p').nth(1).innerText()).replace(/[^\d]/g, ''));
+    return { visits: await read('כניסות לאתר'), searches: await read('חיפושים'), clicks: await read('לחיצות לספקים'), body: await admin.locator('body').innerText() };
+  };
+  const settle = (p) => p.waitForTimeout(700);
+
+  const before = await tiles();
+  const visitor = await b.newContext({ userAgent: CHROME, viewport: { width: 1400, height: 1000 } });
+  const v = await visitor.newPage();
+  await v.goto(`${B}/`, { waitUntil: 'domcontentloaded' });
+  await settle(v);
+  await v.goto(`${B}/search?to=TH:7&usage=regular`, { waitUntil: 'domcontentloaded', referer: `${B}/` });
+  await settle(v);
+  await v.locator('article').first().getByRole('button', { name: /לחבילה באתר/ }).or(v.locator('article').first().getByRole('link', { name: /לחבילה באתר/ })).first().click();
+  await settle(v);
+  await v.goto(`${B}/esim/no-such-country-here`, { waitUntil: 'domcontentloaded', referer: `${B}/` });
+  await settle(v);
+  const cookies = await visitor.cookies();
+  const after = await tiles();
+  check('dashboard', 'a visit from outside counts once, the next pages do not', after.visits - before.visits === 1, `${before.visits} → ${after.visits}`);
+  check('dashboard', 'the search is counted', after.searches - before.searches === 1, `${before.searches} → ${after.searches}`);
+  check('dashboard', 'the plan click is counted', after.clicks - before.clicks === 1, `${before.clicks} → ${after.clicks}`);
+  check('dashboard', 'the destination searched is listed', after.body.includes('תאילנד'));
+  check('dashboard', 'a missing page is counted as a 404, not by its address', after.body.includes('עמוד שלא קיים (404)') && !after.body.includes('no-such-country-here'));
+  check('dashboard', 'counting sets no cookie', cookies.length === 0, cookies.map((c) => c.name).join(', '));
+
+  const gpc = await b.newContext({ userAgent: CHROME, extraHTTPHeaders: { 'sec-gpc': '1' } });
+  const g = await gpc.newPage();
+  await g.addInitScript(() => Object.defineProperty(navigator, 'globalPrivacyControl', { get: () => true }));
+  await g.goto(`${B}/`, { waitUntil: 'domcontentloaded' });
+  await settle(g);
+  const robot = await b.newPage();
+  await robot.goto(`${B}/`, { waitUntil: 'domcontentloaded' });
+  await settle(robot);
+  const later = await tiles();
+  check('dashboard', 'a browser with Global Privacy Control, and a headless robot, are not counted', later.visits === after.visits, `${after.visits} → ${later.visits}`);
+
+  const cron = await fetch(`${B}/api/cron/daily-stats`, { headers: process.env.CRON_SECRET ? { authorization: `Bearer ${process.env.CRON_SECRET}` } : {} });
+  const job = await cron.json().catch(() => ({}));
+  check('dashboard', 'the daily job runs and says what is due', cron.status === 200 && job.ok === true && Array.isArray(job.alerts), `${cron.status} ${JSON.stringify(job).slice(0, 80)}`);
+  await Promise.all([owner.close(), visitor.close(), gpc.close(), robot.close()]);
+} catch (e) { check('run', 'dashboard section completed', false, e.message.split('\n')[0].slice(0, 120)); }
+
 await b.close();
 console.log(log.join('\n'));
 console.log(`\n  ${pass} pass, ${fail} fail`);

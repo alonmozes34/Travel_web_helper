@@ -8,6 +8,7 @@ import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import { track } from '@/lib/analytics/events';
 import { bookingLink } from '@/lib/booking/links';
+import { count } from '@/lib/stats/client';
 import { declineTripExtra } from '@/lib/tripExtras/dismissal';
 
 /**
@@ -46,6 +47,7 @@ export function BookingExtra({
 
   useEffect(() => {
     track({ name: 'car_rental_offer_shown', countryCode: countryCode ?? '', planId });
+    count({ e: 'booking', step: 'card', to: countryCode ?? null });
   }, [countryCode, planId]);
 
   const country = countryCode ? getCountryByCode(countryCode) : undefined;
@@ -98,12 +100,13 @@ export function BookingExtra({
   const name = country.names[locale];
   const decline = () => {
     track({ name: 'car_rental_offer_no', countryCode: country.code, planId });
+    count({ e: 'booking', step: 'decline', to: country.code });
     declineTripExtra('carRental');
     setDismissed(true);
   };
   const links = [
-    { kind: 'hotels', icon: '🏨', href: hotels, label: interpolate(copy.hotelsTemplate, { country: name }) },
-    { kind: 'cars', icon: '🚗', href: cars, label: interpolate(copy.carsTemplate, { country: name }) },
+    { kind: 'hotels' as const, icon: '🏨', href: hotels, label: interpolate(copy.hotelsTemplate, { country: name }) },
+    { kind: 'cars' as const, icon: '🚗', href: cars, label: interpolate(copy.carsTemplate, { country: name }) },
   ];
 
   return (
@@ -143,7 +146,10 @@ export function BookingExtra({
               href={link.href}
               target="_blank"
               rel="sponsored noopener noreferrer"
-              onClick={() => track({ name: 'car_rental_offer_yes', countryCode: country.code, planId })}
+              onClick={() => {
+                track({ name: 'car_rental_offer_yes', countryCode: country.code, planId });
+                count({ e: 'booking', step: link.kind, to: country.code });
+              }}
               className="flex min-h-14 items-center justify-center gap-3 rounded-[14px] bg-white px-4 py-3 text-center text-lg font-semibold text-night transition-transform hover:-translate-y-0.5 [overflow-wrap:anywhere]"
             >
               <span aria-hidden="true" className="text-2xl leading-none">

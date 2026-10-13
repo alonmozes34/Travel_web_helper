@@ -1099,7 +1099,7 @@ export const en: Dictionary = {
         'No user accounts and no sign-up.',
         'No form that collects personal details, except the contact form described below.',
         'No payments and no card details. Buying always happens on the provider’s own site.',
-        'No analytics tool. The module that names events on this site sends them nowhere.',
+        'No third-party analytics. The site keeps anonymous totals of its own, described below, with no cookies and no identifiers.',
         'No ad networks, no tracking pixels, no profiling.',
       ],
     },
@@ -1124,6 +1124,16 @@ export const en: Dictionary = {
       conditionalNote: 'Only written when that feature is switched on.',
       clearing:
         'All of these are removed when you clear site data in your browser. Tab storage also goes when you close the tab.',
+    },
+    stats: {
+      heading: 'Anonymous usage counts',
+      body: [
+        'The site counts, for itself, how often things happen on it: visits, pages viewed, searches, clicks through to providers and to Booking.com, WhatsApp shares, and contact-form messages by topic. Only totals for each day are kept — "12 searches for Japan on 13 October", say — and no record of any visit or visitor.',
+        'What the browser sends: which page opened, without the search details in its address; the name of the site you came from (google.com, say, not the full address); the countries, number of days, kind of use and currency you searched with, and how many plans were found; and which provider you clicked, for which destination, and where it stood in the list. The server adds the kind of device (phone, tablet or computer) and the country you visited from, as the two-letter code the host, Vercel, attaches to the request. The IP address is not read for this and is not kept, and neither is anything you typed.',
+        'The counting has no cookie and no identifier, and nothing is stored in your browser for it. It cannot identify you, or connect one of your visits to another.',
+        'A browser that asks not to be tracked (Global Privacy Control or Do Not Track) is not counted at all.',
+        'The totals are kept in the Upstash database service (a US company, through Vercel). Each day deletes itself after about 13 months. Only the site\'s operator sees them, and they have no effect on the ranking.',
+      ],
     },
     logs: {
       heading: 'Server logs',
@@ -1154,7 +1164,7 @@ export const en: Dictionary = {
       heading: 'Your rights',
       body: [
         'The only thing that identifies you and reaches us is a message you sent through the contact form. You can ask to see it, correct it or have it deleted.',
-        'Everything else sits in your browser and is entirely under your control — clearing site data removes all of it.',
+        'Everything else sits in your browser and is entirely under your control — clearing site data removes all of it. The anonymous counts hold nothing connected to you, so there is nothing in them to see or delete.',
         'If you have a privacy question or concern anyway, write to us and you will get a straight answer.',
       ],
     },

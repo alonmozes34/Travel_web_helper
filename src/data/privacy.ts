@@ -18,7 +18,10 @@ import { TRIP_EXTRAS_KEY } from '@/lib/tripExtras/dismissal';
  * one form that takes personal details is the contact form (since 6 October
  * 2026), which stores nothing and sends one email — see
  * `src/lib/contact/contact.ts` and the "contact form" section of the page.
- * `src/lib/analytics/events.ts` names events and sends none.
+ * `src/lib/analytics/events.ts` names events and sends none. The site's own
+ * anonymous day totals (since 13 October 2026, `src/lib/stats/`) store
+ * nothing on the device either, which is why they are not in this list; the
+ * page's "anonymous usage counts" section says what they are.
  */
 export type StorageKind = 'cookie' | 'local' | 'session';
 
@@ -45,4 +48,4 @@ export const storedItems: readonly StoredItem[] = [
  * Shown on the page. A privacy notice with no date asks to be trusted about
  * software that changes weekly.
  */
-export const privacyReviewedOn = '2026-10-06';
+export const privacyReviewedOn = '2026-10-13';

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { HeroSearch } from "@/components/search/HeroSearch";
 import { ResultsView } from "@/components/results/ResultsView";
+import { SearchCount } from "@/components/stats/SearchCount";
 import { CombinationCard } from "@/components/comparison/CombinationCard";
 import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
 import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
@@ -179,6 +180,13 @@ export default async function SearchPage({
           </div>
         ) : (
           <>
+            <SearchCount
+              to={profile.destinations.map((destination) => ({ cc: destination.countryCode, days: destination.days }))}
+              usage={profile.usage ?? null}
+              gb={profile.requestedGb !== undefined}
+              currency={comparison.currency}
+              count={comparison.rows.length + (combination && showCombination ? 1 : 0)}
+            />
             {/* Only while something on the page is invented. Once every plan comes
                 from a real source the warning is not merely unnecessary, it is
                 false — and a warning that cries wolf is how a real one stops

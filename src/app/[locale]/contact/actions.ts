@@ -10,6 +10,8 @@ import {
   validateContact,
   type ContactErrors,
 } from '@/lib/contact/contact';
+import { contactCounter } from '@/lib/stats/events';
+import { israelDay, statsStoreFromEnv } from '@/lib/stats/store';
 
 export type ContactState =
   | { status: 'idle' }
@@ -48,7 +50,12 @@ export async function submitContact(locale: string, _previous: ContactState, for
       from: process.env.CONTACT_FROM?.trim() || undefined,
       locale,
     });
-    return result.ok ? { status: 'sent' } : { status: 'failed', values };
+    if (!result.ok) return { status: 'failed', values };
+    // A message sent, counted by its topic and nothing else from it.
+    await statsStoreFromEnv()
+      ?.increment(israelDay(), { [contactCounter(checked.data.topic)]: 1 })
+      .catch(() => {});
+    return { status: 'sent' };
   } catch {
     return { status: 'failed', values };
   }

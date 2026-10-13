@@ -1,5 +1,7 @@
 'use client';
 
+import { count } from '@/lib/stats/client';
+
 /**
  * "Send on WhatsApp": a plain wa.me link with a ready sentence and this
  * search's own address, so whoever plans the trip with you opens exactly
@@ -10,7 +12,8 @@
  * first, outlined version unclear. Dark text on it: white on that green does
  * not reach 4.5:1.
  *
- * A link and nothing more: no share counter, no tracking parameter. The
+ * A link and nothing more: no tracking parameter. A send adds one to the
+ * day's total of shares on this site's own count, and that is all. The
  * address is read when the link is followed, so filters chosen after the
  * page loaded go with it.
  */
@@ -44,6 +47,7 @@ export function ShareSearch({
       rel="noopener"
       onClick={(event) => {
         event.currentTarget.href = hrefFor(window.location.href);
+        count({ e: 'share', channel: 'whatsapp' });
       }}
       className={
         'inline-flex items-center gap-2 rounded-md bg-[#25D366] font-semibold text-[#0b2e17] hover:bg-[#1fb857] ' +

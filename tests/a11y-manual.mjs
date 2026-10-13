@@ -547,6 +547,40 @@ if (formShown) {
 }
 await cf.close();
 
+// The owner's dashboard: reflow, 200% text, and a visible focus on everything
+// the keyboard reaches. Behind its own password; see tests/a11y.mjs.
+{
+  const PASSWORD = process.env.DASHBOARD_PASSWORD ?? 'test-dashboard-password';
+  for (const [label, viewport, zoom] of [['reflow at 320px', { width: 320, height: 700 }, false], ['text at 200% on a 390px phone', { width: 390, height: 844 }, true]]) {
+    const owner = await browser.newContext({ httpCredentials: { username: 'owner', password: PASSWORD }, viewport });
+    const dash = await owner.newPage();
+    const response = await dash.goto(`${BASE}/admin`, { waitUntil: 'domcontentloaded' });
+    await dash.$$eval('details', (all) => all.forEach((d) => { d.open = true; }));
+    if (zoom) await dash.evaluate(() => { document.documentElement.style.fontSize = '32px'; });
+    await dash.waitForTimeout(300);
+    const overflow = await dash.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    ok(`${label}: /admin`, response?.status() === 200 && overflow <= 1, `${response?.status()}, ${overflow}px overflow`);
+    if (!zoom) {
+      const unseen = [];
+      let reached = 0;
+      for (let i = 0; i < 30; i += 1) {
+        await dash.keyboard.press('Tab');
+        const info = await dash.evaluate(() => {
+          const el = document.activeElement;
+          if (!el || el === document.body) return null;
+          const s = getComputedStyle(el);
+          return { name: (el.textContent ?? '').trim().slice(0, 20), visible: (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) || s.boxShadow !== 'none' };
+        });
+        if (!info) continue;
+        reached += 1;
+        if (!info.visible) unseen.push(info.name);
+      }
+      ok('every tabbable element on /admin shows focus', reached > 3 && unseen.length === 0, `${reached} reached, ${unseen.slice(0, 3).join(', ')}`);
+    }
+    await owner.close();
+  }
+}
+
 await kb.close();
 await browser.close();
 console.log(out.join('\n'));

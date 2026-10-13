@@ -93,7 +93,8 @@ export function rateLimiter({ count, windowMs } = RATE_LIMIT) {
   };
 }
 
-const TOPIC_LABELS: Record<ContactTopic, string> = {
+/** Also the dashboard's names for the topics messages were sent under. */
+export const TOPIC_LABELS: Record<ContactTopic, string> = {
   general: 'שאלה כללית',
   plan: 'בעיה בחבילה או בקישור',
   accessibility: 'בעיית נגישות',
@@ -132,10 +133,31 @@ export async function sendContactEmail(
   }: { apiKey: string; to: string; from?: string; locale: string; now?: Date; fetchImpl?: typeof fetch },
 ): Promise<SendResult> {
   const { subject, text } = contactEmail(data, { locale, sentAt: now });
+  return sendEmail({ apiKey, to, from, replyTo: data.email, subject, text, fetchImpl });
+}
+
+/** One plain-text email through Resend — the contact form's, and the dashboard's weekly summary and alerts. */
+export async function sendEmail({
+  apiKey,
+  to,
+  from = 'Yesh Klita <onboarding@resend.dev>',
+  replyTo,
+  subject,
+  text,
+  fetchImpl = fetch,
+}: {
+  apiKey: string;
+  to: string;
+  from?: string;
+  replyTo?: string;
+  subject: string;
+  text: string;
+  fetchImpl?: typeof fetch;
+}): Promise<SendResult> {
   const response = await fetchImpl('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to: [to], reply_to: data.email, subject, text }),
+    body: JSON.stringify({ from, to: [to], ...(replyTo ? { reply_to: replyTo } : {}), subject, text }),
   });
   return response.ok ? { ok: true } : { ok: false, status: response.status };
 }

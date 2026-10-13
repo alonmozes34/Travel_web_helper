@@ -13,6 +13,7 @@ import {
   matchesPreviewPassword,
   PREVIEW_COOKIE,
 } from '@/lib/previewGate';
+import { DASHBOARD_MIN_PASSWORD, dashboardAccess, isDashboardPath } from '@/lib/stats/dashboardAccess';
 
 const prefixedLocales = locales.filter((locale) => locale !== defaultLocale);
 
@@ -26,6 +27,8 @@ const prefixedLocales = locales.filter((locale) => locale !== defaultLocale);
  * request redirects to the canonical form so the two never compete in search.
  */
 export function proxy(request: NextRequest) {
+  if (isDashboardPath(request.nextUrl.pathname)) return dashboard(request);
+
   const gate = guard(request);
   if (gate) return gate;
 
@@ -132,6 +135,31 @@ function guard(request: NextRequest): NextResponse | null {
   url.pathname = `${localePrefix(request.nextUrl.pathname)}/unlock`;
   url.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
   return NextResponse.redirect(url);
+}
+
+/**
+ * The owner's dashboard, outside the languages and the preview gate: its own
+ * password (`DASHBOARD_PASSWORD`), asked for by the browser's sign-in box, and
+ * never cached or indexed. See `src/lib/stats/dashboardAccess.ts`.
+ */
+function dashboard(request: NextRequest): NextResponse {
+  const headers = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' };
+  switch (dashboardAccess(request.headers.get('authorization'))) {
+    case 'ok': {
+      const response = NextResponse.next();
+      for (const [name, value] of Object.entries(headers)) response.headers.set(name, value);
+      return response;
+    }
+    case 'unset':
+      return new NextResponse('Not found', { status: 404, headers });
+    case 'weak':
+      return new NextResponse(`DASHBOARD_PASSWORD is shorter than ${DASHBOARD_MIN_PASSWORD} characters, so the dashboard is closed. Set a longer one in Vercel.`, { status: 503, headers });
+    case 'denied':
+      return new NextResponse('Sign-in required', {
+        status: 401,
+        headers: { ...headers, 'WWW-Authenticate': 'Basic realm="yeshklita dashboard", charset="UTF-8"' },
+      });
+  }
 }
 
 /** '' for the default locale's clean URLs, '/en' for a prefixed one. */
