@@ -226,17 +226,19 @@ describe('the buy link', () => {
     assert.equal(buyLinkLandsOnPlan(plan.plan), false);
   });
 
-  test('a plan linked to the page of a country it does not cover gets no link — and so is not shown', () => {
-    // As in the Store API on 13 October 2026: a "French West Indies" plan,
-    // linked to French Guiana's page, which does not sell it.
+  test('a country\'s page opens only that country\'s plans: a regional plan linked to it gets no link — and so is not shown', () => {
+    // As in the Store API on 13 October 2026: "French West Indies" (French
+    // Guiana, Guadeloupe, Martinique, Saint Barthélemy), linked to French
+    // Guiana's page, which sells French Guiana's own six plans and not it.
     const westIndies = { ...thai5gb, url: thai5gb.url.replace('thailand-esim', 'french-guiana-esim') };
-    assert.equal(alosimLinkFor(westIndies, ['BL', 'GP', 'MQ', 'MF'], { toPlan: true }), null);
-    const plan = mapAlosimPlan(westIndies, 'T', (item) => alosimLinkFor(item, ['BL', 'GP', 'MQ', 'MF'], { toPlan: true }));
+    assert.equal(alosimLinkFor(westIndies, ['GF', 'GP', 'MQ', 'BL'], { toPlan: true }), null);
+    const plan = mapAlosimPlan(westIndies, 'T', (item) => alosimLinkFor(item, ['GF', 'GP', 'MQ', 'BL'], { toPlan: true }));
     assert.ok('plan' in plan);
     assert.equal(buyLinkLandsOnPlan(plan.plan), false);
-    // The same page for a plan that does cover French Guiana keeps its link.
+    // Nor a plan for another country altogether.
+    assert.equal(alosimLinkFor(westIndies, ['BL'], { toPlan: true }), null);
+    // French Guiana's own plan keeps its link.
     assert.ok(alosimLinkFor(westIndies, ['GF'], { toPlan: true }));
-    assert.ok(alosimLinkFor(westIndies, ['GF', 'GP'], { toPlan: true }));
   });
 
   test('where the page\'s current address is not known, a Hebrew reader gets the English link, which keeps the plan', () => {

@@ -197,13 +197,16 @@ export function alosimLinkFor(
 
   // A page that is gone, or now opens a different page, cannot open the plan.
   if (toPlan && slug && deadPages[slug]) return null;
-  // Nor can a country's page open a plan that does not cover that country.
-  // On 13 October 2026 three "French West Indies" plans in their Store API
-  // linked French Guiana's page, which does not sell them, and French Guiana
-  // is not among their countries: the visitor who chose the cheapest plan for
-  // Saint Barthélemy landed on French Guiana's default plan.
+  // Nor can a country's page open a plan that is not that country's alone:
+  // aloSIM's country pages sell the country's own plans, and their regional
+  // plans live on regional pages. On 13 October 2026 three "French West
+  // Indies" plans (French Guiana, Guadeloupe, Martinique, Saint Barthélemy)
+  // linked French Guiana's page, which does not sell them — the visitor who
+  // chose the cheapest plan for Saint Barthélemy landed on French Guiana's
+  // default plan.
   const page = slug ? trackingBySlug.get(slug) : undefined;
-  if (toPlan && page?.kind === 'country' && page.countryCode && !countryCodes.includes(page.countryCode)) return null;
+  const onlyThatCountry = countryCodes.length === 1 && countryCodes[0] === page?.countryCode;
+  if (toPlan && page?.kind === 'country' && page.countryCode && !onlyThatCountry) return null;
   if (toPlan) return ownPlanLink();
 
   const planId = planIdOf(item.url);
