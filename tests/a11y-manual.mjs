@@ -492,7 +492,7 @@ if (!demoCatalogue) {
       };
     });
     ok('back on this page, the Booking card is in view, outlined and said, opening a tab of its own',
-      back.card && back.inView && back.outlined && /Booking\.com/.test(back.said) && back.targets.length === 2 && back.targets.every((t) => t === '_blank'),
+      back.card && back.inView && back.outlined && /Booking\.com/.test(back.said) && back.targets.length === 3 && back.targets.every((t) => t === '_blank'),
       JSON.stringify(back));
     tabs = 0;
     await ctas.nth(1).scrollIntoViewIfNeeded();

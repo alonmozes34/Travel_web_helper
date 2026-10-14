@@ -15,6 +15,25 @@ describe('Booking.com links', () => {
     assert.ok(!link!.includes('?'), 'a query string in the page address is lost or 404s through CJ');
   });
 
+  test('attractions open one city’s page, checked to exist, and nothing where none opened', async () => {
+    const { bookingAttractionsCity } = await import('../src/data/booking-attractions.generated');
+    const { attractionsCityName } = await import('../src/lib/booking/links');
+    const [code, city] = Object.entries(bookingAttractionsCity)[0]!;
+    assert.equal(
+      bookingPage('attractions', code, 'he'),
+      `https://www.booking.com/things-to-do/city/${code.toLowerCase()}/${city!.slug}.he.html`,
+    );
+    assert.equal(bookingPage('attractions', code, 'en'), `https://www.booking.com/things-to-do/city/${code.toLowerCase()}/${city!.slug}.en-gb.html`);
+    assert.equal(attractionsCityName(code, 'he'), city!.he);
+    const without = ['AQ', 'BV', 'HM'].find((cc) => !bookingAttractionsCity[cc]);
+    assert.ok(without, 'a country with no city page');
+    assert.equal(bookingPage('attractions', without, 'he'), null);
+    assert.equal(bookingLink('attractions', without, 'he'), null);
+    assert.equal(attractionsCityName(without, 'he'), null);
+    // Never a country page: Booking answers those with "this page does not exist".
+    for (const entry of Object.values(bookingAttractionsCity)) assert.match(entry!.slug, /^[a-z0-9]+(-[a-z0-9]+)*$/);
+  });
+
   test('no link for Israel or for anything that is not a country code', () => {
     assert.equal(bookingLink('hotels', 'IL', 'he'), null);
     assert.equal(bookingLink('hotels', undefined, 'he'), null);

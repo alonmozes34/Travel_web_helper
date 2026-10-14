@@ -42,7 +42,7 @@ const ALLOWED = [
   /^click:[a-z0-9-]+(:[A-Z]{2})?$/,
   /^position:(1|2|3|4-10|11\+|combination)$/,
   /^code:[a-z0-9-]+$/,
-  /^booking:(reminder|continued|card|hotels|cars|decline|page-hotels|page-cars)(:[A-Z]{2})?$/,
+  /^booking:(reminder|continued|card|hotels|cars|attractions|decline|page-hotels|page-cars|page-attractions)(:[A-Z]{2})?$/,
 ];
 const allowed = (name: string) => ALLOWED.some((pattern) => pattern.test(name));
 
@@ -119,6 +119,8 @@ describe('what an event becomes', () => {
   test('Booking steps, with the destination only where it means something', () => {
     assert.deepEqual(countersFor({ e: 'booking', step: 'hotels', to: 'GR' }, context), { 'booking:hotels': 1, 'booking:hotels:GR': 1 });
     assert.deepEqual(countersFor({ e: 'booking', step: 'reminder', to: 'GR' }, context), { 'booking:reminder': 1 });
+    assert.deepEqual(countersFor({ e: 'booking', step: 'attractions', to: 'JP' }, context), { 'booking:attractions': 1, 'booking:attractions:JP': 1 });
+    assert.deepEqual(countersFor({ e: 'booking', step: 'page-attractions', to: 'JP' }, context), { 'booking:page-attractions': 1 });
   });
 
   test('anything not on the list is dropped, not stored some other way', () => {

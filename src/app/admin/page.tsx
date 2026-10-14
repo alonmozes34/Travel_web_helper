@@ -278,6 +278,7 @@ function Body({ current, previous, listed }: { current: Period; previous: Period
         <div className="grid gap-x-8 md:grid-cols-2">
           <Breakdown caption="מלונות, לפי יעד" period={current} prefix="booking:hotels:" label={countryLabel} limit={10} />
           <Breakdown caption="רכב, לפי יעד" period={current} prefix="booking:cars:" label={countryLabel} limit={10} />
+          <Breakdown caption="אטרקציות, לפי יעד" period={current} prefix="booking:attractions:" label={countryLabel} limit={10} />
         </div>
       </Section>
 

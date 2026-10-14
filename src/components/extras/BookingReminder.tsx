@@ -10,7 +10,7 @@ import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { OutboundLink } from '@/lib/affiliate/link';
-import { bookingLink } from '@/lib/booking/links';
+import { attractionsCityName, bookingLink } from '@/lib/booking/links';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import type { Discount } from '@/lib/types/discount';
 import { isTripExtraDeclined } from '@/lib/tripExtras/dismissal';
@@ -79,7 +79,14 @@ export function BookingReminder({
         </p>
         <div className="flex items-start gap-3">
           <BookingLogo className="shrink-0 border border-line" />
-          <p className="text-ink">{interpolate(copy.bodyTemplate, { country })}</p>
+          <p className="text-ink">
+            {interpolate(
+              bookingLink('attractions', countryCode, locale) && attractionsCityName(countryCode, locale)
+                ? copy.bodyWithAttractionsTemplate
+                : copy.bodyTemplate,
+              { country },
+            )}
+          </p>
         </div>
         {discount ? (
           <p className="text-sm text-teal-ink">

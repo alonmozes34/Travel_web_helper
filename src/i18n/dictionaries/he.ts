@@ -918,13 +918,18 @@ export const he = {
     booking: {
       questionTemplate: 'צריכים גם מלון או רכב ב{country}?',
       body: 'מלונות ורכבים להשכרה ביעד שלכם, ישירות באתר Booking.com. אותם אנחנו לא משווים, רק מקשרים.',
+      /** Where Booking has an attractions page for the country's main city. */
+      questionWithAttractionsTemplate: 'צריכים גם מלון, רכב או אטרקציות ב{country}?',
+      bodyWithAttractions: 'מלונות, רכבים להשכרה ואטרקציות ביעד שלכם, ישירות באתר Booking.com. אותם אנחנו לא משווים, רק מקשרים.',
       hotelsTemplate: 'מלונות ב{country}',
       carsTemplate: 'השכרת רכב ב{country}',
+      attractionsTemplate: 'אטרקציות ב{city}',
       decline: 'לא תודה',
       opensInNewTab: '(נפתח בלשונית חדשה, החיפוש שלכם נשאר פתוח כאן)',
       dismiss: 'סגירת ההצעה',
       /** Read out when the traveller comes back to this tab and the card is brought into view. */
       waitingTemplate: 'מחכה לכם כאן: מלונות והשכרת רכב ב{country} ב־Booking.com.',
+      waitingWithAttractionsTemplate: 'מחכים לכם כאן: מלונות, השכרת רכב ואטרקציות ב{country} ב־Booking.com.',
     },
     /**
      * Said once a visit, on the first click through to a plan: the plan opens
@@ -934,6 +939,7 @@ export const he = {
     reminder: {
       titleTemplate: 'החבילה של {provider} נפתחת בלשונית חדשה',
       bodyTemplate: 'אחרי שתקנו את ה־eSIM, חזרו ללשונית הזו: מחכים לכם כאן מלונות והשכרת רכב ב{country} באתר Booking.com.',
+      bodyWithAttractionsTemplate: 'אחרי שתקנו את ה־eSIM, חזרו ללשונית הזו: מחכים לכם כאן מלונות, השכרת רכב ואטרקציות ב{country} באתר Booking.com.',
       codeTemplate: 'קוד ההנחה {code} יועתק אוטומטית כשממשיכים לחבילה.',
       continueTemplate: 'הבנתי, להמשך לחבילה באתר {provider}',
       cancel: 'ביטול',
@@ -942,8 +948,10 @@ export const he = {
   booking: {
     titleTemplate: 'מתכננים את הטיול ל{country}?',
     introTemplate: 'מלונות ורכב להשכרה ב{country}, ישירות באתר Booking.com. כאן אנחנו לא משווים אותם, רק מקשרים לעמוד שלהם.',
+    introWithAttractionsTemplate: 'מלונות, רכב להשכרה ואטרקציות ב{country}, ישירות באתר Booking.com. כאן אנחנו לא משווים אותם, רק מקשרים לעמוד שלהם.',
     hotelsTemplate: 'מלונות ב{country}',
     carsTemplate: 'השכרת רכב ב{country}',
+    attractionsTemplate: 'אטרקציות ב{city}',
     onBooking: 'באתר Booking.com',
     opensInNewTab: '(נפתח בלשונית חדשה)',
     disclosure: 'קישור שותף: אם תזמינו בביקור הזה, ייתכן שנקבל עמלה מ־Booking.com, בלי עלות נוספת לכם.',

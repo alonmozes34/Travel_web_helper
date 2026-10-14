@@ -532,8 +532,10 @@ try {
 
 // ══ car rental cross-sell ════════════════════════════════════════════════
 try {
-  const OFFER = 'צריכים גם מלון או רכב ב';
-  const OFFER_TITLE = 'צריכים גם מלון או רכב בצרפת?';
+  // With attractions where Booking has a page for the country's main city
+  // (France: Paris), without them elsewhere.
+  const OFFER = /צריכים גם מלון(?: או רכב|, רכב או אטרקציות) ב/;
+  const OFFER_TITLE = 'צריכים גם מלון, רכב או אטרקציות בצרפת?';
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1000 } });
   const p = await ctx.newPage();
   await p.goto(B + '/esim/france?to=FR:5&usage=regular', { waitUntil: 'domcontentloaded' });
@@ -550,7 +552,7 @@ try {
   check('extras', 'the eSIM page is not navigated away from', p.url() === urlBefore);
 
   const body = await p.locator('body').innerText();
-  check('extras', 'the offer names the destination', body.includes('צריכים גם מלון או רכב בצרפת?'));
+  check('extras', 'the offer names the destination', body.includes(OFFER_TITLE));
   check('extras', 'the offer says the link opens elsewhere', body.includes('נפתח בלשונית חדשה'));
 
   // A second plan must not stack a second offer.
@@ -559,23 +561,27 @@ try {
   check('extras', 'a second eSIM click does not stack a second offer', (await offers()) === 1);
 
   // The card opens Booking.com's own hotels and car pages for the destination,
-  // through the CJ deep link, marked as paid links (the owner, 6 October 2026).
+  // through the CJ deep link, marked as paid links (the owner, 6 October 2026),
+  // and the attractions page of its main city (14 October 2026).
   const offer = p.locator('section').filter({ hasText: OFFER_TITLE });
   const offerLinks = await offer.getByRole('link').evaluateAll((as) => as.map((a) => [a.getAttribute('href'), a.getAttribute('rel')]));
-  check('extras', 'the card links Booking’s hotels and car pages for the destination',
-    offerLinks.length === 2
+  check('extras', 'the card links Booking’s hotels, car and Paris attractions pages',
+    offerLinks.length === 3
       && offerLinks[0][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/country/fr.he.html'
-      && offerLinks[1][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/cars/country/fr.he.html',
+      && offerLinks[1][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/cars/country/fr.he.html'
+      && offerLinks[2][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/things-to-do/city/fr/paris.he.html',
     JSON.stringify(offerLinks.map((l) => l[0])));
-  check('extras', 'and both are marked as sponsored links', offerLinks.every((l) => /\bsponsored\b/.test(l[1] ?? '')));
+  check('extras', 'the attractions button names the city', (await offer.getByRole('link', { name: /אטרקציות בפריז/ }).count()) === 1);
+  check('extras', 'and all are marked as sponsored links', offerLinks.every((l) => /\bsponsored\b/.test(l[1] ?? '')));
   check('extras', 'the card carries Booking’s logo', (await offer.getByRole('img', { name: 'Booking.com' }).count()) === 1);
 
   // The country page offers hotels and cars on Booking.com, said plainly to
   // be links and not a comparison.
   const booking = p.getByRole('region', { name: 'מתכננים את הטיול לצרפת?' });
   const bookingHrefs = await booking.getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
-  check('extras', 'the country page links hotels and cars on Booking.com',
-    bookingHrefs.length === 2 && bookingHrefs[0].endsWith('www.booking.com/country/fr.he.html') && bookingHrefs[1].endsWith('www.booking.com/cars/country/fr.he.html'),
+  check('extras', 'the country page links hotels, cars and Paris attractions on Booking.com',
+    bookingHrefs.length === 3 && bookingHrefs[0].endsWith('www.booking.com/country/fr.he.html') && bookingHrefs[1].endsWith('www.booking.com/cars/country/fr.he.html')
+      && bookingHrefs[2].endsWith('www.booking.com/things-to-do/city/fr/paris.he.html'),
     JSON.stringify(bookingHrefs));
   check('extras', 'and says it does not compare them',
     (await booking.innerText()).includes('לא משווים') && (await booking.innerText()).includes('קישור שותף'));

@@ -368,6 +368,26 @@ business details.
   readers as filters change, and every layout is checked for horizontal
   overflow at phone, tablet and desktop widths.
 
+## Booking.com
+
+Hotels, car rental and attractions on Booking.com, through CJ, offered after
+an eSIM is chosen and on each country's page (`src/lib/booking/links.ts`).
+Links only: Booking forbid showing their prices next to anyone else's, and
+pay only for a booking finished in the same visit, so the card waits on our
+page while the plan opens in a new tab.
+
+Hotels and cars open Booking's page for the country. Attractions have no
+country page there (`/attractions/country/jp.he.html` answers 200 with "this
+page does not exist"), only cities, so each country links to one city's
+page — the capital, or where travellers fly into instead (New York, Istanbul,
+Dubai…) — and the button names the city. Which city, and that its page
+really opens, is checked in a browser by `npx tsx
+scripts/check-booking-attractions.ts`, which writes
+`src/data/booking-attractions.generated.ts`. A country whose page did not
+open has no attractions button and no copy promising one. Rerun it from a
+session now and then; Booking may block some networks, and the script then
+writes nothing.
+
 ## The owner's dashboard
 
 `/admin` is a private page that shows how the site is used (the owner,

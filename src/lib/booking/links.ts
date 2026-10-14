@@ -1,3 +1,4 @@
+import { bookingAttractionsCity } from '@/data/booking-attractions.generated';
 import type { Locale } from '@/i18n/config';
 
 /**
@@ -18,6 +19,11 @@ import type { Locale } from '@/i18n/config';
  *
  * Only a booking finished in the same visit earns a commission: Booking set
  * no cookie for later. Both ids are public — they are in every link.
+ *
+ * Attractions (14 October 2026, after Booking began paying on them) have no
+ * country page at Booking — only cities — so a country links to one city's
+ * page, checked page by page by `scripts/check-booking-attractions.ts`, and
+ * the button names the city. A country with no page that opened has none.
  */
 export const BOOKING_CJ = {
   /** Our website id in CJ ("Yesh Klita – Travel eSIM Comparison"). */
@@ -25,17 +31,24 @@ export const BOOKING_CJ = {
   host: 'https://www.tkqlhce.com',
 } as const;
 
-export type BookingKind = 'hotels' | 'cars';
+export type BookingKind = 'hotels' | 'cars' | 'attractions';
 
 const LANGUAGE: Record<Locale, string> = { he: 'he', en: 'en-gb' };
 
-/** Booking's own page for a country: its hotels, or its car rental. */
-export function bookingPage(kind: BookingKind, countryCode: string, locale: Locale): string {
+/** Booking's own page for a country: its hotels, its car rental, or the attractions of its main city. */
+export function bookingPage(kind: BookingKind, countryCode: string, locale: Locale): string | null {
   const cc = countryCode.toLowerCase();
   const lang = LANGUAGE[locale];
-  return kind === 'hotels'
-    ? `https://www.booking.com/country/${cc}.${lang}.html`
-    : `https://www.booking.com/cars/country/${cc}.${lang}.html`;
+  if (kind === 'hotels') return `https://www.booking.com/country/${cc}.${lang}.html`;
+  if (kind === 'cars') return `https://www.booking.com/cars/country/${cc}.${lang}.html`;
+  const city = bookingAttractionsCity[countryCode];
+  return city ? `https://www.booking.com/things-to-do/city/${cc}/${city.slug}.${lang}.html` : null;
+}
+
+/** The city a country's attractions link opens, in the page's language — named on the button. */
+export function attractionsCityName(countryCode: string | undefined, locale: Locale): string | null {
+  const city = countryCode ? bookingAttractionsCity[countryCode] : undefined;
+  return city ? city[locale] : null;
 }
 
 /**
@@ -44,5 +57,6 @@ export function bookingPage(kind: BookingKind, countryCode: string, locale: Loca
  */
 export function bookingLink(kind: BookingKind, countryCode: string | undefined, locale: Locale): string | null {
   if (!countryCode || !/^[A-Z]{2}$/.test(countryCode) || countryCode === 'IL') return null;
-  return `${BOOKING_CJ.host}/links/${BOOKING_CJ.site}/type/dlg/${bookingPage(kind, countryCode, locale)}`;
+  const page = bookingPage(kind, countryCode, locale);
+  return page ? `${BOOKING_CJ.host}/links/${BOOKING_CJ.site}/type/dlg/${page}` : null;
 }

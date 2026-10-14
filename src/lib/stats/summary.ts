@@ -6,7 +6,14 @@
 export type DayCounts = Record<string, Record<string, number>>;
 
 /** Booking links followed, from the card after a plan and from a country's page. */
-export const BOOKING_OUT = ['booking:hotels', 'booking:cars', 'booking:page-hotels', 'booking:page-cars'] as const;
+export const BOOKING_OUT = [
+  'booking:hotels',
+  'booking:cars',
+  'booking:attractions',
+  'booking:page-hotels',
+  'booking:page-cars',
+  'booking:page-attractions',
+] as const;
 
 export type Period = {
   days: string[];

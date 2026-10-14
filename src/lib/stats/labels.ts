@@ -83,9 +83,11 @@ export const bookingStepLabels: Record<BookingStep, string> = {
   card: 'הוצג כרטיס Booking אחרי בחירת חבילה',
   hotels: 'לחצו "מלונות" בכרטיס',
   cars: 'לחצו "רכב" בכרטיס',
+  attractions: 'לחצו "אטרקציות" בכרטיס',
   decline: 'לחצו "לא תודה"',
   'page-hotels': 'לחצו "מלונות" בעמוד של מדינה',
   'page-cars': 'לחצו "רכב" בעמוד של מדינה',
+  'page-attractions': 'לחצו "אטרקציות" בעמוד של מדינה',
 };
 
 export const contactLabels: Record<string, string> = TOPIC_LABELS;

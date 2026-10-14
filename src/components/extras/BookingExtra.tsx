@@ -7,14 +7,15 @@ import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import { track } from '@/lib/analytics/events';
-import { bookingLink } from '@/lib/booking/links';
+import { attractionsCityName, bookingLink } from '@/lib/booking/links';
 import { count } from '@/lib/stats/client';
 import { declineTripExtra } from '@/lib/tripExtras/dismissal';
 
 /**
  * Hotels and a rental car on Booking.com, offered the moment an eSIM is
  * chosen (the owner, 6 October 2026: "simple and prominent, with Booking's
- * logo").
+ * logo"), and attractions in the country's main city where Booking has a
+ * page for it (14 October 2026).
  *
  * It appears only after a traveller has clicked through to an eSIM provider.
  * That click opens the provider in a new tab, so this card is waiting when
@@ -53,7 +54,17 @@ export function BookingExtra({
   const country = countryCode ? getCountryByCode(countryCode) : undefined;
   const card = useRef<HTMLElement>(null);
   const said = useRef<HTMLParagraphElement>(null);
-  const waiting = country ? interpolate(dict.tripExtras.booking.waitingTemplate, { country: country.names[locale] }) : '';
+  // Attractions only where Booking has a page for the country's main city
+  // (src/lib/booking/links.ts); the copy says so only there.
+  const attractions = bookingLink('attractions', countryCode, locale);
+  const city = attractionsCityName(countryCode, locale);
+  const withAttractions = Boolean(attractions && city);
+  const waiting = country
+    ? interpolate(
+        withAttractions ? dict.tripExtras.booking.waitingWithAttractionsTemplate : dict.tripExtras.booking.waitingTemplate,
+        { country: country.names[locale] },
+      )
+    : '';
 
   // The card appears as the plan opens in a new tab, which a phone jumps to;
   // by the time the visitor is back, they are scrolled down among the plans
@@ -107,6 +118,9 @@ export function BookingExtra({
   const links = [
     { kind: 'hotels' as const, icon: '🏨', href: hotels, label: interpolate(copy.hotelsTemplate, { country: name }) },
     { kind: 'cars' as const, icon: '🚗', href: cars, label: interpolate(copy.carsTemplate, { country: name }) },
+    ...(attractions && city
+      ? [{ kind: 'attractions' as const, icon: '🎟️', href: attractions, label: interpolate(copy.attractionsTemplate, { city }) }]
+      : []),
   ];
 
   return (
@@ -133,13 +147,13 @@ export function BookingExtra({
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-3 pe-10">
         <h2 id="booking-extra-title" className="font-head text-xl font-semibold md:text-2xl">
-          {interpolate(copy.questionTemplate, { country: name })}
+          {interpolate(withAttractions ? copy.questionWithAttractionsTemplate : copy.questionTemplate, { country: name })}
         </h2>
         <BookingLogo />
       </div>
-      <p className="mt-2 max-w-[60ch] text-on-night-2">{copy.body}</p>
+      <p className="mt-2 max-w-[60ch] text-on-night-2">{withAttractions ? copy.bodyWithAttractions : copy.body}</p>
 
-      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+      <ul className={`mt-4 grid gap-3 ${links.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
         {links.map((link) => (
           <li key={link.kind} className="min-w-0">
             <a
