@@ -87,21 +87,19 @@ console.log(`mobile menu open: ${menu.violations.length} violation types`);
 
 await page.keyboard.press('Escape');
 
-// The cross-sell card, which only exists after an eSIM has been chosen and is
-// therefore invisible to a static load of the same URL.
-// With a real catalogue the control is a link to the provider, with the demo
-// one a button; either raises the offer. The provider's page is not loaded:
-// the audit is of this page, and a test run has no business clicking through
-// to a real provider.
+// The Booking.com planner with places chosen: its questions, and the rows of
+// links that exist only after a tick — invisible to a static load of the URL.
+// Nothing outside the site is loaded: the audit is of this page.
 const extras = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
 await extras.context().route((url) => !url.href.startsWith(BASE), (route) => route.abort());
 await extras.goto(`${BASE}/esim/france?to=FR:5&usage=regular`, { waitUntil: 'domcontentloaded' });
 await extras.waitForTimeout(900);
-const firstCard = extras.locator('article').first();
-await firstCard.getByRole('button', { name: /לחבילה באתר/ }).or(firstCard.getByRole('link', { name: /לחבילה באתר/ })).first().click();
-await extras.waitForTimeout(400);
-const crossSell = await audit(extras, 'trip extra offer shown');
-console.log(`trip extra offer shown: ${crossSell.violations.length} violation types`);
+const where = extras.getByRole('region', { name: 'מלונות, רכב ואטרקציות לטיול' }).getByRole('group', { name: 'איפה בצרפת?' });
+await where.locator('label', { hasText: /^פריז$/ }).click();
+await where.locator('label', { hasText: 'כל צרפת' }).click();
+await extras.waitForTimeout(300);
+const crossSell = await audit(extras, 'Booking planner, places chosen');
+console.log(`Booking planner, places chosen: ${crossSell.violations.length} violation types`);
 await extras.close();
 
 // The model list after typing: a filtered list, and then the no-match block

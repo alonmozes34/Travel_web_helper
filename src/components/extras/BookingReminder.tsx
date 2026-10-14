@@ -13,13 +13,14 @@ import type { OutboundLink } from '@/lib/affiliate/link';
 import { attractionsCityName, bookingLink } from '@/lib/booking/links';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
 import type { Discount } from '@/lib/types/discount';
-import { isTripExtraDeclined } from '@/lib/tripExtras/dismissal';
 
 /**
  * Said once a visit, on the first click through to a plan (the owner,
- * 12 October 2026): the plan opens in a new tab, and hotels and cars on
- * Booking.com wait here. A phone jumps straight to the new tab, so without it
- * the Booking card on this page went unseen.
+ * 12 October 2026): the plan opens in a new tab, and Booking.com links wait at
+ * the bottom of this page — pick where exactly in the trip, and get a row of
+ * links per place (14 October 2026: "the window only says there is an
+ * option, and points to the bottom of the page"). A phone jumps straight to
+ * the new tab, so without it the Booking section went unseen.
  *
  * It only says so. There is no link to Booking in it: offered before the
  * plan, Booking was the page a phone visitor had to leave to go back and buy
@@ -37,8 +38,7 @@ export function bookingReminderDue(
   locale: Locale,
 ): boolean {
   if (remindedThisVisit || !extras?.carRentalOffer || !extras.countryCode) return false;
-  if (!getCountryByCode(extras.countryCode) || !bookingLink('hotels', extras.countryCode, locale)) return false;
-  return !isTripExtraDeclined('carRental');
+  return Boolean(getCountryByCode(extras.countryCode) && bookingLink('hotels', extras.countryCode, locale));
 }
 
 export function BookingReminder({

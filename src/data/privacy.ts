@@ -1,7 +1,6 @@
 import { CURRENCY_COOKIE } from '@/i18n/config';
 import { PREVIEW_COOKIE } from '@/lib/previewGate';
 import { RECENT_DESTINATIONS_KEY } from '@/lib/recentDestinations';
-import { TRIP_EXTRAS_KEY } from '@/lib/tripExtras/dismissal';
 
 /**
  * Everything this site puts on a visitor's device.
@@ -29,7 +28,7 @@ export type StoredItem = {
   key: string;
   kind: StorageKind;
   /** Key into the dictionary, so each entry is explained in both languages. */
-  purpose: 'currency' | 'preview' | 'recentDestinations' | 'tripExtras';
+  purpose: 'currency' | 'preview' | 'recentDestinations';
   /** True while the item is only written when an optional feature is on. */
   conditional: boolean;
 };
@@ -39,7 +38,6 @@ export const storedItems: readonly StoredItem[] = [
   // Only written when PREVIEW_GATE is switched on, which it is not.
   { key: PREVIEW_COOKIE, kind: 'cookie', purpose: 'preview', conditional: true },
   { key: RECENT_DESTINATIONS_KEY, kind: 'local', purpose: 'recentDestinations', conditional: false },
-  { key: TRIP_EXTRAS_KEY, kind: 'session', purpose: 'tripExtras', conditional: false },
 ];
 
 /**
@@ -48,4 +46,4 @@ export const storedItems: readonly StoredItem[] = [
  * Shown on the page. A privacy notice with no date asks to be trusted about
  * software that changes weekly.
  */
-export const privacyReviewedOn = '2026-10-13';
+export const privacyReviewedOn = '2026-10-14';

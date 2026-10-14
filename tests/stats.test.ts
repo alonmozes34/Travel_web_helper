@@ -42,7 +42,7 @@ const ALLOWED = [
   /^click:[a-z0-9-]+(:[A-Z]{2})?$/,
   /^position:(1|2|3|4-10|11\+|combination)$/,
   /^code:[a-z0-9-]+$/,
-  /^booking:(reminder|continued|card|hotels|cars|attractions|decline|page-hotels|page-cars|page-attractions)(:[A-Z]{2})?$/,
+  /^booking:(reminder|continued|card|pick|hotels|cars|attractions|decline|page-hotels|page-cars|page-attractions)(:[A-Z]{2})?$/,
 ];
 const allowed = (name: string) => ALLOWED.some((pattern) => pattern.test(name));
 

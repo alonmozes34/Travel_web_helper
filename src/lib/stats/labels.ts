@@ -80,7 +80,8 @@ export const positionLabels: Record<string, string> = {
 export const bookingStepLabels: Record<BookingStep, string> = {
   reminder: 'הוצגה התזכורת בלחיצה על חבילה',
   continued: 'המשיכו מהתזכורת לחבילה',
-  card: 'הוצג כרטיס Booking אחרי בחירת חבילה',
+  card: 'הודגש החלק של Booking בחזרה מהחבילה',
+  pick: 'סימנו יעד בחלק של Booking',
   hotels: 'לחצו "מלונות" בכרטיס',
   cars: 'לחצו "רכב" בכרטיס',
   attractions: 'לחצו "אטרקציות" בכרטיס',

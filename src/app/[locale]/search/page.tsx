@@ -8,7 +8,8 @@ import { ResultsView } from "@/components/results/ResultsView";
 import { SearchCount } from "@/components/stats/SearchCount";
 import { CombinationCard } from "@/components/comparison/CombinationCard";
 import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
-import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
+import { BookingPlanner } from "@/components/booking/BookingPlanner";
+import { plannerCountries } from "@/lib/booking/planner";
 import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { AffiliateDisclosure } from "@/components/content/AffiliateDisclosure";
 import { MockDataNotice } from "@/components/content/MockDataNotice";
@@ -305,8 +306,6 @@ export default async function SearchPage({
                 </div>
               ) : null}
 
-              <TripExtrasSlot dict={dict} />
-
               {comparison.rows.length > 0 ? (
                 <ResultsView
                   rows={comparison.rows.map((row) => ({ ...row, trend: trendFor(row.plan, priceSummary) }))}
@@ -326,6 +325,15 @@ export default async function SearchPage({
                   }
                 />
               ) : null}
+
+              {/* Hotels, cars and attractions on Booking.com for every country
+                  of the trip, after the plans: where exactly, then the links. */}
+              <BookingPlanner
+                countries={plannerCountries(comparison.countryCodes, locale)}
+                copy={dict.bookingPlanner}
+                opensInNewTab={dict.booking.opensInNewTab}
+                disclosure={dict.booking.disclosure}
+              />
             </TripExtrasProvider>
 
             <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />

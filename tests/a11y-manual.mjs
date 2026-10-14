@@ -480,19 +480,20 @@ if (!demoCatalogue) {
     await out.bringToFront();
     await out.evaluate(() => window.dispatchEvent(new Event('focus')));
     await out.waitForTimeout(1500);
+    // The Booking.com planner, at the bottom of the page since 14 October 2026.
     const back = await out.evaluate(() => {
-      const card = document.getElementById('booking-extra-title')?.closest('section');
+      const card = document.getElementById('booking-planner-title')?.closest('section');
       const r = card?.getBoundingClientRect();
       return {
         card: Boolean(card),
         inView: Boolean(r && r.top < window.innerHeight && r.bottom > 0),
         outlined: Boolean(card?.classList.contains('trip-extra-call')),
         said: card?.querySelector('[role="status"]')?.textContent ?? '',
-        targets: card ? [...card.querySelectorAll('a[href]')].map((a) => a.getAttribute('target')) : [],
+        asks: card ? card.querySelectorAll('fieldset input[type="checkbox"]').length : 0,
       };
     });
-    ok('back on this page, the Booking card is in view, outlined and said, opening a tab of its own',
-      back.card && back.inView && back.outlined && /Booking\.com/.test(back.said) && back.targets.length === 3 && back.targets.every((t) => t === '_blank'),
+    ok('back on this page, the Booking planner at the bottom is in view, outlined and said, asking where exactly',
+      back.card && back.inView && back.outlined && /Booking\.com/.test(back.said) && back.asks >= 2,
       JSON.stringify(back));
     tabs = 0;
     await ctas.nth(1).scrollIntoViewIfNeeded();
@@ -546,6 +547,47 @@ if (formShown) {
   ok('without the form, the page says it is not active yet and gives the address, never "sent"', instead.soon && instead.address > 0 && !instead.claimsSent, JSON.stringify(instead));
 }
 await cf.close();
+
+// The Booking.com planner with places chosen — rows that exist only after a
+// tick: reflow at 320px, 200% text on a phone, and the whole way through by
+// keyboard (tick with Space, reach the links with Tab).
+{
+  const tick = async (page) => {
+    const where = page.getByRole('region', { name: 'מלונות, רכב ואטרקציות לטיול' }).getByRole('group', { name: 'איפה בתאילנד?' });
+    await where.locator('label').first().click();
+    await where.locator('label', { hasText: 'כל תאילנד' }).click();
+    await page.waitForTimeout(300);
+  };
+  for (const [label, viewport, zoom] of [['reflow at 320px', { width: 320, height: 700 }, false], ['text at 200% on a 390px phone', { width: 390, height: 844 }, true]]) {
+    const page = await browser.newPage({ viewport });
+    await page.goto(`${BASE}/esim/thailand?days=10&usage=regular`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(700);
+    if (zoom) await page.evaluate(() => { document.documentElement.style.fontSize = '32px'; });
+    await tick(page);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    const rows = await page.locator('#booking-planner li').count();
+    ok(`${label}: the Booking planner with places chosen`, rows === 2 && overflow <= 1, `${rows} rows, ${overflow}px overflow`);
+    await page.close();
+  }
+  const keys = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await keys.goto(`${BASE}/esim/thailand?days=10&usage=regular`, { waitUntil: 'domcontentloaded' });
+  await keys.waitForTimeout(700);
+  await keys.locator('#booking-planner fieldset input[type="checkbox"]').first().focus();
+  await keys.keyboard.press('Space');
+  await keys.waitForTimeout(200);
+  let reachedLink = false;
+  for (let i = 0; i < 40 && !reachedLink; i += 1) {
+    await keys.keyboard.press('Tab');
+    reachedLink = await keys.evaluate(() => Boolean(document.activeElement?.closest('#booking-planner li a[href]')));
+  }
+  const focusShown = await keys.evaluate(() => {
+    const el = document.activeElement;
+    const s = el ? getComputedStyle(el) : null;
+    return Boolean(s && ((s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) || s.boxShadow !== 'none'));
+  });
+  ok('the Booking planner works by keyboard: Space ticks a place, Tab reaches its links, with focus shown', reachedLink && focusShown, JSON.stringify({ reachedLink, focusShown }));
+  await keys.close();
+}
 
 // The owner's dashboard: reflow, 200% text, and a visible focus on everything
 // the keyboard reaches. Behind its own password; see tests/a11y.mjs.

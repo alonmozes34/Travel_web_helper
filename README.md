@@ -370,11 +370,23 @@ business details.
 
 ## Booking.com
 
-Hotels, car rental and attractions on Booking.com, through CJ, offered after
-an eSIM is chosen and on each country's page (`src/lib/booking/links.ts`).
-Links only: Booking forbid showing their prices next to anyone else's, and
-pay only for a booking finished in the same visit, so the card waits on our
-page while the plan opens in a new tab.
+Hotels, car rental and attractions on Booking.com, through CJ, in the
+planner at the bottom of the results and of each country's page
+(`src/components/booking/BookingPlanner.tsx`, the owner, 14 October 2026):
+"where exactly?" for each country of the trip — its cities, or the whole
+country — then a row of links per place. Links only: Booking forbid showing
+their prices next to anyone else's, and pay only for a booking finished in
+the same visit, so the planner waits on our page while the plan opens in a
+new tab; the reminder on the first plan click says so, and coming back from
+the plan's tab brings the planner into view.
+
+The cities are `src/data/booking-cities.generated.ts`, written by `npx tsx
+scripts/check-booking-cities.ts`: the main city, the popular destinations on
+Booking's own country page, and our largest cities, at most twelve. Each page —
+hotels, car rental, attractions — is checked: a city is listed when its hotels
+page opens at its own address, and carries a car or attractions link only when
+that page opened too. The server builds the links for the trip's countries
+only (`src/lib/booking/planner.ts`), so the page does not carry every city.
 
 Hotels and cars open Booking's page for the country. Attractions have no
 country page there (`/attractions/country/jp.he.html` answers 200 with "this

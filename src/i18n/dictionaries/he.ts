@@ -913,24 +913,6 @@ export const he = {
    * on the way back, not to interrupt anything.
    */
   tripExtras: {
-    heading: 'עוד דבר אחד לטיול',
-    esimChosen: 'נבחרה חבילת eSIM',
-    booking: {
-      questionTemplate: 'צריכים גם מלון או רכב ב{country}?',
-      body: 'מלונות ורכבים להשכרה ביעד שלכם, ישירות באתר Booking.com. אותם אנחנו לא משווים, רק מקשרים.',
-      /** Where Booking has an attractions page for the country's main city. */
-      questionWithAttractionsTemplate: 'צריכים גם מלון, רכב או אטרקציות ב{country}?',
-      bodyWithAttractions: 'מלונות, רכבים להשכרה ואטרקציות ביעד שלכם, ישירות באתר Booking.com. אותם אנחנו לא משווים, רק מקשרים.',
-      hotelsTemplate: 'מלונות ב{country}',
-      carsTemplate: 'השכרת רכב ב{country}',
-      attractionsTemplate: 'אטרקציות ב{city}',
-      decline: 'לא תודה',
-      opensInNewTab: '(נפתח בלשונית חדשה, החיפוש שלכם נשאר פתוח כאן)',
-      dismiss: 'סגירת ההצעה',
-      /** Read out when the traveller comes back to this tab and the card is brought into view. */
-      waitingTemplate: 'מחכה לכם כאן: מלונות והשכרת רכב ב{country} ב־Booking.com.',
-      waitingWithAttractionsTemplate: 'מחכים לכם כאן: מלונות, השכרת רכב ואטרקציות ב{country} ב־Booking.com.',
-    },
     /**
      * Said once a visit, on the first click through to a plan: the plan opens
      * in a new tab, and the hotels and cars wait here. Only said — no link to
@@ -938,21 +920,34 @@ export const he = {
      */
     reminder: {
       titleTemplate: 'החבילה של {provider} נפתחת בלשונית חדשה',
-      bodyTemplate: 'אחרי שתקנו את ה־eSIM, חזרו ללשונית הזו: מחכים לכם כאן מלונות והשכרת רכב ב{country} באתר Booking.com.',
-      bodyWithAttractionsTemplate: 'אחרי שתקנו את ה־eSIM, חזרו ללשונית הזו: מחכים לכם כאן מלונות, השכרת רכב ואטרקציות ב{country} באתר Booking.com.',
+      bodyTemplate: 'אחרי שתקנו את ה־eSIM, חזרו ללשונית הזו: בתחתית העמוד אפשר לבחור לאן בדיוק בטיול ולקבל קישורים ישירים ל־Booking.com, למלונות ולרכב בכל יעד.',
+      bodyWithAttractionsTemplate: 'אחרי שתקנו את ה־eSIM, חזרו ללשונית הזו: בתחתית העמוד אפשר לבחור לאן בדיוק בטיול ולקבל קישורים ישירים ל־Booking.com, למלונות, לרכב ולאטרקציות בכל יעד.',
       codeTemplate: 'קוד ההנחה {code} יועתק אוטומטית כשממשיכים לחבילה.',
       continueTemplate: 'הבנתי, להמשך לחבילה באתר {provider}',
       cancel: 'ביטול',
     },
   },
+  /** The Booking.com planner at the bottom of the results and of a country's page. */
+  bookingPlanner: {
+    title: 'מלונות, רכב ואטרקציות לטיול',
+    intro: 'סמנו לאן בדיוק אתם נוסעים, ונכין לכם קישורים ישירים ל־Booking.com לכל יעד. כאן אנחנו לא משווים מחירים, רק מקשרים לעמוד שלהם.',
+    whereTemplate: 'איפה ב{country}?',
+    wholeTemplate: 'כל {country} (עוד לא יודעים)',
+    linksHeading: 'הקישורים שלכם ל־Booking.com',
+    empty: 'הקישורים יופיעו כאן אחרי שתסמנו יעד.',
+    oneRow: 'יעד אחד ברשימת הקישורים',
+    rowsTemplate: '{count} יעדים ברשימת הקישורים',
+    kinds: {
+      hotels: { short: 'מלונות', inTemplate: 'מלונות ב{place}' },
+      cars: { short: 'רכב', inTemplate: 'השכרת רכב ב{place}' },
+      attractions: { short: 'אטרקציות', inTemplate: 'אטרקציות ב{place}' },
+    },
+    noPageTemplate: 'אין ב־Booking.com עמוד {kind} ל{place}',
+    /** Said when the visitor comes back from the plan's tab and the section is brought into view. */
+    waiting: 'בתחתית העמוד: קישורים ל־Booking.com לכל יעד בטיול. סמנו לאן בדיוק אתם נוסעים.',
+  },
+  /** What every Booking.com link on the site says about itself. */
   booking: {
-    titleTemplate: 'מתכננים את הטיול ל{country}?',
-    introTemplate: 'מלונות ורכב להשכרה ב{country}, ישירות באתר Booking.com. כאן אנחנו לא משווים אותם, רק מקשרים לעמוד שלהם.',
-    introWithAttractionsTemplate: 'מלונות, רכב להשכרה ואטרקציות ב{country}, ישירות באתר Booking.com. כאן אנחנו לא משווים אותם, רק מקשרים לעמוד שלהם.',
-    hotelsTemplate: 'מלונות ב{country}',
-    carsTemplate: 'השכרת רכב ב{country}',
-    attractionsTemplate: 'אטרקציות ב{city}',
-    onBooking: 'באתר Booking.com',
     opensInNewTab: '(נפתח בלשונית חדשה)',
     disclosure: 'קישור שותף: אם תזמינו בביקור הזה, ייתכן שנקבל עמלה מ־Booking.com, בלי עלות נוספת לכם.',
   },
@@ -1164,7 +1159,7 @@ export const he = {
     storage: {
       heading: 'מה נשמר במכשיר שלכם',
       intro:
-        'ארבעה פריטים, כולם נשמרים בדפדפן שלכם בלבד ואף אחד מהם לא נשלח אלינו או לצד שלישי:',
+        'שלושה פריטים, כולם נשמרים בדפדפן שלכם בלבד ואף אחד מהם לא נשלח אלינו או לצד שלישי:',
       keyLabel: 'שם',
       kindLabel: 'סוג',
       purposeLabel: 'למה',
@@ -1177,7 +1172,6 @@ export const he = {
         currency: 'המטבע שבחרתם להצגת מחירים, כדי שלא תצטרכו לבחור בכל ביקור.',
         preview: 'סיסמת תצוגה מוקדמת, ורק כאשר השער סגור. כרגע הוא פתוח והעוגייה הזו אינה נכתבת.',
         recentDestinations: 'קודי המדינות שחיפשתם לאחרונה, כדי להציע אותן בשורת החיפוש. קודי מדינה בלבד.',
-        tripExtras: 'העובדה שסגרתם את הצעת השכרת הרכב, כדי לא להציע אותה שוב באותה לשונית.',
       },
       conditionalNote: 'נכתב רק כשהתכונה הזו מופעלת.',
       clearing:
@@ -1186,8 +1180,8 @@ export const he = {
     stats: {
       heading: 'ספירת שימוש אנונימית',
       body: [
-        'האתר סופר לעצמו כמה פעמים דברים קרו בו: כניסות, צפיות בעמודים, חיפושים, לחיצות לספקים ול־Booking.com, שיתופים בוואטסאפ, והודעות שנשלחו בטופס לפי הנושא. נשמרים רק סכומים לכל יום — למשל "12 חיפושים ליפן ב־13 באוקטובר" — ושום רשומה של ביקור או של מבקר.',
-        'מה הדפדפן שולח: איזה עמוד נפתח, בלי פרטי החיפוש שבכתובת; שם האתר שממנו הגעתם (למשל google.com, לא הכתובת המלאה); המדינות שחיפשתם, מספר הימים, סוג השימוש בגלישה והמטבע שבחרתם, וכמה חבילות נמצאו; ועל איזה ספק לחצתם, לאיזה יעד ובאיזה מקום ברשימה. השרת מוסיף את סוג המכשיר (טלפון, טאבלט או מחשב) ואת המדינה שממנה נכנסתם, כקוד של שתי אותיות ששירות האירוח Vercel מצרף לבקשה. כתובת ה־IP לא נקראת לצורך הזה ולא נשמרת, וגם לא שום דבר שהקלדתם.',
+        'האתר סופר לעצמו כמה פעמים דברים קרו בו: כניסות, צפיות בעמודים, חיפושים, לחיצות לספקים ול־Booking.com, כמה פעמים סימנו יעד בחלק של Booking.com, שיתופים בוואטסאפ, והודעות שנשלחו בטופס לפי הנושא. נשמרים רק סכומים לכל יום — למשל "12 חיפושים ליפן ב־13 באוקטובר" — ושום רשומה של ביקור או של מבקר.',
+        'מה הדפדפן שולח: איזה עמוד נפתח, בלי פרטי החיפוש שבכתובת; שם האתר שממנו הגעתם (למשל google.com, לא הכתובת המלאה); המדינות שחיפשתם, מספר הימים, סוג השימוש בגלישה והמטבע שבחרתם, וכמה חבילות נמצאו; ועל איזה ספק לחצתם, לאיזה יעד ובאיזה מקום ברשימה. בחלק של Booking.com נשלחת רק המדינה של היעד שסימנתם או שלחצתם עליו, לא העיר. השרת מוסיף את סוג המכשיר (טלפון, טאבלט או מחשב) ואת המדינה שממנה נכנסתם, כקוד של שתי אותיות ששירות האירוח Vercel מצרף לבקשה. כתובת ה־IP לא נקראת לצורך הזה ולא נשמרת, וגם לא שום דבר שהקלדתם.',
         'לספירה אין עוגייה, אין מזהה, ושום דבר לא נשמר בשבילה בדפדפן שלכם. לכן אי אפשר לזהות דרכה אתכם, או לחבר ביקור אחד שלכם לאחר.',
         'דפדפן שמבקש לא לעקוב אחריו (Global Privacy Control או Do Not Track) לא נספר בכלל.',
         'הסכומים נשמרים בשירות מאגר הנתונים Upstash (חברה בארה״ב, דרך Vercel). כל יום נמחק מעצמו אחרי כ־13 חודשים. רק מפעיל האתר רואה אותם, והם לא משפיעים על הדירוג.',

@@ -33,7 +33,7 @@ export const BOOKING_CJ = {
 
 export type BookingKind = 'hotels' | 'cars' | 'attractions';
 
-const LANGUAGE: Record<Locale, string> = { he: 'he', en: 'en-gb' };
+export const LANGUAGE: Record<Locale, string> = { he: 'he', en: 'en-gb' };
 
 /** Booking's own page for a country: its hotels, its car rental, or the attractions of its main city. */
 export function bookingPage(kind: BookingKind, countryCode: string, locale: Locale): string | null {

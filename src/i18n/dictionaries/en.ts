@@ -882,39 +882,34 @@ export const en: Dictionary = {
   },
 
   tripExtras: {
-    heading: 'One more thing for your trip',
-    esimChosen: 'eSIM plan selected',
-    booking: {
-      questionTemplate: 'Need a hotel or a car in {country} too?',
-      body: 'Hotels and rental cars at your destination, straight on Booking.com. We do not compare those, we only link to them.',
-      questionWithAttractionsTemplate: 'Need a hotel, a car or things to do in {country} too?',
-      bodyWithAttractions: 'Hotels, rental cars and attractions at your destination, straight on Booking.com. We do not compare those, we only link to them.',
-      hotelsTemplate: 'Hotels in {country}',
-      carsTemplate: 'Car rental in {country}',
-      attractionsTemplate: 'Attractions in {city}',
-      decline: 'No thanks',
-      opensInNewTab: '(opens in a new tab — your search stays open here)',
-      dismiss: 'Dismiss this offer',
-      waitingTemplate: 'Waiting for you here: hotels and car rental in {country} on Booking.com.',
-      waitingWithAttractionsTemplate: 'Waiting for you here: hotels, car rental and attractions in {country} on Booking.com.',
-    },
     reminder: {
       titleTemplate: 'The {provider} plan opens in a new tab',
-      bodyTemplate: 'Once you have bought the eSIM, come back to this tab: hotels and car rental in {country} on Booking.com are waiting for you here.',
-      bodyWithAttractionsTemplate: 'Once you have bought the eSIM, come back to this tab: hotels, car rental and attractions in {country} on Booking.com are waiting for you here.',
+      bodyTemplate: 'Once you have bought the eSIM, come back to this tab: at the bottom of the page you can pick where exactly you are going and get direct Booking.com links for hotels and car rental in each place.',
+      bodyWithAttractionsTemplate: 'Once you have bought the eSIM, come back to this tab: at the bottom of the page you can pick where exactly you are going and get direct Booking.com links for hotels, car rental and attractions in each place.',
       codeTemplate: 'Discount code {code} is copied for you when you go on to the plan.',
       continueTemplate: 'Got it, continue to the plan at {provider}',
       cancel: 'Cancel',
     },
   },
+  bookingPlanner: {
+    title: 'Hotels, cars and attractions for the trip',
+    intro: 'Tick where exactly you are going, and we will put together direct links to Booking.com for each place. We do not compare prices here; we only link to their pages.',
+    whereTemplate: 'Where in {country}?',
+    wholeTemplate: 'All of {country} (not sure yet)',
+    linksHeading: 'Your Booking.com links',
+    empty: 'The links appear here once you tick a place.',
+    oneRow: 'One place in your links',
+    rowsTemplate: '{count} places in your links',
+    kinds: {
+      hotels: { short: 'Hotels', inTemplate: 'Hotels in {place}' },
+      cars: { short: 'Car', inTemplate: 'Car rental in {place}' },
+      attractions: { short: 'Attractions', inTemplate: 'Attractions in {place}' },
+    },
+    noPageTemplate: 'Booking.com has no {kind} page for {place}',
+    waiting: 'At the bottom of the page: Booking.com links for each place of the trip. Tick where exactly you are going.',
+  },
+  /** What every Booking.com link on the site says about itself. */
   booking: {
-    titleTemplate: 'Planning the trip to {country}?',
-    introTemplate: 'Hotels and rental cars in {country}, straight on Booking.com. We do not compare them here; we only link to their page.',
-    introWithAttractionsTemplate: 'Hotels, rental cars and attractions in {country}, straight on Booking.com. We do not compare them here; we only link to their page.',
-    hotelsTemplate: 'Hotels in {country}',
-    carsTemplate: 'Car rental in {country}',
-    attractionsTemplate: 'Attractions in {city}',
-    onBooking: 'on Booking.com',
     opensInNewTab: '(opens in a new tab)',
     disclosure: 'Affiliate link: if you book during this visit, we may earn a commission from Booking.com, at no extra cost to you.',
   },
@@ -1113,7 +1108,7 @@ export const en: Dictionary = {
     storage: {
       heading: 'What is kept on your device',
       intro:
-        'Four items, all of them in your own browser. None of them is sent to us or to anyone else:',
+        'Three items, all of them in your own browser. None of them is sent to us or to anyone else:',
       keyLabel: 'Name',
       kindLabel: 'Type',
       purposeLabel: 'Why',
@@ -1126,7 +1121,6 @@ export const en: Dictionary = {
         currency: 'The currency you chose for prices, so you do not have to choose it on every visit.',
         preview: 'A preview password, and only while the preview gate is closed. It is open, so this cookie is not written.',
         recentDestinations: 'The country codes you searched for recently, to offer them in the search field. Country codes only.',
-        tripExtras: 'That you dismissed the car rental offer, so it is not offered again in the same tab.',
       },
       conditionalNote: 'Only written when that feature is switched on.',
       clearing:
@@ -1135,8 +1129,8 @@ export const en: Dictionary = {
     stats: {
       heading: 'Anonymous usage counts',
       body: [
-        'The site counts, for itself, how often things happen on it: visits, pages viewed, searches, clicks through to providers and to Booking.com, WhatsApp shares, and contact-form messages by topic. Only totals for each day are kept — "12 searches for Japan on 13 October", say — and no record of any visit or visitor.',
-        'What the browser sends: which page opened, without the search details in its address; the name of the site you came from (google.com, say, not the full address); the countries, number of days, kind of use and currency you searched with, and how many plans were found; and which provider you clicked, for which destination, and where it stood in the list. The server adds the kind of device (phone, tablet or computer) and the country you visited from, as the two-letter code the host, Vercel, attaches to the request. The IP address is not read for this and is not kept, and neither is anything you typed.',
+        'The site counts, for itself, how often things happen on it: visits, pages viewed, searches, clicks through to providers and to Booking.com, how often a place is ticked in the Booking.com section, WhatsApp shares, and contact-form messages by topic. Only totals for each day are kept — "12 searches for Japan on 13 October", say — and no record of any visit or visitor.',
+        'What the browser sends: which page opened, without the search details in its address; the name of the site you came from (google.com, say, not the full address); the countries, number of days, kind of use and currency you searched with, and how many plans were found; and which provider you clicked, for which destination, and where it stood in the list. From the Booking.com section, only the country of the place you ticked or clicked is sent, never the city. The server adds the kind of device (phone, tablet or computer) and the country you visited from, as the two-letter code the host, Vercel, attaches to the request. The IP address is not read for this and is not kept, and neither is anything you typed.',
         'The counting has no cookie and no identifier, and nothing is stored in your browser for it. It cannot identify you, or connect one of your visits to another.',
         'A browser that asks not to be tracked (Global Privacy Control or Do Not Track) is not counted at all.',
         'The totals are kept in the Upstash database service (a US company, through Vercel). Each day deletes itself after about 13 months. Only the site\'s operator sees them, and they have no effect on the ranking.',

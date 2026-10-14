@@ -530,80 +530,86 @@ try {
   await p.close();
 } catch (e) { check('devices', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
-// ══ car rental cross-sell ════════════════════════════════════════════════
+// ══ Booking.com planner ═══════════════════════════════════════════════════
+// The owner, 14 October 2026: before Booking, ask where in each country of the
+// trip, then give a row of links per place — hotel, car, attractions — at the
+// bottom of the page, after the plans.
 try {
-  // With attractions where Booking has a page for the country's main city
-  // (France: Paris), without them elsewhere.
-  const OFFER = /צריכים גם מלון(?: או רכב|, רכב או אטרקציות) ב/;
-  const OFFER_TITLE = 'צריכים גם מלון, רכב או אטרקציות בצרפת?';
+  const DL = 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com';
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1000 } });
   const p = await ctx.newPage();
   await p.goto(B + '/esim/france?to=FR:5&usage=regular', { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1000);
-  const offers = () => p.locator('section').filter({ hasText: OFFER }).count();
+  const planner = p.getByRole('region', { name: 'מלונות, רכב ואטרקציות לטיול' });
+  const plannerTop = (await planner.boundingBox())?.y ?? -1;
+  const lastPlanTop = (await p.locator('article').last().boundingBox())?.y ?? Infinity;
+  check('booking', 'the planner is on the country page, below the plans', (await planner.count()) === 1 && plannerTop > lastPlanTop, `${plannerTop} / ${lastPlanTop}`);
 
-  check('extras', 'no offer before a plan is chosen', (await offers()) === 0);
+  const where = planner.getByRole('group', { name: 'איפה בצרפת?' });
+  check('booking', 'it asks where in the country: its cities, and the whole country',
+    (await where.getByRole('checkbox').count()) >= 4
+      && (await where.getByRole('checkbox', { name: 'פריז', exact: true }).count()) === 1
+      && (await where.getByRole('checkbox', { name: 'כל צרפת (עוד לא יודעים)' }).count()) === 1);
+  check('booking', 'no Booking link until a place is chosen',
+    (await planner.getByRole('link').count()) === 0 && (await planner.innerText()).includes('הקישורים יופיעו כאן'));
 
+  await where.locator('label', { hasText: /^פריז$/ }).click();
+  await p.waitForTimeout(200);
+  const links = () => planner.getByRole('link').evaluateAll((as) => as.map((a) => [a.getAttribute('href'), a.getAttribute('rel'), a.getAttribute('target')]));
+  const paris = await links();
+  check('booking', 'Paris gets its own hotels, car and attractions pages on Booking',
+    paris.length === 3
+      && paris[0][0] === `${DL}/city/fr/paris.he.html`
+      && paris[1][0] === `${DL}/cars/city/fr/paris.he.html`
+      && paris[2][0] === `${DL}/things-to-do/city/fr/paris.he.html`,
+    JSON.stringify(paris.map((l) => l[0])));
+  check('booking', 'each link says which place in its name',
+    (await planner.getByRole('link', { name: /^מלונות בפריז/ }).count()) === 1
+      && (await planner.getByRole('link', { name: /^השכרת רכב בפריז/ }).count()) === 1
+      && (await planner.getByRole('link', { name: /^אטרקציות בפריז/ }).count()) === 1);
+  check('booking', 'all are sponsored links that open a new tab', paris.every((l) => /\bsponsored\b/.test(l[1] ?? '') && l[2] === '_blank'));
+
+  await where.locator('label', { hasText: 'כל צרפת' }).click();
+  await p.waitForTimeout(200);
+  const both = await links();
+  check('booking', 'the whole country adds France’s hotels and cars pages, and the main city’s attractions',
+    both.length === 6
+      && both.some((l) => l[0] === `${DL}/country/fr.he.html`)
+      && both.some((l) => l[0] === `${DL}/cars/country/fr.he.html`)
+      && (await planner.getByRole('link', { name: /^אטרקציות בפריז/ }).count()) === 2,
+    JSON.stringify(both.map((l) => l[0])));
+
+  await where.locator('label', { hasText: /^פריז$/ }).click();
+  await p.waitForTimeout(200);
+  check('booking', 'unticking a place takes its links away', (await links()).length === 3);
+  const text = await planner.innerText();
+  check('booking', 'it says these are links, not a comparison, and that we may earn a commission',
+    text.includes('לא משווים') && text.includes('קישור שותף'));
+  check('booking', 'it carries Booking’s logo', (await planner.getByRole('img', { name: 'Booking.com' }).count()) === 1);
+
+  // A plan click no longer puts anything above the plans.
   const urlBefore = p.url();
   await p.locator('article').first().getByRole('button', { name: /לחבילה באתר/ }).first().click();
   await p.waitForTimeout(400);
+  check('booking', 'choosing a plan stays on the page and adds nothing above the plans',
+    p.url() === urlBefore && (await p.getByRole('region', { name: 'מלונות, רכב ואטרקציות לטיול' }).count()) === 1);
 
-  check('extras', 'the offer appears after the eSIM click', (await offers()) === 1);
-  check('extras', 'the eSIM page is not navigated away from', p.url() === urlBefore);
-
-  const body = await p.locator('body').innerText();
-  check('extras', 'the offer names the destination', body.includes(OFFER_TITLE));
-  check('extras', 'the offer says the link opens elsewhere', body.includes('נפתח בלשונית חדשה'));
-
-  // A second plan must not stack a second offer.
-  await p.locator('article').nth(1).getByRole('button', { name: /לחבילה באתר/ }).first().click();
-  await p.waitForTimeout(300);
-  check('extras', 'a second eSIM click does not stack a second offer', (await offers()) === 1);
-
-  // The card opens Booking.com's own hotels and car pages for the destination,
-  // through the CJ deep link, marked as paid links (the owner, 6 October 2026),
-  // and the attractions page of its main city (14 October 2026).
-  const offer = p.locator('section').filter({ hasText: OFFER_TITLE });
-  const offerLinks = await offer.getByRole('link').evaluateAll((as) => as.map((a) => [a.getAttribute('href'), a.getAttribute('rel')]));
-  check('extras', 'the card links Booking’s hotels, car and Paris attractions pages',
-    offerLinks.length === 3
-      && offerLinks[0][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/country/fr.he.html'
-      && offerLinks[1][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/cars/country/fr.he.html'
-      && offerLinks[2][0] === 'https://www.tkqlhce.com/links/101892359/type/dlg/https://www.booking.com/things-to-do/city/fr/paris.he.html',
-    JSON.stringify(offerLinks.map((l) => l[0])));
-  check('extras', 'the attractions button names the city', (await offer.getByRole('link', { name: /אטרקציות בפריז/ }).count()) === 1);
-  check('extras', 'and all are marked as sponsored links', offerLinks.every((l) => /\bsponsored\b/.test(l[1] ?? '')));
-  check('extras', 'the card carries Booking’s logo', (await offer.getByRole('img', { name: 'Booking.com' }).count()) === 1);
-
-  // The country page offers hotels and cars on Booking.com, said plainly to
-  // be links and not a comparison.
-  const booking = p.getByRole('region', { name: 'מתכננים את הטיול לצרפת?' });
-  const bookingHrefs = await booking.getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
-  check('extras', 'the country page links hotels, cars and Paris attractions on Booking.com',
-    bookingHrefs.length === 3 && bookingHrefs[0].endsWith('www.booking.com/country/fr.he.html') && bookingHrefs[1].endsWith('www.booking.com/cars/country/fr.he.html')
-      && bookingHrefs[2].endsWith('www.booking.com/things-to-do/city/fr/paris.he.html'),
-    JSON.stringify(bookingHrefs));
-  check('extras', 'and says it does not compare them',
-    (await booking.innerText()).includes('לא משווים') && (await booking.innerText()).includes('קישור שותף'));
-
-  // Declining is remembered, so a traveller comparing four plans is asked once.
-  await p.getByRole('button', { name: 'לא תודה' }).click();
-  await p.waitForTimeout(300);
-  check('extras', '"no thanks" hides the offer', (await offers()) === 0);
-  await p.locator('article').first().getByRole('button', { name: /לחבילה באתר/ }).first().click();
-  await p.waitForTimeout(400);
-  check('extras', 'and it stays hidden for the rest of the session', (await offers()) === 0);
-
-  // The multi-stop path: a leg of the combination is a chosen plan too.
+  // Every country of a multi-stop trip has its own question.
   const multi = await ctx.newPage();
   await multi.goto(B + '/search?to=FR:4,IT:6&usage=regular', { waitUntil: 'domcontentloaded' });
   await multi.waitForTimeout(1100);
-  await multi.getByRole('button', { name: /להצגה|לחבילה באתר|הצגה/ }).first().click();
-  await multi.waitForTimeout(400);
-  check('extras', 'a combination leg raises the offer too',
-    (await multi.locator('section').filter({ hasText: OFFER }).count()) === 1);
+  const trip = multi.getByRole('region', { name: 'מלונות, רכב ואטרקציות לטיול' });
+  check('booking', 'a two-country trip asks where in each',
+    (await trip.getByRole('group', { name: 'איפה בצרפת?' }).count()) === 1 && (await trip.getByRole('group', { name: 'איפה באיטליה?' }).count()) === 1);
+  await trip.getByRole('group', { name: 'איפה באיטליה?' }).locator('label', { hasText: /^רומא$/ }).click();
+  await trip.getByRole('group', { name: 'איפה בצרפת?' }).locator('label', { hasText: /^פריז$/ }).click();
+  await multi.waitForTimeout(200);
+  const rows = await trip.locator('li').allInnerTexts();
+  check('booking', 'and names each place with its country',
+    rows.length === 2 && rows.some((r) => r.includes('פריז, צרפת')) && rows.some((r) => r.includes('רומא, איטליה')), JSON.stringify(rows.map((r) => r.slice(0, 20))));
+  check('booking', 'Rome links Rome’s pages', (await trip.getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href')))).includes(`${DL}/city/it/rome.he.html`));
   await ctx.close();
-} catch (e) { check('extras', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+} catch (e) { check('booking', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
 // ══ car rental page ══════════════════════════════════════════════════════
 try {

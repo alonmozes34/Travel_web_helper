@@ -37,7 +37,19 @@ export type StatEvent =
   | { e: 'share'; channel: 'whatsapp' }
   | { e: 'booking'; step: BookingStep; to: string | null };
 
-export const bookingSteps = ['reminder', 'continued', 'card', 'hotels', 'cars', 'attractions', 'decline', 'page-hotels', 'page-cars', 'page-attractions'] as const;
+export const bookingSteps = [
+  'reminder',
+  'continued',
+  'card',
+  'pick',
+  'hotels',
+  'cars',
+  'attractions',
+  'decline',
+  'page-hotels',
+  'page-cars',
+  'page-attractions',
+] as const;
 export type BookingStep = (typeof bookingSteps)[number];
 
 /** Where a visit came from, by the referring site's name only. */

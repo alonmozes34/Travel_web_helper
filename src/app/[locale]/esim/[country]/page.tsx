@@ -18,8 +18,8 @@ import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { getDisplayCurrency } from "@/lib/currencyServer";
 import { ResultsView } from "@/components/results/ResultsView";
 import { TripExtrasProvider } from "@/components/extras/TripExtrasProvider";
-import { TripExtrasSlot } from "@/components/extras/TripExtrasSlot";
-import { BookingLinks } from "@/components/booking/BookingLinks";
+import { BookingPlanner } from "@/components/booking/BookingPlanner";
+import { plannerCountries } from "@/lib/booking/planner";
 import { carRentalOfferEnabled } from "@/lib/carRental/registry";
 import { CountryFacts } from "@/components/content/CountryFacts";
 import { getPriceSummary } from "@/lib/priceHistory/store";
@@ -263,7 +263,6 @@ export default async function CountryPage({
               countryCode={comparison.countryCodes[0]}
               tripDays={estimate.days}
             >
-              <TripExtrasSlot dict={dict} />
               <ResultsView
                 rows={comparison.rows.map((row) => ({ ...row, trend: trendFor(row.plan, priceSummary) }))}
                 locale={locale}
@@ -279,11 +278,28 @@ export default async function CountryPage({
                 initialFilters={initialFilters}
                 initialSort={initialSort}
               />
+              {/* Hotels, cars and attractions on Booking.com, after the plans:
+                  where in the country, then a row of links per place. */}
+              <BookingPlanner
+                countries={plannerCountries([country.code], locale)}
+                copy={dict.bookingPlanner}
+                opensInNewTab={dict.booking.opensInNewTab}
+                disclosure={dict.booking.disclosure}
+                onCountryPage
+              />
             </TripExtrasProvider>
           </>
         )}
 
-        <BookingLinks countryCode={country.code} countryName={name} locale={locale} dict={dict} />
+        {coverageKind === "none" ? (
+          <BookingPlanner
+            countries={plannerCountries([country.code], locale)}
+            copy={dict.bookingPlanner}
+            opensInNewTab={dict.booking.opensInNewTab}
+            disclosure={dict.booking.disclosure}
+            onCountryPage
+          />
+        ) : null}
 
         <AffiliateDisclosure dict={dict} className="mt-8 max-w-[80ch]" />
 
