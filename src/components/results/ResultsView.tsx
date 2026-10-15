@@ -167,21 +167,28 @@ export function ResultsView({
   const [expandedList, setExpandedList] = useState<string | null>(null);
   const showAll = expandedList === listKey;
 
-  // Plans that cover the trip and plans that run out are not competing for
-  // the same purchase, so they are not ranked against each other in one list.
-  // Mixing them put a 3GB plan three rows under an unlimited one for a
-  // traveller tethering a laptop, which reads as a broken site rather than as
-  // a cheaper option.
-  // Both ways of running out: too little data, or too few days. A three-day
-  // unlimited plan for a thirty-day trip sat in the main list on 14 of 360
-  // audited pages, among plans that cover the whole trip.
+  // Only plans that last the whole trip are listed. Both ways of running out
+  // count: too little data, or too few days — a three-day unlimited plan for
+  // a thirty-day trip once sat among plans that cover it. The plans that run
+  // out had a list of their own under these, which the owner removed (15
+  // October 2026): "irrelevant, and it loads the page too much".
+  //
+  // When none lasts the trip, the page would be empty, so the ones that come
+  // closest are shown instead, under a notice that says so (the owner, the
+  // same day): the most days of the trip they last, then the price. A sort
+  // the visitor chose still applies.
   const fitsTrip = (row: ComparisonRow) => row.coversTrip && !row.isBelowEstimatedNeed;
   const fits = visible.filter(fitsTrip);
-  const short = visible.filter((row) => !fitsTrip(row));
+  const noneFits = fits.length === 0;
+  const lasts = (row: ComparisonRow) => Math.min(row.plan.validityDays, row.daysOfData ?? Infinity, tripDays);
+  const list = !noneFits
+    ? fits
+    : sort === DEFAULT_SORT
+      ? [...visible].sort((a, b) => lasts(b) - lasts(a) || a.price.amountMinor - b.price.amountMinor)
+      : visible;
 
-  const shown = showAll ? fits : fits.slice(0, SHORTLIST_SIZE);
-  const hidden = fits.length - shown.length;
-  const shortShown = showAll ? short : short.slice(0, SHORTLIST_SIZE);
+  const shown = showAll ? list : list.slice(0, SHORTLIST_SIZE);
+  const hidden = list.length - shown.length;
 
   const selected = useMemo(
     () =>
@@ -382,9 +389,9 @@ export function ResultsView({
               screen reader said was the loading screen's "searching…". */}
           <p aria-live="polite" className="sr-only">
             {announceCount
-              ? visible.length === 1
+              ? list.length === 1
                 ? dict.results.foundOneTemplate
-                : interpolate(dict.results.foundTemplate, { count: visible.length })
+                : interpolate(dict.results.foundTemplate, { count: list.length })
               : ""}
           </p>
           <div className="mb-3 lg:hidden">
@@ -408,58 +415,25 @@ export function ResultsView({
             </p>
           ) : (
             <>
-              {fits.length === 0 ? (
+              {noneFits ? (
                 <p className="mb-4 rounded-md border-s-4 border-s-warn-ink bg-warn-50 px-4 py-3 text-warn-ink">
                   {dict.results.noneCoverNeed}
                 </p>
-              ) : (
-                <>
-                  <div className="grid gap-3">
-                    {shown.map((row) => (
-                      <PlanListItem key={row.plan.id} {...planRowProps(row)} />
-                    ))}
-                  </div>
+              ) : null}
+              <div className="grid gap-3">
+                {shown.map((row) => (
+                  <PlanListItem key={row.plan.id} {...planRowProps(row)} />
+                ))}
+              </div>
 
-                  {hidden > 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => setExpandedList(listKey)}
-                      className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-line bg-surface px-4 font-semibold text-brand hover:border-brand"
-                    >
-                      {interpolate(dict.results.showAllTemplate, { count: hidden })}
-                    </button>
-                  ) : null}
-                </>
-              )}
-
-              {/* A separate heading rather than more rows: these plans run out
-                  before the trip does, so they are a different question, not a
-                  cheaper answer to the same one. */}
-              {short.length > 0 ? (
-                <section className="mt-8">
-                  <h3 className="font-head text-lg font-semibold text-ink">
-                    {dict.results.shortSectionTitle}
-                  </h3>
-                  <p className="mt-1 mb-3 max-w-[70ch] text-sm text-ink-2">
-                    {dict.results.shortSectionBody}
-                  </p>
-                  <div className="grid gap-3">
-                    {shortShown.map((row) => (
-                      <PlanListItem key={row.plan.id} {...planRowProps(row)} headingLevel={4} />
-                    ))}
-                  </div>
-                  {short.length > shortShown.length ? (
-                    <button
-                      type="button"
-                      onClick={() => setExpandedList(listKey)}
-                      className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-line bg-surface px-4 font-semibold text-brand hover:border-brand"
-                    >
-                      {interpolate(dict.results.showAllTemplate, {
-                        count: short.length - shortShown.length,
-                      })}
-                    </button>
-                  ) : null}
-                </section>
+              {hidden > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setExpandedList(listKey)}
+                  className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-line bg-surface px-4 font-semibold text-brand hover:border-brand"
+                >
+                  {interpolate(dict.results.showAllTemplate, { count: hidden })}
+                </button>
               ) : null}
 
               <p className="mt-2 text-sm text-ink-3">

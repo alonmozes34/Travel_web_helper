@@ -460,11 +460,8 @@ export const en: Dictionary = {
     foundOneTemplate: 'One plan found',
     foundTemplate: '{count} plans found',
     cardHeadingTemplate: '{provider}: {data}, {days}',
-    shortSectionTitle: 'Plans that do not last the whole trip',
-    shortSectionBody:
-      'These will run out before the trip ends — of data or of days — on the usage you described, so they are not ranked against the plans above. They are here because people sometimes choose one anyway — for instance when they expect to be on Wi‑Fi most of the time.',
     noneCoverNeed:
-      'No plan in our catalogue reaches the amount of data you described for this destination. Everything below will run out before the trip ends.',
+      'None of our plans lasts the whole trip, on what you described. These come closest: first those that last the most days of the trip, then the cheapest.',
     empty: 'No plans for this destination yet.',
   },
   plan: {

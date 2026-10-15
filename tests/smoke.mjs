@@ -180,15 +180,14 @@ const rowCount = await page.locator('article').count();
 ok('results render plan rows', rowCount > 0, `${rowCount} rows`);
 
 // Only a shortlist is rendered; the rest are one click away, not dropped.
-// Counted within the top group: plans that fall short of the trip are listed
-// separately below, under their own heading.
 const fitting = await page
   .locator('section[aria-label="תוצאות ההשוואה"] > div > article')
   .count();
 ok('the list opens as a shortlist', fitting <= 5 && fitting > 0, `${fitting} rows`);
+// Plans that run out are not listed when some last the trip (15 October 2026).
 ok(
-  'plans that run out are separated, not mixed in',
-  (await page.locator('h3', { hasText: 'חבילות שלא מספיקות לכל הטיול' }).count()) <= 1,
+  'plans that run out are not listed beside those that last',
+  (await page.locator('h3', { hasText: 'חבילות שלא מספיקות לכל הטיול' }).count()) === 0,
 );
 const showAll = page.getByRole('button', { name: /הצגת עוד/ });
 ok('the remaining plans are offered', (await showAll.count()) === 1);

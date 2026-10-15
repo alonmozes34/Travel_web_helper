@@ -85,19 +85,14 @@ try {
   await p.goto(B + '/esim/thailand?days=14&usage=regular', { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1200);
 
-  // Plans that cover the trip and plans that run out are two lists on
-  // purpose, each shortlisted separately — so counting every CTA on the page
-  // measures both and proves nothing about either.
-  const split = await p.evaluate(() => {
-    const heading = [...document.querySelectorAll('h2, h3')].find((h) => h.innerText.includes('חבילות שלא מספיקות'));
-    const ctas = [...document.querySelectorAll('a, button')].filter((el) => /^לחבילה באתר /.test(el.innerText.trim()));
-    if (!heading) return { fits: ctas.length, short: 0 };
-    const after = (el) => heading.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING;
-    return { fits: ctas.filter((el) => !after(el)).length, short: ctas.filter(after).length };
-  });
-  check('results', 'the covering list is shortlisted to 5', split.fits === 5, `${split.fits} covering + ${split.short} below need`);
-  check('results', 'plans that run out are listed separately', split.short > 0, `${split.short} in the "runs out" section`);
-  const ctas = split.fits + split.short;
+  // Only plans that last the whole trip are listed (the owner, 15 October
+  // 2026: the list of plans that run out was "irrelevant, and loads the page").
+  const ctas = await p.getByRole('button', { name: /^לחבילה באתר / }).count();
+  const statuses = await p.locator('main article').evaluateAll((cards) =>
+    cards.map((card) => card.innerText).filter((text) => text.includes('לחבילה באתר')));
+  check('results', 'the covering list is shortlisted to 5', statuses.length === 5, `${statuses.length} cards`);
+  check('results', 'and every plan on it lasts the whole trip', statuses.every((t) => t.includes('מספיק לכל הטיול')), statuses.filter((t) => !t.includes('מספיק לכל הטיול')).length + ' that do not');
+  check('results', 'with no list of plans that run out', !(await p.locator('main').innerText()).includes('חבילות שלא מספיקות'));
 
   const showAll = p.getByRole('button', { name: /הצגת עוד/ });
   if (await showAll.count()) {
@@ -615,6 +610,21 @@ try {
   check('calculator', 'so a reload shows the same trip', (await p.locator('main').innerText()).includes('ארצות הברית'));
   await p.close();
 } catch (e) { check('calculator', 'second section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+// ══ when no plan lasts the trip ═══════════════════════════════════════════
+// The owner, 15 October 2026: "if there is nothing at all, show the closest".
+try {
+  const p = await page();
+  await p.goto(B + '/esim/thailand?to=TH:200&act=social', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1500);
+  const main = await p.locator('main').innerText();
+  check('closest', 'a trip no plan lasts says so', main.includes('אף חבילה שלנו לא מספיקה לכל הטיול'));
+  const cards = await p.locator('main article').evaluateAll((list) =>
+    list.map((card) => card.innerText).filter((text) => text.includes('לחבילה באתר')));
+  check('closest', 'and still shows the plans that come closest', cards.length > 0 && cards.length <= 5, `${cards.length} cards`);
+  check('closest', 'with no second list under them', !main.includes('חבילות שלא מספיקות'));
+  await p.close();
+} catch (e) { check('closest', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
 // ══ region pages ══════════════════════════════════════════════════════════
 // The owner, 15 October 2026: the plans covering several of a region's
