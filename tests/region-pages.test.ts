@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, test } from 'node:test';
 import { countries, getCountryByCode } from '@/data/countries';
 import { mockFxRates } from '@/data/fxRates';
-import { regionPages } from '@/data/regionPages';
+import { regionPages, searchRegionPages } from '@/data/regionPages';
 import { buildComparison } from '@/lib/comparison/buildComparison';
 import { MIN_REGION_COUNTRIES, orderFamilies, priceFamilies, regionFamilies } from '@/lib/comparison/regionOffers';
 import { MB_PER_GB } from '@/lib/formatters/data';
@@ -67,6 +67,22 @@ describe('the region lists', () => {
       if (path.endsWith('regionPages.ts')) continue;
       assert.ok(!readFileSync(path, 'utf8').includes('regionPages'), `${path} imports the region pages`);
     }
+  });
+});
+
+describe('a region in the destination search', () => {
+  test('its name in either language, or the start of it, finds it', () => {
+    const found = (query: string) => searchRegionPages(query).map((region) => region.id);
+    assert.deepEqual(found('בלקן'), ['balkans']);
+    assert.deepEqual(found('הבלק'), ['balkans']);
+    assert.deepEqual(found('Europe'), ['europe']);
+    assert.deepEqual(found('אירו'), ['europe']);
+    assert.deepEqual(found('דרום־מזרח אסיה'), ['south-east-asia']);
+    assert.deepEqual(found('southeast asia'), ['south-east-asia']);
+  });
+
+  test('one letter, or a country, finds no region', () => {
+    for (const query of ['ב', 'a', 'תאילנד', 'Japan', 'יוון']) assert.deepEqual(searchRegionPages(query), [], query);
   });
 });
 

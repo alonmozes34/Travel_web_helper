@@ -1,3 +1,5 @@
+import { normalize } from './countries';
+
 /**
  * The regions that have a page of their own: "eSIM for the Balkans" and the
  * like (the owner, 15 October 2026 — many travellers from Israel visit several
@@ -25,6 +27,12 @@ export type RegionPage = {
   basis: 'eea-uk-ch' | 'un-m49' | 'editorial';
   /** When the list was last chosen. */
   chosenOn: string;
+  /**
+   * What a traveller types for it in the destination search, in both
+   * languages (the owner, 15 October 2026: "an option by region in the
+   * search"). Matched as the start of a word, after `normalize`.
+   */
+  aliases: readonly string[];
 };
 
 export const regionPages: readonly RegionPage[] = [
@@ -41,6 +49,7 @@ export const regionPages: readonly RegionPage[] = [
     ],
     basis: 'eea-uk-ch',
     chosenOn: '2026-10-15',
+    aliases: ['אירופה', 'אירופה המערבית', 'האיחוד האירופי', 'Europe', 'European Union', 'EU'],
   },
   {
     id: 'balkans',
@@ -50,6 +59,7 @@ export const regionPages: readonly RegionPage[] = [
     countries: ['HR', 'ME', 'BA', 'RS', 'AL', 'MK', 'SI', 'BG', 'XK'],
     basis: 'editorial',
     chosenOn: '2026-10-15',
+    aliases: ['הבלקן', 'בלקן', 'Balkans', 'Balkan'],
   },
   {
     id: 'south-east-asia',
@@ -57,6 +67,7 @@ export const regionPages: readonly RegionPage[] = [
     countries: ['TH', 'VN', 'ID', 'PH', 'MY', 'SG', 'KH', 'LA', 'MM', 'BN', 'TL'],
     basis: 'un-m49',
     chosenOn: '2026-10-15',
+    aliases: ['דרום מזרח אסיה', 'מזרח אסיה', 'אסיה', 'South-East Asia', 'Southeast Asia', 'South East Asia', 'Asia', 'SEA'],
   },
 ];
 
@@ -64,4 +75,20 @@ const byId = new Map(regionPages.map((region) => [region.id, region]));
 
 export function getRegionPage(id: string): RegionPage | undefined {
   return byId.get(id as RegionPageId);
+}
+
+/**
+ * The regions a search box query names: a query of two letters or more that
+ * begins one of a region's names ("בלק", "europ"), or a name followed by
+ * more ("אירופה 2 שבועות" does not happen, but "Balkans trip" might).
+ */
+export function searchRegionPages(query: string): RegionPage[] {
+  const typed = normalize(query);
+  if (typed.length < 2) return [];
+  return regionPages.filter((region) =>
+    region.aliases.some((alias) => {
+      const name = normalize(alias);
+      return name.startsWith(typed) || (typed.startsWith(name) && name.length >= 3);
+    }),
+  );
 }

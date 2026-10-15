@@ -139,6 +139,13 @@ await page.waitForTimeout(400);
 const suggestions = await audit(page, 'destination list open, nothing typed');
 console.log(`destination list open, nothing typed: ${suggestions.violations.length} violation types, ${suggestions.passes.length} rules passing`);
 
+// Typed, with a region above the countries (15 October 2026): "בל" offers
+// the Balkans and Belgium, two labelled groups in one listbox.
+await page.getByRole('combobox', { name: 'יעד הטיול' }).type('בל', { delay: 40 });
+await page.waitForTimeout(700);
+const withRegion = await audit(page, 'destination list, a region and countries');
+console.log(`destination list, a region and countries: ${withRegion.violations.length} violation types`);
+
 await page.setViewportSize({ width: 1400, height: 1000 });
 await page.goto(`${BASE}/esim/thailand`, { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(700);

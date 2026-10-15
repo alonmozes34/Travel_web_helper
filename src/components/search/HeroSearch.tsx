@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ChipLink } from "@/components/ui/Chip";
 import { countries, popularCountries, type Country } from "@/data/countries";
+import { getRegionPage, regionPages, type RegionPageId } from "@/data/regionPages";
 import { localePath, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/getDictionary";
 import { interpolate } from "@/i18n/interpolate";
@@ -153,6 +154,18 @@ export function HeroSearch({
     );
   }
 
+  /**
+   * A region picked in the search goes to its page (the owner, 15 October
+   * 2026), with the countries already chosen here that belong to it ticked.
+   */
+  function regionHref(id: RegionPageId) {
+    const region = getRegionPage(id);
+    const carried = profile.destinations
+      .map((d) => d.countryCode)
+      .filter((code) => region?.countries.includes(code));
+    return `${localePath(locale, `/esim/region/${id}`)}${carried.length ? `?to=${carried.join(",")}` : ""}`;
+  }
+
   function setDestinations(destinations: TripDestination[]) {
     const next = { ...profile, destinations };
     setProfile(next);
@@ -233,6 +246,7 @@ export function HeroSearch({
             chosen={profile.destinations.map((d) => d.countryCode)}
             onSelect={addDestination}
             onOpenChange={setListOpen}
+            onRegion={(id) => router.push(regionHref(id))}
             placeholder={
               profile.destinations.length
                 ? dict.search.addAnother
@@ -273,6 +287,19 @@ export function HeroSearch({
             >
               <span aria-hidden="true">{destination.flag}</span>
               {destination.names[locale]}
+            </ChipLink>
+          ))}
+        </div>
+      ) : null}
+      {/* A trip through several countries, by region: each goes to its
+          region's page. Plain links, so they work before any script. */}
+      {showPopular ? (
+        <div className={`mt-3 flex flex-wrap items-center gap-2${listOpen ? " invisible" : ""}`}>
+          <span className="text-sm text-ink-3">{dict.search.regionChipsLabel}</span>
+          {regionPages.map((region) => (
+            <ChipLink key={region.id} href={regionHref(region.id)}>
+              <span aria-hidden="true">🗺️</span>
+              {dict.regionPage.regions[region.id].name}
             </ChipLink>
           ))}
         </div>

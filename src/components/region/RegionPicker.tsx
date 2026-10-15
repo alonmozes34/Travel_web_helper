@@ -45,6 +45,7 @@ export function RegionPicker({
   inRegion,
   countries,
   cards,
+  initialTicked = [],
   copy,
   searchPath,
 }: {
@@ -52,11 +53,13 @@ export function RegionPicker({
   inRegion: string;
   countries: RegionCountry[];
   cards: RegionCard[];
+  /** Countries already chosen in the search, ticked from the start. */
+  initialTicked?: string[];
   copy: Dictionary['regionPage'];
   searchPath: string;
 }) {
   const router = useRouter();
-  const [ticked, setTicked] = useState<string[]>([]);
+  const [ticked, setTicked] = useState<string[]>(initialTicked);
   const [all, setAll] = useState(false);
   const [error, setError] = useState('');
 

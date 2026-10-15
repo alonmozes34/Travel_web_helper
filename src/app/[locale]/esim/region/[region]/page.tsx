@@ -55,7 +55,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
  * the search is where those are asked; a card that sent the visitor to buy
  * its cheapest size would be choosing for them.
  */
-export default async function RegionPageView({ params }: { params: Promise<{ locale: string; region: string }> }) {
+export default async function RegionPageView({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string; region: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { locale: raw, region: id } = await params;
   if (!isLocale(raw)) notFound();
   const locale: Locale = raw;
@@ -77,6 +83,10 @@ export default async function RegionPageView({ params }: { params: Promise<{ loc
   });
   const nameOf = new Map(countryList.map((country) => [country.code, country.name]));
   const cards = families.map((family) => card(family, locale, dict, nameOf));
+  // Countries chosen in the search before the region was (`?to=HR,ME`), ticked.
+  const asked = (await searchParams).to;
+  const carried = (Array.isArray(asked) ? asked.join(',') : (asked ?? '')).split(',').map((code) => code.split(':')[0]);
+  const initialTicked = region.countries.filter((code) => carried.includes(code));
 
   return (
     <>
@@ -87,6 +97,7 @@ export default async function RegionPageView({ params }: { params: Promise<{ loc
           inRegion={words.inRegion}
           countries={countryList}
           cards={cards}
+          initialTicked={initialTicked}
           copy={copy}
           searchPath={localePath(locale, '/search')}
         />

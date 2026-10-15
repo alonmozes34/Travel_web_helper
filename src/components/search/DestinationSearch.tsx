@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { getCountryByCode, normalize, popularCountries, searchCountries, type Country } from '@/data/countries';
+import { searchRegionPages, type RegionPage, type RegionPageId } from '@/data/regionPages';
 import type { PlaceMatch } from '@/lib/places/searchPlaces';
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
@@ -26,6 +27,12 @@ import { readRecentDestinations, rememberDestination } from '@/lib/recentDestina
  * the countries as "נאפולי · 🇮🇹 איטליה". Picking one picks its country —
  * eSIMs are sold by country. A city in Israel gets a word instead of a row:
  * at home there is nothing to buy.
+ *
+ * Regions too (the owner, 15 October 2026): "אירופה", "בלקן" or "asia"
+ * offers that region's page above the countries. A region is not a stop on
+ * the trip — no plan is sold for "Europe" as such — so picking one goes to
+ * its page, where the countries of the trip are ticked, carrying any already
+ * chosen here.
  */
 export function DestinationSearch({
   locale,
@@ -35,6 +42,7 @@ export function DestinationSearch({
   placeholder,
   autoFocus = false,
   onOpenChange,
+  onRegion,
 }: {
   locale: Locale;
   dict: Dictionary;
@@ -45,6 +53,8 @@ export function DestinationSearch({
   autoFocus?: boolean;
   /** Told whenever the popup opens or closes, so the page can clear its way. */
   onOpenChange?: (isOpen: boolean) => void;
+  /** Where a picked region goes; without it, regions are not offered. */
+  onRegion?: (id: RegionPageId) => void;
 }) {
   const listboxId = useId();
   const optionId = (index: number) => `${listboxId}-option-${index}`;
@@ -69,6 +79,10 @@ export function DestinationSearch({
         : [],
     [query, locale, chosen],
   );
+
+  // Regions the query names, offered first: someone typing "אירופה" is not
+  // looking for a country.
+  const regionMatches = useMemo(() => (onRegion && query.trim() ? searchRegionPages(query) : []), [onRegion, query]);
 
   // City matches for the current query, fetched after a short pause. Kept
   // with the query they answer, so a slow answer to an old query is ignored.
@@ -148,9 +162,10 @@ export function DestinationSearch({
 
   const isTyping = query.trim().length > 0;
   /** One flat list in the order they are rendered, so the arrow keys agree. */
-  const options = isTyping
-    ? [...matches, ...cityOptions.map((option) => option.country)]
+  const options: Array<Country | RegionPage> = isTyping
+    ? [...regionMatches, ...matches, ...cityOptions.map((option) => option.country)]
     : sections.flatMap((section) => section.items.map((item) => item.country));
+  const regionCount = isTyping ? regionMatches.length : 0;
   const showList = open && (isTyping || options.length > 0);
   /**
    * A listbox has to contain options. When a query matches nothing the popup
@@ -160,13 +175,13 @@ export function DestinationSearch({
    */
   const showListbox = showList && options.length > 0;
 
-  // Reported during render rather than from an effect, and only on a change,
-  // so the parent never re-renders in a loop.
-  const [reportedOpen, setReportedOpen] = useState(false);
-  if (reportedOpen !== showList) {
-    setReportedOpen(showList);
+  // Reported after the render that changed it, before the browser paints, so
+  // the row of shortcuts never shows from under the open list. Reported during
+  // the render itself, as it was, it updated the page while this field was
+  // still rendering, which React warns against.
+  useLayoutEffect(() => {
     onOpenChange?.(showList);
-  }
+  }, [showList, onOpenChange]);
 
   // The field empties after each pick, so the next stop can be typed straight
   // away; the chosen stops live in the list below it.
@@ -178,6 +193,14 @@ export function DestinationSearch({
     setOpen(false);
     setActiveIndex(0);
     inputRef.current?.focus();
+  }
+
+  function pick(option: Country | RegionPage) {
+    if ('basis' in option) {
+      setQuery('');
+      setOpen(false);
+      onRegion?.(option.id);
+    } else commit(option);
   }
 
   function clear() {
@@ -216,7 +239,7 @@ export function DestinationSearch({
       setActiveIndex((index) => (index - 1 + options.length) % options.length);
     } else if (event.key === 'Enter') {
       event.preventDefault();
-      commit(options[activeIndex]);
+      pick(options[activeIndex]);
     }
   }
 
@@ -289,21 +312,53 @@ export function DestinationSearch({
         >
           {isTyping ? (
             <>
+              {regionMatches.length ? (
+                <div role="group" aria-labelledby={`${listboxId}-regions`}>
+                  <p id={`${listboxId}-regions`} className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-ink-3">
+                    {dict.search.regionsLabel}
+                  </p>
+                  {regionMatches.map((region, index) => (
+                    <button
+                      key={region.id}
+                      type="button"
+                      id={optionId(index)}
+                      role="option"
+                      aria-selected={index === activeIndex}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => pick(region)}
+                      className={`flex min-h-12 w-full flex-wrap items-center gap-x-3 px-4 py-1 text-start text-base ${
+                        index === activeIndex ? 'bg-brand-50' : 'bg-surface'
+                      }`}
+                    >
+                      <span aria-hidden="true">🗺️</span>
+                      <span className="font-semibold">{dict.regionPage.regions[region.id].name}</span>
+                      <span className="text-sm text-ink-2">
+                        <span className="sr-only">, </span>
+                        {dict.search.regionRowTemplate.replace('{count}', String(region.countries.length))}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               {(() => {
-                const rows = matches.map((country, index) => (
-                  <Option
-                    key={country.code}
-                    country={country}
-                    locale={locale}
-                    id={optionId(index)}
-                    isActive={index === activeIndex}
-                    onHover={() => setActiveIndex(index)}
-                    onPick={() => commit(country)}
-                  />
-                ));
-                // Labelled only when cities follow, so a plain country
-                // search reads exactly as before.
-                return matches.length && cityOptions.length ? (
+                const rows = matches.map((country, i) => {
+                  const index = regionCount + i;
+                  return (
+                    <Option
+                      key={country.code}
+                      country={country}
+                      locale={locale}
+                      id={optionId(index)}
+                      isActive={index === activeIndex}
+                      onHover={() => setActiveIndex(index)}
+                      onPick={() => commit(country)}
+                    />
+                  );
+                });
+                // Labelled only when regions or cities are listed too, so a
+                // plain country search reads exactly as before.
+                return matches.length && (cityOptions.length || regionMatches.length) ? (
                   <div role="group" aria-labelledby={`${listboxId}-countries`}>
                     <p id={`${listboxId}-countries`} className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wide text-ink-3">
                       {dict.search.countriesLabel}
@@ -320,7 +375,7 @@ export function DestinationSearch({
                     {dict.search.citiesLabel}
                   </p>
                   {cityOptions.map(({ place, country }, cityIndex) => {
-                    const index = matches.length + cityIndex;
+                    const index = regionCount + matches.length + cityIndex;
                     return (
                       <Option
                         key={`${place}-${country.code}`}

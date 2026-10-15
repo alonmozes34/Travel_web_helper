@@ -626,6 +626,32 @@ try {
   await p.close();
 } catch (e) { check('closest', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ a region in the search ════════════════════════════════════════════════
+// The owner, 15 October 2026: "add an option by region in the search".
+try {
+  const p = await page();
+  await p.goto(B + '/', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1000);
+  check('region search', 'the home page offers the three regions as shortcuts', (await p.locator('a[href^="/esim/region/"]').count()) === 3);
+  const box = p.getByRole('combobox', { name: 'יעד הטיול' });
+  await box.click();
+  await box.type('europe', { delay: 30 });
+  await p.waitForTimeout(500);
+  check('region search', 'typing a region offers it, in Hebrew, labelled as several countries', (await p.getByRole('option', { name: /אירופה.*טיול בכמה מדינות/ }).count()) === 1);
+  await box.fill('');
+  await box.type('קרואטיה', { delay: 30 });
+  await p.waitForSelector('[role="listbox"]');
+  await p.keyboard.press('Enter');
+  await p.waitForTimeout(300);
+  await box.type('בלק', { delay: 40 });
+  await p.waitForTimeout(500);
+  await p.keyboard.press('Enter');
+  await p.waitForURL('**/esim/region/balkans**', { timeout: 15000 });
+  await p.waitForTimeout(1200);
+  check('region search', 'picking it goes to its page, with the country already chosen ticked', decodeURIComponent(p.url()).endsWith('/esim/region/balkans?to=HR') && (await p.getByRole('checkbox', { name: /קרואטיה/ }).isChecked()), p.url().replace(B, ''));
+  await p.close();
+} catch (e) { check('region search', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ reviews ═══════════════════════════════════════════════════════════════
 // The owner, 15 October 2026: a name or anonymous, a date and a short text —
 // nothing published until the owner approves it.
