@@ -36,10 +36,15 @@ export async function generateMetadata({
  */
 export default async function DevicesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  /** `q`: a model typed in the home page's check, which this list answers. */
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale: raw } = await params;
+  const asked = (await searchParams).q;
+  const initialQuery = (typeof asked === 'string' ? asked : '').slice(0, 60);
   if (!isLocale(raw)) notFound();
   const locale: Locale = raw;
   const dict = getDictionary(locale);
@@ -103,10 +108,10 @@ export default async function DevicesPage({
         </div>
       </section>
 
-      <section className="mt-12 border-t border-line-soft pt-10">
+      <section id="device-list" className="mt-12 scroll-mt-24 border-t border-line-soft pt-10">
         <h2 className="font-head text-2xl font-semibold">{page.list.title}</h2>
         <p className="mt-3 max-w-[70ch] text-ink-2">{page.list.intro}</p>
-        <DeviceList dict={dict} />
+        <DeviceList dict={dict} initialQuery={initialQuery} />
       </section>
 
       <section className="mt-12 rounded-md border border-line bg-surface-2 p-6">

@@ -251,3 +251,20 @@ section:focus-within > .provider-marquee .provider-marquee-track { animation-pla
   outline-offset: 4px;
   animation: trip-extra-call 1.2s ease-in-out 2;
 }
+
+/* "Print" on the before-you-fly list prints the list alone (TripChecklist). */
+@media print {
+  html[data-print='checklist'] body * {
+    visibility: hidden;
+  }
+  html[data-print='checklist'] #trip-checklist,
+  html[data-print='checklist'] #trip-checklist * {
+    visibility: visible;
+  }
+  html[data-print='checklist'] #trip-checklist {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    border: none;
+  }
+}

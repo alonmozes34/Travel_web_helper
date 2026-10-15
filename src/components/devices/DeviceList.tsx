@@ -29,9 +29,9 @@ const tones: Record<DeviceSupport, BadgeTone> = {
   no: 'neutral',
 };
 
-export function DeviceList({ dict }: { dict: Dictionary }) {
+export function DeviceList({ dict, initialQuery = '' }: { dict: Dictionary; initialQuery?: string }) {
   const page = dict.devicesPage;
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   const matches = useMemo(() => findDevices(query), [query]);
   const total = countMatchedModels(matches);
 

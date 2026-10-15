@@ -25,6 +25,8 @@ import { CountryFacts } from "@/components/content/CountryFacts";
 import { getPriceSummary } from "@/lib/priceHistory/store";
 import { trendFor } from "@/lib/priceHistory/summary";
 import { TravelFacts } from "@/components/content/TravelFacts";
+import { TripChecklist } from "@/components/content/TripChecklist";
+import { tripChecklist } from "@/lib/travel/checklist";
 import { MoreOnPage } from "@/components/content/MoreOnPage";
 import { ShareSearch } from "@/components/results/ShareSearch";
 import { countryTravelFacts } from "@/data/countryFacts.generated";
@@ -324,6 +326,14 @@ export default async function CountryPage({
         dict={dict}
         rates={localRates}
       />
+      <Container>
+        <TripChecklist
+          title={interpolate(dict.tripChecklist.titleTemplate, { country: name })}
+          items={tripChecklist(country.code, name, locale, dict)}
+          copy={dict.tripChecklist}
+          shareUrl={`${siteUrl}${localePath(locale, `/esim/${country.slug}`)}#trip-checklist`}
+        />
+      </Container>
       {/* Every destination page used to be an island: reachable from the
           sitemap and from a search, and from nothing else. */}
       <RelatedDestinations

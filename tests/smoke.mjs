@@ -60,21 +60,24 @@ ok(
   'usage is a single choice and reflects the selection',
   await page.getByRole('radio', { name: /רגיל/ }).isChecked(),
 );
+// The search form, by its destination field: the home page has a second form
+// since 15 October 2026 (the phone check).
+const searchForm = page.locator('form', { has: page.getByRole('combobox', { name: 'יעד הטיול' }) });
 ok(
   'each usage level explains itself on screen',
-  (await page.locator('form').innerText()).includes('רשתות חברתיות, מפות, גלישה'),
+  (await searchForm.innerText()).includes('רשתות חברתיות, מפות, גלישה'),
 );
 ok(
   'and shows the daily figure behind it',
-  (await page.locator('form').innerText()).includes('ליום לפי ההערכה שלנו'),
+  (await searchForm.innerText()).includes('ליום לפי ההערכה שלנו'),
 );
 ok(
   'the scale reaches tethering, not just "heavy"',
-  (await page.locator('form').innerText()).includes('מודם לכל המכשירים'),
+  (await searchForm.innerText()).includes('מודם לכל המכשירים'),
 );
 ok(
   'a traveller who knows their own figure can give it',
-  (await page.locator('form').innerText()).includes('כמה GB לכל הטיול'),
+  (await searchForm.innerText()).includes('כמה GB לכל הטיול'),
 );
 await shot(page, 'phase2-home-desktop');
 

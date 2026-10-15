@@ -31,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/privacy',
     '/terms',
     '/devices',
+    '/codes',
     // The hub every destination page hangs off.
     '/esim',
     // A destination page with no plans behind it still exists and answers

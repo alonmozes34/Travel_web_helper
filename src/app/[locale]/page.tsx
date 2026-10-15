@@ -3,6 +3,7 @@ import { Container } from '@/components/ui/Container';
 import { BrandName } from '@/components/layout/Brand';
 import { HeroSearch } from '@/components/search/HeroSearch';
 import { HowItWorks } from '@/components/content/HowItWorks';
+import { PhoneCheck } from '@/components/devices/PhoneCheck';
 import { ExploreDestinations } from '@/components/content/ExploreDestinations';
 import { HeroRoute } from '@/components/content/HeroRoute';
 import { ProviderStrip } from '@/components/content/ProviderStrip';
@@ -115,6 +116,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
       ) : null}
 
       <ExploreDestinations locale={locale} dict={dict} />
+      <PhoneCheck locale={locale} dict={dict} />
       <HowItWorks dict={dict} />
       <TrustSection dict={dict} />
       <Faq dict={dict} />

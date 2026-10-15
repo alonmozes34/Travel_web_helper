@@ -12,7 +12,7 @@ const ok = (label, pass, extra = '') => out.push(`${pass ? 'PASS' : 'FAIL'}  ${l
 const browser = await chromium.launch();
 
 // 1.4.10 Reflow: usable at 320 CSS px with no horizontal scrolling.
-for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14', '/devices', '/esim', '/privacy', '/contact', '/car-rental?country=FR&pickup=Paris%20CDG']) {
+for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14', '/devices', '/esim', '/privacy', '/contact', '/car-rental?country=FR&pickup=Paris%20CDG', '/codes']) {
   const page = await browser.newPage({ viewport: { width: 320, height: 700 } });
   await page.goto(BASE + path, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);

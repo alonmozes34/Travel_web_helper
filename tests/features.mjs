@@ -530,6 +530,55 @@ try {
   await p.close();
 } catch (e) { check('devices', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ discount codes, and "does my phone take an eSIM?" ══════════════════════
+// The owner, 15 October 2026. Only codes a provider confirmed in writing.
+try {
+  const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  const p = await ctx.newPage();
+  await p.goto(B + '/codes', { waitUntil: 'domcontentloaded' });
+  const text = await p.locator('main').innerText();
+  check('codes', 'the codes page lists the confirmed codes with their terms',
+    text.includes('YESHKLITA15') && text.includes('15% הנחה') && text.includes('YESHKLITA10') && text.includes('ללקוחות חדשים'));
+  check('codes', 'a code typed at checkout can be copied; one the link applies says there is nothing to type',
+    (await p.getByRole('button', { name: /העתק/ }).count()) === 1 && text.includes('אין צורך להקליד'));
+  // Saily gave a code, but not yet what it takes off: it stays off the page.
+  check('codes', 'a code without confirmed terms is not shown', !text.includes('Saily'));
+  check('codes', 'the menu links the codes page', (await p.locator('header').getByRole('link', { name: 'קודי הנחה' }).count()) >= 1
+    || (await p.locator('footer').getByRole('link', { name: 'קודי הנחה' }).count()) >= 1);
+
+  await p.goto(B + '/', { waitUntil: 'domcontentloaded' });
+  await p.getByLabel('דגם הטלפון').fill('iPhone 13');
+  await Promise.all([p.waitForURL(/\/devices\?q=iPhone/), p.getByRole('button', { name: 'לבדיקה' }).click()]);
+  await p.waitForTimeout(500);
+  const list = p.locator('#device-list');
+  check('phone check', 'the home page check answers on the devices page, filtered to the model',
+    (await p.getByLabel('חיפוש דגם').inputValue()) === 'iPhone 13' && (await list.innerText()).includes('iPhone 13'), p.url());
+  await ctx.close();
+} catch (e) { check('codes', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+// ══ the before-you-fly list ═══════════════════════════════════════════════
+try {
+  const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  const p = await ctx.newPage();
+  await p.goto(B + '/esim/japan', { waitUntil: 'domcontentloaded' });
+  const list = p.getByRole('region', { name: 'רשימה לפני הטיסה ליפן' });
+  const items = list.getByRole('checkbox');
+  // A streamed part of the page is revealed after DOMContentLoaded, and ticks
+  // count only once the page has hydrated.
+  await items.first().waitFor(); await p.waitForTimeout(1000);
+  const total = await items.count();
+  check('checklist', 'a country page carries its before-you-fly list, eSIM steps first', total >= 8 && (await list.innerText()).includes('להתקין את ה־eSIM בבית'));
+  check('checklist', 'with what Japan’s facts call for: sockets, 100 volts, driving on the left',
+    (await list.innerText()).includes('השקעים ביפן מסוג') && (await list.innerText()).includes('100 וולט') && (await list.innerText()).includes('בצד שמאל'));
+  await list.locator('label').first().click();
+  await list.locator('label').nth(1).click();
+  check('checklist', 'ticking counts what is done', (await list.innerText()).includes(`סומנו 2 מתוך ${total}`));
+  const wa = await list.getByRole('link', { name: /בוואטסאפ/ }).getAttribute('href');
+  check('checklist', 'the WhatsApp link carries the list and the page', decodeURIComponent(wa ?? '').includes('☐ להתקין את ה־eSIM') && decodeURIComponent(wa ?? '').includes('#trip-checklist'));
+  check('checklist', 'and it can be printed', (await list.getByRole('button', { name: 'להדפסה' }).count()) === 1);
+  await ctx.close();
+} catch (e) { check('checklist', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ Booking.com planner ═══════════════════════════════════════════════════
 // The owner, 14 October 2026: before Booking, ask where in each country of the
 // trip, then give a row of links per place — hotel, car, attractions — at the

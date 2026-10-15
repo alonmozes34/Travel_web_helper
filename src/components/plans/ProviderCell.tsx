@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
+import type { Provider } from '@/lib/types/provider';
 
 /**
  * Provider identity: their logo where they have issued one to us, otherwise
@@ -12,35 +13,40 @@ export function ProviderCell({ row, showPlanName = true }: { row: ComparisonRow;
   const { provider } = row;
   return (
     <div className="flex items-center gap-3">
-      {provider.logo ? (
-        <span
-          aria-hidden="true"
-          // Pixels, not rem: a logo is a picture, and sized in text units it
-          // doubled with 200% text and pushed a phone screen sideways.
-          className="flex h-[40px] w-[84px] shrink-0 items-center justify-center rounded-[10px] border border-line bg-white px-[8px]"
-        >
-          <Image
-            src={provider.logo.src}
-            alt=""
-            width={provider.logo.width}
-            height={provider.logo.height}
-            unoptimized
-            className="h-auto max-h-[24px] w-auto max-w-full"
-          />
-        </span>
-      ) : (
-        <span
-          aria-hidden="true"
-          className="grid size-10 shrink-0 place-items-center rounded-[10px] font-head text-base font-semibold text-white"
-          style={{ backgroundColor: provider.brandColor }}
-        >
-          {provider.name.charAt(0)}
-        </span>
-      )}
+      <ProviderLogo provider={provider} />
       <span className="min-w-0">
         <span lang="en" className="block font-head font-semibold">{provider.name}</span>
         {showPlanName ? <span className="block truncate text-sm text-ink-3">{row.plan.planName}</span> : null}
       </span>
     </div>
+  );
+}
+
+/** The logo tile alone, for wherever a provider is named (the codes page). Decoration: the name is always written beside it. */
+export function ProviderLogo({ provider }: { provider: Provider }) {
+  return provider.logo ? (
+    <span
+      aria-hidden="true"
+      // Pixels, not rem: a logo is a picture, and sized in text units it
+      // doubled with 200% text and pushed a phone screen sideways.
+      className="flex h-[40px] w-[84px] shrink-0 items-center justify-center rounded-[10px] border border-line bg-white px-[8px]"
+    >
+      <Image
+        src={provider.logo.src}
+        alt=""
+        width={provider.logo.width}
+        height={provider.logo.height}
+        unoptimized
+        className="h-auto max-h-[24px] w-auto max-w-full"
+      />
+    </span>
+  ) : (
+    <span
+      aria-hidden="true"
+      className="grid size-10 shrink-0 place-items-center rounded-[10px] font-head text-base font-semibold text-white"
+      style={{ backgroundColor: provider.brandColor }}
+    >
+      {provider.name.charAt(0)}
+    </span>
   );
 }

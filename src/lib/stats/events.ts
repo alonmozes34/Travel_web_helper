@@ -95,7 +95,7 @@ export function routeOf(pathname: string): { route: string; lang: string; dest: 
   const lang = parts[0] && isLocale(parts[0]) ? parts.shift()! : locales[0];
   const [first, second, ...rest] = parts;
   if (!first) return { route: '/', lang, dest: null };
-  const fixed = ['esim', 'search', 'devices', 'guides', 'about', 'accessibility', 'privacy', 'terms', 'disclosure', 'contact', 'unlock', 'car-rental'];
+  const fixed = ['esim', 'search', 'devices', 'guides', 'about', 'accessibility', 'privacy', 'terms', 'disclosure', 'contact', 'unlock', 'car-rental', 'codes'];
   if (!fixed.includes(first) || rest.length > 0) return { route: 'other', lang, dest: null };
   if (!second) return { route: `/${first}`, lang, dest: null };
   if (first === 'esim') {

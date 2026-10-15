@@ -28,6 +28,7 @@ export const he = {
     faq: 'שאלות נפוצות',
     devices: 'תאימות מכשירים',
     destinations: 'כל היעדים',
+    codes: 'קודי הנחה',
     openMenu: 'פתיחת תפריט',
     closeMenu: 'סגירת תפריט',
     menuTitle: 'תפריט',
@@ -112,6 +113,26 @@ export const he = {
     contactHeading: 'יצירת קשר',
     contactBody: 'שאלות, הערות, טעות במחיר או ספק שכדאי להוסיף — כתבו לנו:',
   },
+  /** The discount codes page: only codes a provider confirmed in writing (src/data/promotions.ts). */
+  codesPage: {
+    title: 'קודי הנחה ל־eSIM',
+    intro: 'קודים שספקי ה־eSIM נתנו למי שמגיע אליהם דרך האתר. כל קוד כאן קיבלנו מהספק בכתב, עם התנאים שלו, והוא יורד מהאתר מעצמו כשהוא פג.',
+    percentTemplate: '{percent}% הנחה',
+    audience: {
+      everyone: 'לכל הלקוחות',
+      newCustomers: 'ללקוחות חדשים, ברכישה הראשונה',
+    },
+    byLink: 'אין צורך להקליד: ההנחה נכנסת מעצמה כשנכנסים לספק דרך הקישורים באתר.',
+    typeIt: 'מקלידים את הקוד בעמוד התשלום של הספק. כשלוחצים באתר על חבילה של הספק, הקוד מועתק מעצמו.',
+    untilTemplate: 'בתוקף עד {date}',
+    noEnd: 'הספק לא ציין תאריך סיום',
+    confirmedTemplate: 'התנאים אושרו על ידי הספק ב־{date}',
+    codeLabel: 'הקוד',
+    toPlans: 'לבחירת יעד ולהשוואת חבילות',
+    inPrices:
+      'בתוצאות החיפוש, הנחה לכל הלקוחות כבר נכללת במחיר ובדירוג. הנחה ללקוחות חדשים בלבד מוצגת ליד המחיר הרגיל, כי לא כולם זכאים לה, והיא לא משנה את הדירוג.',
+    none: 'אין כרגע קודי הנחה פעילים.',
+  },
   disclosurePage: {
     title: 'גילוי נאות',
     intro:
@@ -177,6 +198,14 @@ export const he = {
     notStated: 'לא צוין',
   },
   home: {
+    /** The short "does my phone take an eSIM?" check, which answers on the devices page. */
+    phoneCheck: {
+      title: 'הטלפון שלכם תומך ב־eSIM?',
+      body: 'כותבים את הדגם ובודקים מול הרשימה שנלקחה מהאתרים של Apple, ‏Samsung ו־Google.',
+      label: 'דגם הטלפון',
+      placeholder: 'למשל iPhone 13 או Galaxy S23',
+      submit: 'לבדיקה',
+    },
     // The H1 is two lines: the brand, then what the site does. Splitting them
     // means a search engine and a screen reader both get "יש קליטה?
     // השוואת חבילות eSIM לחו״ל" as one heading, while the page still opens
@@ -585,6 +614,33 @@ export const he = {
     messageTemplate: 'השוואת חבילות eSIM ל{country} לטיול של {days} ימים:',
     messageNoDaysTemplate: 'השוואת חבילות eSIM ל{country}:',
     planMessageTemplate: 'חבילת eSIM שמצאתי: {provider} · {data} · {days} ימים · {price}. ההשוואה המלאה:',
+  },
+  /** The "before you fly" list on a country's page (src/lib/travel/checklist.ts). */
+  tripChecklist: {
+    titleTemplate: 'רשימה לפני הטיסה ל{country}',
+    intro: 'מה כדאי לסדר לפני שיוצאים. אפשר לסמן כאן, לשלוח לעצמכם בוואטסאפ או להדפיס. הסימונים לא נשמרים כשסוגרים את העמוד.',
+    progressTemplate: 'סומנו {done} מתוך {total}',
+    share: 'לשליחה בוואטסאפ',
+    print: 'להדפסה',
+    opensInNewTab: '(נפתח בלשונית חדשה)',
+    items: {
+      phone: 'לבדוק שהטלפון תומך ב־eSIM ושהוא לא נעול לחברה אחת',
+      phoneLink: 'לרשימת המכשירים',
+      plan: 'לקנות חבילת eSIM שמכסה את כל ימי הטיול',
+      install: 'להתקין את ה־eSIM בבית, על Wi-Fi, יום או יומיים לפני הטיסה',
+      installLink: 'איך מתקינים',
+      roaming: 'בקו של ה־eSIM: להפעיל נדידת נתונים ולהגדיר אותו לגלישה סלולרית',
+      homeLine: 'בקו הישראלי: לכבות נדידת נתונים, כדי שהחברה בארץ לא תחייב על גלישה בחו״ל',
+      keep: 'לא למחוק את ה־eSIM באמצע הטיול: אצל רוב הספקים אי אפשר להתקין אותו שוב',
+      plugsTemplate: 'מתאם לחשמל: השקעים ב{country} מסוג {types} (בישראל: {home})',
+      voltageTemplate: 'המתח שם {volts} וולט: לבדוק על המטענים שהם תומכים בו (רובם מסומנים 100–240V)',
+      drivingLeft: 'נוהגים בצד שמאל של הכביש',
+      drivingRight: 'נוהגים בצד ימין של הכביש',
+      emergencyTemplate: 'לשמור בטלפון את מספרי החירום: {numbers}',
+      warnings: 'לבדוק את אזהרות המסע של המטה לביטחון לאומי',
+      warningsLink: 'לאזהרות המסע',
+      insurance: 'לבדוק שיש ביטוח נסיעות לחו״ל',
+    },
   },
   travelFacts: {
     titleTemplate: 'לפני שנוסעים ל{country}',

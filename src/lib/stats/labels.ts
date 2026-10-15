@@ -41,6 +41,7 @@ export const pageLabels: Record<string, string> = {
   '/contact': 'צור קשר',
   '/unlock': 'כניסה בסיסמה',
   '/car-rental': 'השכרת רכב',
+  '/codes': 'קודי הנחה',
   '404': 'עמוד שלא קיים (404)',
   other: 'אחר',
 };
