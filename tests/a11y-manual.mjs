@@ -12,7 +12,7 @@ const ok = (label, pass, extra = '') => out.push(`${pass ? 'PASS' : 'FAIL'}  ${l
 const browser = await chromium.launch();
 
 // 1.4.10 Reflow: usable at 320 CSS px with no horizontal scrolling.
-for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14', '/devices', '/esim', '/privacy', '/contact', '/car-rental?country=FR&pickup=Paris%20CDG', '/codes', '/esim/region/balkans']) {
+for (const path of ['/', '/esim/thailand', '/search?to=DE:1,US:14', '/devices', '/esim', '/privacy', '/contact', '/car-rental?country=FR&pickup=Paris%20CDG', '/codes', '/esim/region/balkans', '/reviews']) {
   const page = await browser.newPage({ viewport: { width: 320, height: 700 } });
   await page.goto(BASE + path, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
@@ -595,16 +595,21 @@ await cf.close();
 // the keyboard reaches. Behind its own password; see tests/a11y.mjs.
 {
   const PASSWORD = process.env.DASHBOARD_PASSWORD ?? 'test-dashboard-password';
-  for (const [label, viewport, zoom] of [['reflow at 320px', { width: 320, height: 700 }, false], ['text at 200% on a 390px phone', { width: 390, height: 844 }, true]]) {
+  for (const [label, viewport, zoom, path] of [
+    ['reflow at 320px', { width: 320, height: 700 }, false, '/admin'],
+    ['text at 200% on a 390px phone', { width: 390, height: 844 }, true, '/admin'],
+    ['reflow at 320px', { width: 320, height: 700 }, false, '/admin/reviews'],
+    ['text at 200% on a 390px phone', { width: 390, height: 844 }, true, '/admin/reviews'],
+  ]) {
     const owner = await browser.newContext({ httpCredentials: { username: 'owner', password: PASSWORD }, viewport });
     const dash = await owner.newPage();
-    const response = await dash.goto(`${BASE}/admin`, { waitUntil: 'domcontentloaded' });
+    const response = await dash.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
     await dash.$$eval('details', (all) => all.forEach((d) => { d.open = true; }));
     if (zoom) await dash.evaluate(() => { document.documentElement.style.fontSize = '32px'; });
     await dash.waitForTimeout(300);
     const overflow = await dash.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    ok(`${label}: /admin`, response?.status() === 200 && overflow <= 1, `${response?.status()}, ${overflow}px overflow`);
-    if (!zoom) {
+    ok(`${label}: ${path}`, response?.status() === 200 && overflow <= 1, `${response?.status()}, ${overflow}px overflow`);
+    if (!zoom && path === '/admin') {
       const unseen = [];
       let reached = 0;
       for (let i = 0; i < 30; i += 1) {

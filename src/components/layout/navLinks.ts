@@ -16,5 +16,6 @@ export function mainNavLinks(locale: Locale, dict: Dictionary): NavLink[] {
     { href: localePath(locale, '/esim'), label: dict.nav.destinations },
     { href: localePath(locale, '/devices'), label: dict.nav.devices },
     { href: localePath(locale, '/codes'), label: dict.nav.codes },
+    { href: localePath(locale, '/reviews'), label: dict.nav.reviews },
   ];
 }

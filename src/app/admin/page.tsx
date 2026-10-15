@@ -25,6 +25,7 @@ import {
   activityLabel,
 } from '@/lib/stats/labels';
 import { lastDays, statsStoreFromEnv } from '@/lib/stats/store';
+import { reviewStoreFromEnv } from '@/lib/reviews/store';
 import { breakdown, bookingOut, percent, periodOf, total, type Period } from '@/lib/stats/summary';
 import { buildCommit, releasedOn, siteVersion } from '@/lib/version';
 
@@ -54,6 +55,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     store ? store.read(days).catch(() => null) : Promise.resolve(null),
     getCatalogue(),
   ]);
+
+  const reviewsWaiting = await (reviewStoreFromEnv()?.pending().then((list) => list.length) ?? Promise.resolve(null)).catch(() => null);
 
   const listed: Record<string, number> = {};
   for (const plan of catalogue.plans) listed[plan.providerId] = (listed[plan.providerId] ?? 0) + 1;
@@ -92,6 +95,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </ul>
         </nav>
       </header>
+
+      <p className="mt-4">
+        <Link href="/admin/reviews" className="inline-flex min-h-11 items-center font-semibold text-brand underline underline-offset-4">
+          {reviewsWaiting === null
+            ? 'ביקורות'
+            : reviewsWaiting === 1
+              ? 'ביקורות: אחת ממתינה לאישור'
+              : reviewsWaiting > 1
+                ? `ביקורות: ${reviewsWaiting} ממתינות לאישור`
+                : 'ביקורות (אין ממתינות)'}
+        </Link>
+      </p>
 
       {!store ? (
         <Notice title="שום דבר עוד לא נספר">

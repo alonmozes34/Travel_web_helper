@@ -79,7 +79,7 @@ export function contactConfigured(env: Record<string, string | undefined> = proc
 }
 
 /** A small in-memory window per server: enough to stop a loop, not a fortress. */
-export function rateLimiter({ count, windowMs } = RATE_LIMIT) {
+export function rateLimiter({ count, windowMs }: { count: number; windowMs: number } = RATE_LIMIT) {
   const seen = new Map<string, number[]>();
   return (key: string, now: number): boolean => {
     const recent = (seen.get(key) ?? []).filter((t) => now - t < windowMs);

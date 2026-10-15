@@ -626,6 +626,79 @@ try {
   await p.close();
 } catch (e) { check('closest', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ reviews ═══════════════════════════════════════════════════════════════
+// The owner, 15 October 2026: a name or anonymous, a date and a short text —
+// nothing published until the owner approves it.
+try {
+  const PASSWORD = process.env.DASHBOARD_PASSWORD ?? 'test-dashboard-password';
+  const text = `עבד מהנחיתה, בדיקה ${Date.now()}`;
+  const p = await page();
+  const fill = async () => {
+    await p.getByLabel(/מאיזה ספק קניתם/).selectOption('saily');
+    await p.getByLabel(/לאיזה יעד/).selectOption('JP');
+    await p.getByLabel(/מתי היה הטיול/).selectOption({ index: 2 });
+    await p.locator('label', { hasText: /^כן$/ }).click();
+    await p.getByLabel(/מה כדאי לדעת/).fill(text);
+    await p.locator('label', { hasText: 'מסכימים שהביקורת תפורסם' }).click();
+  };
+  await p.goto(B + '/reviews', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1200);
+  await p.getByRole('button', { name: 'שליחת הביקורת' }).click();
+  const alert = p.getByRole('alert').filter({ hasText: 'צריך לתקן' });
+  await alert.waitFor({ timeout: 10000 });
+  const listed = await alert.innerText();
+  check('reviews', 'an empty review says what is missing, consent included', listed.includes('בחרו מאיזה ספק קניתם') && listed.includes('כדי לשלוח צריך להסכים'), listed.split('\n').length + ' lines');
+  check('reviews', 'and the name is not required', !listed.includes('שם'));
+
+  // Sent faster than a person could: told "sent", and nothing is kept. The
+  // start time is the page's own, set once it runs; written here as "now" so
+  // the send is certain to be too fast. (A form sent before its script runs
+  // carries no time, and is taken for a person on purpose.)
+  await p.goto(B + '/reviews', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1200);
+  await fill();
+  await p.locator('input[name="started"]').evaluate((input) => { input.value = String(Date.now()); });
+  await p.getByRole('button', { name: 'שליחת הביקורת' }).click();
+  await p.getByRole('status').filter({ hasText: 'תודה' }).waitFor({ timeout: 10000 });
+
+  await p.goto(B + '/reviews', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1200);
+  await fill();
+  await p.waitForTimeout(2700);
+  await p.getByRole('button', { name: 'שליחת הביקורת' }).click();
+  await p.getByRole('status').filter({ hasText: 'תודה! הביקורת התקבלה' }).waitFor({ timeout: 10000 });
+  check('reviews', 'a review is received', true);
+  await p.goto(B + '/reviews', { waitUntil: 'domcontentloaded' });
+  check('reviews', 'and is not published before the owner approves it', !(await p.locator('main').innerText()).includes(text));
+
+  const ownerCtx = await b.newContext({ httpCredentials: { username: 'owner', password: PASSWORD }, viewport: { width: 1200, height: 1000 } });
+  const admin = await ownerCtx.newPage();
+  await admin.goto(B + '/admin/reviews', { waitUntil: 'domcontentloaded' });
+  // Counted by the review itself: each sits in a list item of its own list.
+  const waiting = admin.locator('li', { hasText: text });
+  const cards = await admin.locator('article', { hasText: text }).count();
+  check('reviews', 'the owner sees it waiting, once (the too-fast one was not kept)', cards === 1, `${cards} waiting with that text`);
+  await waiting.getByRole('button', { name: 'לאשר ולפרסם' }).click();
+  await admin.waitForTimeout(1500);
+  await p.goto(B + '/reviews', { waitUntil: 'domcontentloaded' });
+  const shown = p.locator('article', { hasText: text });
+  const card = (await shown.count()) ? await shown.innerText() : '';
+  check('reviews', 'approved, it is published: anonymous, with the trip and the day it was written', card.includes('אנונימי') && card.includes('Saily · יפן') && card.includes('ממליצים') && /נכתבה ב־\d{1,2}\.\d{1,2}\.\d{4}/.test(card), card.replace(/\n/g, ' · ').slice(0, 90));
+  await admin.goto(B + '/admin/reviews', { waitUntil: 'domcontentloaded' });
+  await admin.locator('li', { hasText: text }).getByRole('button', { name: /להסיר מהאתר/ }).click();
+  await admin.waitForTimeout(1500);
+  await p.goto(B + '/reviews', { waitUntil: 'domcontentloaded' });
+  check('reviews', 'and the owner can remove it again', (await p.locator('article', { hasText: text }).count()) === 0);
+  await ownerCtx.close();
+
+  const stranger = await b.newContext();
+  const s = await stranger.newPage();
+  const answer = await s.goto(B + '/admin/reviews', { waitUntil: 'domcontentloaded' });
+  check('reviews', 'nobody else can open the approval page', answer?.status() === 401, `${answer?.status()}`);
+  await stranger.close();
+  await p.close();
+} catch (e) { check('reviews', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ region pages ══════════════════════════════════════════════════════════
 // The owner, 15 October 2026: the plans covering several of a region's
 // countries, how many each covers and which it leaves out.

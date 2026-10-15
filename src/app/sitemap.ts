@@ -35,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/terms',
     '/devices',
     '/codes',
+    '/reviews',
     // The hub every destination page hangs off.
     '/esim',
     // A region's page only while some plan covers two of its countries.

@@ -5,6 +5,7 @@ import { siteUrl } from '@/lib/site';
 import { ALERT_RULES, alertsFor, notYetSent } from '@/lib/stats/alerts';
 import { alertEmail, weeklyEmail } from '@/lib/stats/report';
 import { lastDays, statsStoreFromEnv } from '@/lib/stats/store';
+import { reviewStoreFromEnv } from '@/lib/reviews/store';
 import { periodOf } from '@/lib/stats/summary';
 
 export const dynamic = 'force-dynamic';
@@ -51,6 +52,14 @@ export async function GET(request: Request) {
 
   const fullDays = days.slice(0, -1);
   const alerts = alertsFor({ data, days: fullDays, sources: catalogue.sources, listedProviders: listed });
+  // Reviews wait for the owner (15 October 2026); said by email, like an alert.
+  const waiting = await (reviewStoreFromEnv()?.pending().then((list) => list.length) ?? Promise.resolve(0)).catch(() => 0);
+  if (waiting > 0) {
+    alerts.push({
+      key: 'reviews-waiting',
+      text: waiting === 1 ? 'ביקורת אחת ממתינה לאישור בלוח הנתונים (ביקורות).' : `${waiting} ביקורות ממתינות לאישור בלוח הנתונים (ביקורות).`,
+    });
+  }
   const fresh = notYetSent(alerts, data, days.slice(-ALERT_RULES.repeatAfterDays));
   const weeklyDue = isSunday(now) && !data[today]?.['email:weekly'];
 

@@ -41,6 +41,8 @@ const PAGES = [
   ['device compatibility, a model asked from the home page', '/devices?q=iPhone%2013'],
   ['discount codes', '/codes'],
   ['region page: the Balkans', '/esim/region/balkans'],
+  ['reviews', '/reviews'],
+  ['reviews, english', '/en/reviews'],
   ['region page: Europe', '/esim/region/europe'],
   ['region page, english: South-East Asia', '/en/esim/region/south-east-asia'],
   ['discount codes, english', '/en/codes'],
@@ -166,12 +168,34 @@ await page.close();
   ]) {
     await fetch(`${BASE}/api/e`, { method: 'POST', body: JSON.stringify(event), headers: { 'user-agent': CHROME, origin: BASE } });
   }
-  for (const [label, viewport] of [['dashboard', { width: 1400, height: 1000 }], ['dashboard, phone', { width: 390, height: 844 }]]) {
+  // A review waiting, so the approval page has one to show.
+  {
+    const visitor = await browser.newPage();
+    await visitor.goto(`${BASE}/reviews`, { waitUntil: 'domcontentloaded' });
+    await visitor.waitForTimeout(800);
+    await visitor.getByLabel(/מאיזה ספק קניתם/).selectOption('yesim');
+    await visitor.getByLabel(/לאיזה יעד/).selectOption('IT');
+    await visitor.getByLabel(/מתי היה הטיול/).selectOption({ index: 1 });
+    await visitor.locator('label', { hasText: /^לא$/ }).click();
+    await visitor.getByLabel(/מה כדאי לדעת/).fill('The connection dropped twice in Rome, support answered within an hour.');
+    await visitor.getByLabel(/שם להצגה/).fill('Dana');
+    await visitor.locator('label', { hasText: 'מסכימים שהביקורת תפורסם' }).click();
+    await visitor.waitForTimeout(2700);
+    await visitor.getByRole('button', { name: 'שליחת הביקורת' }).click();
+    await visitor.waitForTimeout(1500);
+    await visitor.close();
+  }
+  for (const [label, viewport, path] of [
+    ['dashboard', { width: 1400, height: 1000 }, '/admin'],
+    ['dashboard, phone', { width: 390, height: 844 }, '/admin'],
+    ['dashboard: reviews waiting', { width: 1400, height: 1000 }, '/admin/reviews'],
+    ['dashboard: reviews waiting, phone', { width: 390, height: 844 }, '/admin/reviews'],
+  ]) {
     const owner = await browser.newContext({ httpCredentials: { username: 'owner', password: PASSWORD }, viewport });
     const dash = await owner.newPage();
-    const response = await dash.goto(`${BASE}/admin`, { waitUntil: 'domcontentloaded' });
+    const response = await dash.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
     if (response?.status() !== 200) {
-      findings.push({ label, id: 'not-served', impact: 'serious', help: `/admin answered ${response?.status()} — is DASHBOARD_PASSWORD set on the test server?`, nodes: 0, example: '' });
+      findings.push({ label, id: 'not-served', impact: 'serious', help: `${path} answered ${response?.status()} — is DASHBOARD_PASSWORD set on the test server?`, nodes: 0, example: '' });
     } else {
       await dash.$$eval('details', (all) => all.forEach((d) => { d.open = true; }));
       const result = await audit(dash, label);
