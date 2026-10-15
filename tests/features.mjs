@@ -360,7 +360,7 @@ try {
   await p.waitForTimeout(600);
 
   await p.getByRole('spinbutton', { name: /^לכמה ימים ב/ }).first().fill('8');
-  const gb = p.getByRole('spinbutton', { name: 'כמה GB לכל הטיול?' });
+  const gb = p.getByRole('spinbutton', { name: 'יודעים בדיוק כמה GB צריך לכל הטיול?' });
   check('gb button', 'the GB field is on the page', (await gb.count()) > 0);
   await gb.first().fill('20');
   await p.waitForTimeout(400);
@@ -555,6 +555,66 @@ try {
     (await p.getByLabel('חיפוש דגם').inputValue()) === 'iPhone 13' && (await list.innerText()).includes('iPhone 13'), p.url());
   await ctx.close();
 } catch (e) { check('codes', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+// ══ the data calculator ═══════════════════════════════════════════════════
+// The owner, 15 October 2026: the six usage levels gave way to ticking what
+// the traveller will do; the plan is fitted to the sum, which is on screen.
+try {
+  const p = await page();
+  await p.goto(B + '/esim/japan', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1200);
+  // The country page's form is the compact one, without the destination box.
+  const form = p.locator('form', { has: p.getByRole('button', { name: 'הצגת החבילות המתאימות' }) });
+  const sumLine = async () => ((await form.innerText()).match(/לפי מה ש(סימנתם|כתבתם)[^\n]*/) ?? [''])[0];
+  check('calculator', 'a visitor from a search engine finds the calculator open, social media ticked',
+    await p.getByRole('checkbox', { name: /רשתות חברתיות וגלישה/ }).isChecked(), await sumLine());
+  check('calculator', 'and says what that comes to a day', (await sumLine()).includes('כ‑600MB ליום'), await sumLine());
+  await p.locator('form li input[type="number"]').first().fill('7');
+  await p.locator('label:has-text("צפייה בסרטונים ובסדרות")').first().click();
+  await p.waitForTimeout(200);
+  check('calculator', 'a tick changes the sum, for the whole trip', (await sumLine()).includes('כ‑1.3GB ליום, כ‑8.9GB ל‑7 ימים'), await sumLine());
+  await p.getByRole('button', { name: 'הצגת החבילות המתאימות' }).click();
+  await p.waitForURL(/act=/, { timeout: 15000 });
+  check('calculator', 'the ticks travel in the address', decodeURIComponent(p.url()).includes('act=social,video'), p.url().replace(B, ''));
+  await p.waitForTimeout(1500);
+  check('calculator', 'and the results say the daily amount they were fitted to',
+    (await p.locator('main').innerText()).includes('כ‑1.3GB ליום לפי מה שסימנתם'), ((await p.locator('main').innerText()).match(/מותאם ל[^\n]*/) ?? [''])[0]);
+
+  // A typed figure replaces the sum; ticking again clears it.
+  // The panel stays as it was across the search: open it only if it closed.
+  const gb = p.getByLabel('יודעים בדיוק כמה GB צריך לכל הטיול?');
+  if (!(await gb.isVisible())) await p.getByRole('button', { name: /שינוי הימים ואופן השימוש/ }).first().click();
+  await p.waitForTimeout(300);
+  await gb.fill('30');
+  await p.waitForTimeout(200);
+  check('calculator', 'a typed GB figure replaces the sum, and says so', (await sumLine()).includes('לפי מה שכתבתם: 30GB'), await sumLine());
+  await p.locator('label:has-text("שיחות וידאו")').first().click();
+  await p.waitForTimeout(200);
+  check('calculator', 'ticking again clears the figure', (await gb.inputValue()) === '' && (await sumLine()).includes('לפי מה שסימנתם'), await sumLine());
+  await p.close();
+} catch (e) { check('calculator', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
+try {
+  const p = await page();
+  // A link made before the calculator still answers as it did.
+  await p.goto(B + '/search?to=TH:14&usage=heavy', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1500);
+  check('calculator', 'a link from before the calculator keeps its own answer', (await p.locator('main').innerText()).includes('שימוש כבד'));
+  // Sorting used to rewrite the address without the trip: a reload was empty.
+  await p.goto(B + '/search?to=DE:3,US:10&act=social', { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1500);
+  await p.selectOption('select:below(:text("מיון"))', 'data').catch(async () => {
+    const sel = p.locator('select').filter({ hasNot: p.locator('option[value="ILS"]') }).first();
+    await sel.selectOption('data');
+  });
+  await p.waitForTimeout(700);
+  const after = decodeURIComponent(p.url());
+  check('calculator', 'sorting keeps the trip and the ticks in the address', after.includes('to=DE:3,US:10') && after.includes('act=social') && after.includes('sort=data'), after.replace(B, ''));
+  await p.reload({ waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1500);
+  check('calculator', 'so a reload shows the same trip', (await p.locator('main').innerText()).includes('ארצות הברית'));
+  await p.close();
+} catch (e) { check('calculator', 'second section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
 // ══ the before-you-fly list ═══════════════════════════════════════════════
 try {

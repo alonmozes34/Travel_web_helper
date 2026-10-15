@@ -1,7 +1,8 @@
 import { MB_PER_GB } from "@/lib/formatters/data";
 import { hasTechnology, networksForDestinations } from "@/lib/types/network";
 import type { Comparison } from "./buildComparison";
-import { dailyDataMbByUsage } from "./estimateDataNeed";
+import { dailyMbForActivities } from "./estimateDataNeed";
+import type { DataActivity } from "@/lib/types/trip";
 
 export type CountryFact = { question: string; answer: string };
 
@@ -87,10 +88,11 @@ export function buildCountryFacts({
   // collapse the first into the second.
   const networksKnown = operators.length > 0;
 
-  const gbFor = (usage: keyof typeof dailyDataMbByUsage) =>
+  // The calculator's own sums, so the answer and the search cannot disagree.
+  const gbFor = (activities: DataActivity[]) =>
     Math.max(
       1,
-      Math.round((estimate.days * dailyDataMbByUsage[usage]) / MB_PER_GB),
+      Math.round((estimate.days * dailyMbForActivities(activities)) / MB_PER_GB),
     );
 
   return [
@@ -122,9 +124,9 @@ export function buildCountryFacts({
       question: facts.dataQuestion,
       answer: interpolate(facts.dataAnswerTemplate, {
         days: estimate.days,
-        light: gbFor("light"),
-        regular: gbFor("regular"),
-        heavy: gbFor("heavy"),
+        maps: gbFor([]),
+        social: gbFor(["social"]),
+        heavy: gbFor(["social", "calls", "video"]),
       }),
     },
     {

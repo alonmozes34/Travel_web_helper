@@ -22,6 +22,7 @@ import { siteUrl } from "@/lib/site";
 import { getDictionary } from "@/i18n/getDictionary";
 import { interpolate } from "@/i18n/interpolate";
 import { buildComparison } from "@/lib/comparison/buildComparison";
+import { estimateSummary } from "@/lib/comparison/estimateSummary";
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { filtersFromParams } from "@/lib/comparison/filter";
 import type { RecommendationKey } from "@/lib/comparison/recommend";
@@ -184,6 +185,7 @@ export default async function SearchPage({
             <SearchCount
               to={profile.destinations.map((destination) => ({ cc: destination.countryCode, days: destination.days }))}
               usage={profile.usage ?? null}
+              act={profile.activities ?? null}
               gb={profile.requestedGb !== undefined}
               currency={comparison.currency}
               count={comparison.rows.length + (combination && showCombination ? 1 : 0)}
@@ -241,18 +243,7 @@ export default async function SearchPage({
                 dict.results.defaultEstimate
               ) : (
                 <span className="font-semibold text-brand">
-                  {/* A figure the traveller gave is reported back as theirs, not
-                      re-described as our estimate of their usage. */}
-                  {estimate.isStatedByTraveller
-                    ? interpolate(dict.results.tailoredStatedTemplate, {
-                        days: estimate.days,
-                        gb: Math.round(estimate.requiredGb),
-                      })
-                    : interpolate(dict.results.tailoredTemplate, {
-                        days: estimate.days,
-                        usage: dict.personalization.usages[estimate.usage],
-                        gb: Math.round(estimate.requiredGb),
-                      })}
+                  {estimateSummary(estimate, dict, locale)}
                 </span>
               )}
             </p>

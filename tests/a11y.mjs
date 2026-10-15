@@ -18,6 +18,9 @@ const axeSource = readFileSync(new URL('../node_modules/axe-core/axe.min.js', im
 const PAGES = [
   ['homepage', '/'],
   ['country page', '/esim/thailand?days=14&usage=regular'],
+  ['country page, the data calculator open', '/esim/japan'],
+  ['country page, the data calculator open, english', '/en/esim/japan'],
+  ['country page, answered by the calculator', '/esim/thailand?to=TH:14&act=social,video&usage=unlimited'],
   ['multi-stop search', '/search?to=DE:1,US:14&usage=regular'],
   ['empty search', '/search'],
   ['accessibility statement', '/accessibility'],

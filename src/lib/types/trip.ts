@@ -47,6 +47,71 @@ export function isUsageLevel(value: string): value is UsageLevel {
 }
 
 /**
+ * What the traveller will do with the connection, ticked one by one — the
+ * calculator that replaced choosing a usage level (the owner, 15 October
+ * 2026: fit the plan to how much they actually do). Maps, messages and email
+ * are always counted and are not on the list; these are what adds to them.
+ *
+ * On a profile, `undefined` means the question was not answered and an empty
+ * list means maps and messages only. The usage levels stay for two things the
+ * calculator does not replace: links made before it, and `unlimited`, which is
+ * a preference rather than an amount and is kept next to the ticks.
+ */
+export const dataActivities = ['social', 'calls', 'video', 'hotspot'] as const;
+export type DataActivity = (typeof dataActivities)[number];
+
+export function isDataActivity(value: string): value is DataActivity {
+  return (dataActivities as readonly string[]).includes(value);
+}
+
+/** Ticked before the traveller touches the calculator: social media and browsing, the old "regular". */
+export const DEFAULT_ACTIVITIES: readonly DataActivity[] = ['social'];
+
+/** "Nothing beyond maps and messages" in the address, so an empty list is still an answer. */
+const NO_EXTRA_ACTIVITY = 'maps';
+
+/** In the calculator's own order, each once. */
+export function normaliseActivities(list: readonly string[]): DataActivity[] {
+  return dataActivities.filter((activity) => list.includes(activity));
+}
+
+/**
+ * The ticks a link made before the calculator stands for, so the calculator
+ * can show it. Never less data than the level it replaces: "light" was 250MB
+ * a day and the closest ticks come to 600, because recommending too little is
+ * the failure that matters.
+ */
+export const activitiesForUsage: Record<UsageLevel, readonly DataActivity[]> = {
+  navigation: [],
+  light: ['social'],
+  regular: ['social'],
+  heavy: ['social', 'calls', 'video'],
+  hotspot: ['social', 'calls', 'video', 'hotspot'],
+  unlimited: DEFAULT_ACTIVITIES,
+};
+
+/** What the calculator shows ticked for this trip. */
+export function shownActivities(profile: TripProfile): readonly DataActivity[] {
+  if (profile.activities) return profile.activities;
+  return profile.usage ? activitiesForUsage[profile.usage] : DEFAULT_ACTIVITIES;
+}
+
+/**
+ * The trip as the calculator shows it. What it shows ticked is the answer even
+ * when nothing was touched: the ticks and the daily figure next to them are on
+ * screen, so a search that ran on anything else would not be the one the
+ * traveller saw. A GB figure they typed is left as it is.
+ */
+export function withCalculatorAnswer(profile: TripProfile): TripProfile {
+  if (profile.requestedGb !== undefined || profile.activities !== undefined) return profile;
+  return {
+    ...profile,
+    activities: [...shownActivities(profile)],
+    usage: profile.usage === 'unlimited' ? 'unlimited' : undefined,
+  };
+}
+
+/**
  * One stop on the trip. Days are per destination because a night in Germany
  * and two weeks in the States are not the same purchase, and sizing both legs
  * off one total would over-buy for the short one.
@@ -58,7 +123,10 @@ export type TripDestination = {
 
 export type TripProfile = {
   destinations: TripDestination[];
+  /** A level from a link made before the calculator, or `unlimited` as a preference. */
   usage?: UsageLevel;
+  /** What the calculator has ticked; see `dataActivities`. */
+  activities?: DataActivity[];
   /**
    * A data figure the traveller stated themselves, in GB for the whole trip.
    * When present it replaces the usage estimate outright: someone who says
@@ -85,7 +153,11 @@ export function parseRequestedGb(value: string | number | undefined): number | u
 export function isTripDescribed(profile: TripProfile): boolean {
   if (profile.destinations.length === 0) return false;
   if (profile.destinations.some((destination) => destination.days === undefined)) return false;
-  return profile.usage !== undefined || profile.requestedGb !== undefined;
+  return isUsageAnswered(profile);
+}
+
+function isUsageAnswered(profile: TripProfile): boolean {
+  return profile.usage !== undefined || profile.requestedGb !== undefined || profile.activities !== undefined;
 }
 
 /** What is still missing, so the form can say so rather than just refusing. */
@@ -95,7 +167,7 @@ export function missingTripFields(profile: TripProfile): Array<'destination' | '
   else if (profile.destinations.some((destination) => destination.days === undefined)) {
     missing.push('days');
   }
-  if (profile.usage === undefined && profile.requestedGb === undefined) missing.push('usage');
+  if (!isUsageAnswered(profile)) missing.push('usage');
   return missing;
 }
 
@@ -126,7 +198,11 @@ export function tripProfileToQuery(profile: TripProfile): string {
         .join(','),
     );
   }
-  if (profile.usage) params.set('usage', profile.usage);
+  if (profile.activities) {
+    params.set('act', profile.activities.length ? profile.activities.join(',') : NO_EXTRA_ACTIVITY);
+  }
+  // Next to the ticks, a level means only the preference for unlimited.
+  if (profile.usage && (!profile.activities || profile.usage === 'unlimited')) params.set('usage', profile.usage);
   if (profile.requestedGb !== undefined) params.set('gb', String(profile.requestedGb));
   const query = params.toString();
   return query ? `?${query}` : '';
@@ -155,6 +231,7 @@ export function tripProfileFromParams(params: {
   to?: string | string[];
   days?: string | string[];
   usage?: string | string[];
+  act?: string | string[];
   gb?: string | string[];
 }): TripProfile {
   const profile: TripProfile = { destinations: [] };
@@ -173,8 +250,18 @@ export function tripProfileFromParams(params: {
     });
   }
 
+  // `?act=bogus` is no answer; `?act=maps` is "maps and messages only".
+  const rawActivities = first(params.act);
+  if (rawActivities !== undefined) {
+    const tokens = rawActivities.split(',').map((token) => token.trim());
+    const known = normaliseActivities(tokens);
+    if (known.length || tokens.includes(NO_EXTRA_ACTIVITY)) profile.activities = known;
+  }
+
   const rawUsage = first(params.usage);
-  if (rawUsage && isUsageLevel(rawUsage)) profile.usage = rawUsage;
+  if (rawUsage && isUsageLevel(rawUsage) && (!profile.activities || rawUsage === 'unlimited')) {
+    profile.usage = rawUsage;
+  }
 
   const gb = parseRequestedGb(first(params.gb));
   if (gb !== undefined) profile.requestedGb = gb;
@@ -196,5 +283,9 @@ export function sameTrip(a: TripProfile, b: TripProfile): boolean {
     if (destination.countryCode !== other.countryCode) return false;
     if ((destination.days ?? null) !== (other.days ?? null)) return false;
   }
-  return (a.usage ?? null) === (b.usage ?? null) && (a.requestedGb ?? null) === (b.requestedGb ?? null);
+  return (
+    (a.usage ?? null) === (b.usage ?? null) &&
+    (a.activities?.join(',') ?? null) === (b.activities?.join(',') ?? null) &&
+    (a.requestedGb ?? null) === (b.requestedGb ?? null)
+  );
 }

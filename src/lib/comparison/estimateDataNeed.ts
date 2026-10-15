@@ -1,5 +1,5 @@
 import { MB_PER_GB } from '@/lib/formatters/data';
-import type { TripProfile, UsageLevel } from '@/lib/types/trip';
+import type { DataActivity, TripProfile, UsageLevel } from '@/lib/types/trip';
 
 /**
  * Daily data assumptions, in MB.
@@ -26,6 +26,29 @@ export const dailyDataMbByUsage: Record<UsageLevel, number> = {
   unlimited: 4 * MB_PER_GB,
 };
 
+/**
+ * The calculator's figures, in MB a day (the owner, 15 October 2026: the
+ * traveller ticks what they will do and the plan is fitted to the sum).
+ *
+ * Maps, messages and email are always counted — the old "navigation". With
+ * social media and browsing the sum is the old "regular", so the trip nobody
+ * describes is sized as before. The others are an hour a day of video and
+ * half an hour of video calls, each at the cautious end of what those apps
+ * use, and a hotspot for a laptop's working day. Like the levels, they are
+ * our assumptions, not measurements, and the calculator shows each one.
+ */
+export const BASE_DAILY_MB = 150;
+export const dailyMbByActivity: Record<DataActivity, number> = {
+  social: 450,
+  calls: 400,
+  video: 700,
+  hotspot: 2600,
+};
+
+export function dailyMbForActivities(activities: readonly DataActivity[]): number {
+  return activities.reduce((sum, activity) => sum + dailyMbByActivity[activity], BASE_DAILY_MB);
+}
+
 /** Used for a stop whose length the traveller has not given. */
 export const DEFAULT_LEG_DAYS = 7;
 export const DEFAULT_USAGE: UsageLevel = 'regular';
@@ -42,6 +65,8 @@ export type LegEstimate = {
 
 export type DataNeedEstimate = {
   usage: UsageLevel;
+  /** What the calculator had ticked, when the daily figure came from it. */
+  activities?: DataActivity[];
   dailyMb: number;
   /** True when the traveller gave a GB figure instead of picking a usage. */
   isStatedByTraveller: boolean;
@@ -77,9 +102,14 @@ export function estimateDataNeed(profile: TripProfile): DataNeedEstimate {
   // like a fortnight in the States — the same reason the legs exist at all.
   const statedMb =
     profile.requestedGb !== undefined ? profile.requestedGb * MB_PER_GB : null;
+  // The calculator's ticks when there are any; a level only from an older link,
+  // or the default. "Unlimited" next to the ticks is a preference, and the
+  // ticks still say how much a day its fair-usage limit has to carry.
   const dailyMb = statedMb !== null && totalDays > 0
     ? statedMb / totalDays
-    : dailyDataMbByUsage[usage];
+    : profile.activities
+      ? dailyMbForActivities(profile.activities)
+      : dailyDataMbByUsage[usage];
 
   const legs: LegEstimate[] = destinations.map((destination, index) => {
     const days = dayCounts[index];
@@ -98,6 +128,7 @@ export function estimateDataNeed(profile: TripProfile): DataNeedEstimate {
 
   return {
     usage,
+    ...(profile.activities && statedMb === null ? { activities: profile.activities } : {}),
     dailyMb,
     isStatedByTraveller: statedMb !== null,
     legs,
@@ -106,6 +137,7 @@ export function estimateDataNeed(profile: TripProfile): DataNeedEstimate {
     requiredGb: requiredMb / MB_PER_GB,
     isDefault:
       profile.usage === undefined &&
+      profile.activities === undefined &&
       profile.requestedGb === undefined &&
       legs.every((leg) => leg.isAssumedLength),
     prefersUnlimited: usage === 'unlimited',

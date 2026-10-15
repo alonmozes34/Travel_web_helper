@@ -54,30 +54,38 @@ await page.waitForTimeout(150);
 // The two questions open on their own once a destination is chosen; they are
 // the answer to "which plan fits", not an optional refinement.
 ok('choosing a destination opens the trip questions', await page.locator('fieldset').last().isVisible());
-await page.locator('label:has-text("רגיל")').first().click();
-await page.waitForTimeout(150);
-ok(
-  'usage is a single choice and reflects the selection',
-  await page.getByRole('radio', { name: /רגיל/ }).isChecked(),
-);
 // The search form, by its destination field: the home page has a second form
 // since 15 October 2026 (the phone check).
 const searchForm = page.locator('form', { has: page.getByRole('combobox', { name: 'יעד הטיול' }) });
+// The data calculator (15 October 2026) replaced the six usage levels: what
+// the traveller will do is ticked, and the daily sum is said as it changes.
 ok(
-  'each usage level explains itself on screen',
-  (await searchForm.innerText()).includes('רשתות חברתיות, מפות, גלישה'),
+  'the calculator starts from social media, ticked, as the old default',
+  await page.getByRole('checkbox', { name: /רשתות חברתיות וגלישה/ }).isChecked(),
+);
+await page.locator('label:has-text("שיחות וידאו")').first().click();
+await page.waitForTimeout(150);
+ok(
+  'several things can be ticked at once',
+  (await page.getByRole('checkbox', { name: /שיחות וידאו/ }).isChecked()) &&
+    (await page.getByRole('checkbox', { name: /רשתות חברתיות וגלישה/ }).isChecked()),
 );
 ok(
-  'and shows the daily figure behind it',
-  (await searchForm.innerText()).includes('ליום לפי ההערכה שלנו'),
+  'each tick explains itself and shows what it adds a day',
+  (await searchForm.innerText()).includes('בערך חצי שעה ביום') && (await searchForm.innerText()).includes('מוסיף כ‑400MB ליום'),
 );
 ok(
-  'the scale reaches tethering, not just "heavy"',
-  (await searchForm.innerText()).includes('מודם לכל המכשירים'),
+  'and the sum is said, for the whole trip',
+  (await searchForm.innerText()).includes('לפי מה שסימנתם: כ‑1,000MB ליום, כ‑14.6GB ל‑15 ימים'),
+  (await searchForm.innerText()).match(/לפי מה שסימנתם[^\n]*/)?.[0],
+);
+ok(
+  'the calculator reaches tethering, not just video',
+  (await searchForm.innerText()).includes('מודם למחשב ולמכשירים נוספים'),
 );
 ok(
   'a traveller who knows their own figure can give it',
-  (await searchForm.innerText()).includes('כמה GB לכל הטיול'),
+  (await searchForm.innerText()).includes('יודעים בדיוק כמה GB צריך לכל הטיול'),
 );
 await shot(page, 'phase2-home-desktop');
 
@@ -123,14 +131,13 @@ ok(
 );
 
 await page.locator('form li input[type="number"]').first().fill('10');
-await page.locator('label:has-text("רגיל")').first().click();
 await page.waitForTimeout(150);
 await page.getByRole('button', { name: 'השוו חבילות' }).click();
 await page.waitForURL('**/esim/thailand**');
 ok('a single destination goes to its country page', new URL(page.url()).pathname === '/esim/thailand');
 ok(
   'the answers travel with it',
-  decodeURIComponent(page.url()).includes('TH:10') && page.url().includes('usage=regular'),
+  decodeURIComponent(page.url()).includes('TH:10') && page.url().includes('act=social'),
   page.url(),
 );
 
@@ -138,7 +145,8 @@ ok(
 await page.goto(BASE, { waitUntil: 'networkidle' });
 await page.getByRole('button', { name: 'השוו חבילות' }).click();
 await page.waitForTimeout(200);
-ok('empty search shows a hint instead of navigating', page.url().replace(/\/$/, '') === BASE && (await page.locator('[aria-live="polite"]').innerText()).length > 0);
+// The hint is the form's first live region; the calculator's sum is another.
+ok('empty search shows a hint instead of navigating', page.url().replace(/\/$/, '') === BASE && (await page.locator('[aria-live="polite"]').first().innerText()).includes('בחרו יעד'));
 
 // Keyboard-only path.
 await page.goto(BASE, { waitUntil: 'networkidle' });

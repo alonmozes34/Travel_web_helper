@@ -76,6 +76,7 @@ export function buildCombination({
       const covers = remaining.filter((code) => plan.coverage.countries.includes(code));
       const estimate = estimateDataNeed({
         usage: profile.usage,
+        activities: profile.activities,
         destinations: covers.map(legFor),
       });
       const price = priceOf(plan).amountMinor;

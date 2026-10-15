@@ -13,6 +13,7 @@ import { interpolate } from "@/i18n/interpolate";
 import { siteUrl } from "@/lib/site";
 import { tripProfileFromParams } from "@/lib/types/trip";
 import { buildComparison } from "@/lib/comparison/buildComparison";
+import { estimateSummary } from "@/lib/comparison/estimateSummary";
 import { relatedDestinations } from "@/lib/comparison/relatedDestinations";
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { getDisplayCurrency } from "@/lib/currencyServer";
@@ -240,18 +241,7 @@ export default async function CountryPage({
                 dict.results.defaultEstimate
               ) : (
                 <span className="font-semibold text-brand">
-                  {/* A figure the traveller gave is reported back as theirs, not
-                      re-described as our estimate of their usage. */}
-                  {estimate.isStatedByTraveller
-                    ? interpolate(dict.results.tailoredStatedTemplate, {
-                        days: estimate.days,
-                        gb: Math.round(estimate.requiredGb),
-                      })
-                    : interpolate(dict.results.tailoredTemplate, {
-                        days: estimate.days,
-                        usage: dict.personalization.usages[estimate.usage],
-                        gb: Math.round(estimate.requiredGb),
-                      })}
+                  {estimateSummary(estimate, dict, locale)}
                 </span>
               )}
             </p>

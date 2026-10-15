@@ -1,7 +1,7 @@
 import { getCountryByCode, getCountryBySlug } from '@/data/countries';
 import { getProvider } from '@/data/providers';
 import { isCurrency, isLocale, locales } from '@/i18n/config';
-import { usageLevels } from '@/lib/types/trip';
+import { dataActivities, usageLevels } from '@/lib/types/trip';
 
 /**
  * What the site counts, and nothing else.
@@ -30,7 +30,16 @@ export type StatLeg = { cc: string; days?: number };
 export type StatEvent =
   | { e: 'view'; path: string; entry: boolean; ref: string | null; notFound?: boolean }
   /** A results page shown: the trip asked about, and how many answers it had. */
-  | { e: 'search'; to: StatLeg[]; usage: string | null; gb: boolean; currency: string; count: number }
+  | {
+      e: 'search';
+      to: StatLeg[];
+      usage: string | null;
+      /** What the calculator had ticked; absent from a page served before it. */
+      act?: string[] | null;
+      gb: boolean;
+      currency: string;
+      count: number;
+    }
   /** Out to a provider: `pos` is where the plan stood in the list, from 1, or 0 for a leg of a combination. */
   | { e: 'click'; provider: string; to: string | null; pos: number; cheapest: boolean }
   | { e: 'code'; provider: string }
@@ -184,9 +193,21 @@ export function countersFor(
       );
       add(`stops:${legs.length >= 3 ? '3+' : legs.length}`);
       if (codes.length > 1) add(`combo:${codes.join('+')}`);
+      // How the amount was answered: a typed figure, the calculator (with or
+      // without the preference for unlimited), or a level from an older link.
+      // Only names from the calculator's own list; anything else in it is dropped.
+      const sent: unknown[] | null = Array.isArray(ev.act) && ev.act.length <= dataActivities.length * 2 ? ev.act : null;
+      const ticked = sent ? dataActivities.filter((activity) => sent.includes(activity)) : null;
       if (ev.gb === true) add('usage:stated-gb');
+      else if (ev.usage === 'unlimited') add('usage:unlimited');
+      else if (ticked) add('usage:calculator');
       else if (typeof ev.usage === 'string' && (usageLevels as readonly string[]).includes(ev.usage)) add(`usage:${ev.usage}`);
       else add('usage:unstated');
+      // Each tick, only when the ticks made the estimate.
+      if (ticked && ev.gb !== true) {
+        add('calculated');
+        for (const activity of ticked) add(`act:${activity}`);
+      }
       if (typeof ev.currency === 'string' && isCurrency(ev.currency)) add(`currency:${ev.currency}`);
       if (ev.count === 0) add(`zero:${codes.join('+')}`);
       return counts;

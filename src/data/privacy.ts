@@ -46,4 +46,4 @@ export const storedItems: readonly StoredItem[] = [
  * Shown on the page. A privacy notice with no date asks to be trusted about
  * software that changes weekly.
  */
-export const privacyReviewedOn = '2026-10-14';
+export const privacyReviewedOn = '2026-10-15';

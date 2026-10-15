@@ -97,7 +97,10 @@ export function ResultsView({
   const syncUrl = useCallback((next: PlanFilters, nextSort: SortKey) => {
     const params = filtersToParams(next);
     const existing = new URLSearchParams(window.location.search);
-    for (const key of ["days", "usage"]) {
+    // The trip itself stays in the address: dropping `to` here turned a
+    // filtered search into an empty one on reload, and the calculator's
+    // answer travels in `act` and `gb`.
+    for (const key of ["to", "days", "usage", "act", "gb"]) {
       const value = existing.get(key);
       if (value) params.set(key, value);
     }

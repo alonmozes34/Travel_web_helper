@@ -75,12 +75,12 @@ const he: Guide[] = [
   {
     slug: 'how-much-data',
     title: 'כמה גלישה צריך לטיול?',
-    description: 'הערכה לפי סוג השימוש, ליום ולשבוע, ואיך לחסוך בגלישה בלי לוותר על כלום.',
+    description: 'הערכה לפי מה שעושים בטלפון, ליום ולשבוע, ואיך לחסוך בגלישה בלי לוותר על כלום.',
     sections: [
       {
         heading: 'ההערכה שלנו',
         body: [
-          'אלה המספרים שהחיפוש באתר משתמש בהם. הם הערכה שמרנית, לא מדידה: עדיף להמליץ על קצת יותר מאשר על חבילה שתיגמר. אם אתם יודעים כמה אתם צורכים, אפשר להזין כמות GB בחיפוש במקום לבחור סוג שימוש.',
+          'אלה המספרים שהחיפוש באתר משתמש בהם. בחיפוש מסמנים מה עושים בטלפון, וההערכה היא הסכום: ניווט והודעות תמיד, ועוד כל מה שסימנתם. הם הערכה שמרנית, לא מדידה: עדיף להמליץ על קצת יותר מאשר על חבילה שתיגמר. אם אתם יודעים כמה אתם צורכים, אפשר לכתוב כמות GB בחיפוש במקום החישוב.',
         ],
       },
       {
@@ -181,12 +181,12 @@ const en: Guide[] = [
   {
     slug: 'how-much-data',
     title: 'How much data do you need for a trip?',
-    description: 'An estimate by type of use, per day and per week, and how to use less without missing anything.',
+    description: 'An estimate by what you do on your phone, per day and per week, and how to use less without missing anything.',
     sections: [
       {
         heading: 'Our estimate',
         body: [
-          'These are the figures the site\'s search uses. They are a cautious estimate, not a measurement: better to suggest a little too much than a plan that runs out. If you know your own usage, you can enter a GB amount in the search instead of choosing a type of use.',
+          'These are the figures the site\'s search uses. In the search you tick what you will do on your phone, and the estimate is the sum: maps and messages always, plus everything you ticked. They are a cautious estimate, not a measurement: better to suggest a little too much than a plan that runs out. If you know your own usage, you can type a GB amount in the search instead of the estimate.',
         ],
       },
       {

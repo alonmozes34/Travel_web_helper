@@ -96,7 +96,16 @@ export const contactLabels: Record<string, string> = TOPIC_LABELS;
 
 const usages = getDictionary('he').personalization.usages as Record<string, string>;
 export const usageLabel = (key: string) =>
-  key === 'stated-gb' ? 'כתבו כמות GB בעצמם' : key === 'unstated' ? 'לא צוין' : (usages[key] ?? key);
+  key === 'stated-gb'
+    ? 'כתבו כמות GB בעצמם'
+    : key === 'calculator'
+      ? 'סימנו במחשבון'
+      : key === 'unstated'
+        ? 'לא צוין'
+        : (usages[key] ?? key);
+
+const activities = getDictionary('he').personalization.activities as Record<string, string>;
+export const activityLabel = (key: string) => activities[key] ?? key;
 
 export const countryLabel = (code: string) => {
   if (code === 'unknown') return 'לא ידוע';

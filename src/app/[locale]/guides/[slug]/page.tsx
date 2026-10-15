@@ -3,13 +3,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { buttonClasses } from '@/components/ui/Button';
+import { Ltr } from '@/components/ui/Bdi';
 import { Container } from '@/components/ui/Container';
 import { getGuide, guides } from '@/content/guides';
 import { isLocale, localePath, locales, type Locale } from '@/i18n/config';
 import { getDictionary, type Dictionary } from '@/i18n/getDictionary';
-import { dailyDataMbByUsage } from '@/lib/comparison/estimateDataNeed';
+import { BASE_DAILY_MB, dailyMbByActivity } from '@/lib/comparison/estimateDataNeed';
 import { formatData } from '@/lib/formatters/data';
-import { usageLevels } from '@/lib/types/trip';
+import { dataActivities } from '@/lib/types/trip';
 
 export function generateStaticParams() {
   return locales.flatMap((locale) => guides[locale].map((guide) => ({ locale, slug: guide.slug })));
@@ -26,7 +27,10 @@ export async function generateMetadata({
   return guide ? { title: guide.title, description: guide.description } : {};
 }
 
-/** The same daily figures the search estimates with, so the guide and the results cannot disagree. */
+/**
+ * The calculator's own figures, so the guide and the results cannot disagree:
+ * what is always counted, then what each tick adds.
+ */
 function DataTable({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const copy = dict.guidesPage.dataTable;
   return (
@@ -41,14 +45,23 @@ function DataTable({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           </tr>
         </thead>
         <tbody>
-          {usageLevels.map((usage) => (
-            <tr key={usage} className="border-b border-line-soft align-top">
+          <tr className="border-b border-line-soft align-top">
+            <th scope="row" className="py-2 pe-3 text-start font-normal">
+              <span className="font-semibold text-ink">{copy.base}</span>
+              <span className="block text-ink-2">{copy.baseHint}</span>
+            </th>
+            <td className="whitespace-nowrap px-3 py-2 tabular-nums">{formatData(BASE_DAILY_MB, locale)}</td>
+            <td className="whitespace-nowrap px-3 py-2 tabular-nums">{formatData(BASE_DAILY_MB * 7, locale)}</td>
+          </tr>
+          {dataActivities.map((activity) => (
+            <tr key={activity} className="border-b border-line-soft align-top">
               <th scope="row" className="py-2 pe-3 text-start font-normal">
-                <span className="font-semibold text-ink">{dict.personalization.usages[usage]}</span>
-                <span className="block text-ink-2">{dict.personalization.usageHints[usage]}</span>
+                <span className="font-semibold text-ink">{dict.personalization.activities[activity]}</span>
+                <span className="block text-ink-2">{dict.personalization.activityHints[activity]}</span>
               </th>
-              <td className="whitespace-nowrap px-3 py-2 tabular-nums">{formatData(dailyDataMbByUsage[usage], locale)}</td>
-              <td className="whitespace-nowrap px-3 py-2 tabular-nums">{formatData(dailyDataMbByUsage[usage] * 7, locale)}</td>
+              {/* LTR, or the plus lands after the number in Hebrew. */}
+              <td className="whitespace-nowrap px-3 py-2 tabular-nums"><Ltr>+{formatData(dailyMbByActivity[activity], locale)}</Ltr></td>
+              <td className="whitespace-nowrap px-3 py-2 tabular-nums"><Ltr>+{formatData(dailyMbByActivity[activity] * 7, locale)}</Ltr></td>
             </tr>
           ))}
         </tbody>

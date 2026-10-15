@@ -22,6 +22,7 @@ import {
   stopsLabels,
   tripLabel,
   usageLabel,
+  activityLabel,
 } from '@/lib/stats/labels';
 import { lastDays, statsStoreFromEnv } from '@/lib/stats/store';
 import { breakdown, bookingOut, percent, periodOf, total, type Period } from '@/lib/stats/summary';
@@ -227,6 +228,15 @@ function Body({ current, previous, listed }: { current: Period; previous: Period
           <Breakdown caption="אורך הטיול" period={current} prefix="days:" label={(key) => daysLabels[key] ?? key} />
           <Breakdown caption="כמה יעדים בטיול" period={current} prefix="stops:" label={(key) => stopsLabels[key] ?? key} />
           <Breakdown caption="שימוש בגלישה" period={current} prefix="usage:" label={usageLabel} />
+          {/* Several ticks to a search, so each is a share of the searches the calculator sized. */}
+          <Breakdown
+            caption="מה סימנו במחשבון הגלישה"
+            period={current}
+            prefix="act:"
+            label={activityLabel}
+            of={total(current, 'calculated')}
+            ofLabel="פעמים (מהחיפושים לפי המחשבון)"
+          />
           <Breakdown caption="מטבע התצוגה" period={current} prefix="currency:" label={(key) => key} />
           <Breakdown caption="שילובים של כמה יעדים" period={current} prefix="combo:" label={tripLabel} limit={15} />
           <Breakdown caption="חיפושים שלא מצאו אף חבילה" period={current} prefix="zero:" label={tripLabel} limit={15} empty="כל חיפוש מצא חבילה." />
@@ -342,6 +352,8 @@ function Breakdown({
   label,
   limit = 12,
   empty = 'אין עדיין נתונים.',
+  of,
+  ofLabel = 'פעמים (מהכול)',
 }: {
   caption: string;
   period: Period;
@@ -349,9 +361,12 @@ function Breakdown({
   label: (key: string) => string;
   limit?: number;
   empty?: string;
+  /** The whole each row is a share of, when the rows do not add up to it. */
+  of?: number;
+  ofLabel?: string;
 }) {
   const rows = breakdown(period, prefix);
-  const sum = rows.reduce((total, row) => total + row.count, 0);
+  const sum = of ?? rows.reduce((total, row) => total + row.count, 0);
   const max = rows[0]?.count ?? 1;
   const shown = rows.slice(0, limit);
   const rest = rows.slice(limit).reduce((total, row) => total + row.count, 0);
@@ -366,7 +381,7 @@ function Breakdown({
   return (
     <Table
       caption={caption}
-      head={['', 'פעמים (מהכול)']}
+      head={['', ofLabel]}
       rows={[
         ...shown.map((row) => [label(row.key), <Bar key={row.key} value={row.count} max={max} share={percent(row.count, sum)} />]),
         ...(rest > 0 ? [[`עוד ${rows.length - limit}`, `${number.format(rest)} (${percent(rest, sum)}%)`]] : []),

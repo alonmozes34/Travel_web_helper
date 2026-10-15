@@ -14,6 +14,7 @@ import {
   missingTripFields,
   sameTrip,
   tripProfileToQuery,
+  withCalculatorAnswer,
   type TripDestination,
   type TripProfile,
 } from "@/lib/types/trip";
@@ -185,8 +186,11 @@ export function HeroSearch({
       return;
     }
 
+    // What the calculator shows ticked is the answer, touched or not.
+    const answered = withCalculatorAnswer(profile);
+
     // Say which answer is missing rather than refusing without a reason.
-    const missing = missingTripFields(profile);
+    const missing = missingTripFields(answered);
     if (missing.length > 0) {
       setShowDetails(true);
       setError(
@@ -208,9 +212,9 @@ export function HeroSearch({
       days:
         profile.destinations.reduce((sum, d) => sum + (d.days ?? 0), 0) ||
         undefined,
-      usage: profile.usage,
+      usage: answered.usage,
     });
-    router.push(hrefFor(profile));
+    router.push(hrefFor(answered));
   }
 
   return (

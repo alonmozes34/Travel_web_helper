@@ -84,10 +84,12 @@ ok('a destination can be chosen with the keyboard', (await kb.locator('form li')
 
 // The trip questions are required now, so answer them before submitting.
 await kb.locator('form li input[type="number"]').first().fill('10');
-await kb.locator('label:has-text("רגיל")').first().click();
+await kb.getByRole('checkbox', { name: /שיחות וידאו/ }).focus();
+await kb.keyboard.press('Space');
 await kb.waitForTimeout(150);
+ok('a calculator box can be ticked with the keyboard', await kb.getByRole('checkbox', { name: /שיחות וידאו/ }).isChecked());
 
-// Forward from the usage choice, through the rest of the page and round to
+// Forward from the calculator, through the rest of the page and round to
 // the search's own button; the bound grows with the page (the photographs
 // of destinations to explore added nine stops).
 let reachedSubmit = false;
