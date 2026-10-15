@@ -616,6 +616,54 @@ try {
   await p.close();
 } catch (e) { check('calculator', 'second section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ region pages ══════════════════════════════════════════════════════════
+// The owner, 15 October 2026: the plans covering several of a region's
+// countries, how many each covers and which it leaves out.
+try {
+  const p = await page();
+  await p.goto(B + '/esim/region/balkans', { waitUntil: 'domcontentloaded' });
+  const picker = p.getByRole('group', { name: 'לאילו מדינות בבלקן אתם נוסעים?' });
+  await picker.getByRole('checkbox').first().waitFor(); await p.waitForTimeout(1000);
+  check('region', 'the Balkans page asks which of its nine countries', (await picker.getByRole('checkbox').count()) === 9);
+  const texts = await p.locator('section[aria-labelledby="region-plans"] article').allInnerTexts();
+  check('region', 'there are plans to compare', texts.length > 0, `${texts.length} cards`);
+  check('region', 'every card says how many of the nine it covers', texts.every((t) => /מכסה (\d+ מתוך|את כל) 9 המדינות באזור/.test(t)));
+  check('region', 'and names what is missing, or what it covers, as the provider’s list', texts.filter((t) => !t.includes('את כל 9')).every((t) => t.includes('לא ברשימה שהספק מפרסם:') || t.includes('מהאזור, ברשימה שהספק מפרסם:')));
+  check('region', 'the basis of the list is said, as our choice', (await p.locator('main').innerText()).includes('הבחירה שלנו'));
+  const before = await p.locator('section[aria-labelledby="region-plans"] article').count();
+  await picker.locator('label', { hasText: 'קרואטיה' }).click();
+  await picker.locator('label', { hasText: 'אלבניה' }).click();
+  await p.waitForTimeout(300);
+  const fit = await p.locator('section[aria-labelledby="region-plans"] article').allInnerTexts();
+  const said = await p.locator('form p[aria-live="polite"]').first().innerText();
+  check('region', 'ticking keeps only the plans that cover every ticked country', fit.length <= before && fit.every((t) => !/לא ברשימה שהספק מפרסם:[^\n]*(קרואטיה|אלבניה)/.test(t)), `${before} -> ${fit.length}`);
+  check('region', 'and says how many are left', /\d+ מתוך \d+ מכסות את כל מה שסימנתם/.test(said), said);
+  await p.getByRole('button', { name: 'להשוואה לפי הטיול שלי' }).click();
+  await p.waitForURL('**/search?**', { timeout: 15000 });
+  check('region', 'on to the search with the ticked countries, in the region’s order', decodeURIComponent(p.url()).includes('to=HR,AL'), p.url().replace(B, ''));
+  await p.waitForTimeout(1500);
+  check('region', 'where the days are asked', (await p.getByRole('spinbutton', { name: /^לכמה ימים ב/ }).count()) === 2);
+  await p.close();
+
+  // Without JavaScript the form still reaches the same trip.
+  const ctx = await b.newContext({ javaScriptEnabled: false, viewport: { width: 1280, height: 900 } });
+  const q = await ctx.newPage();
+  await q.goto(B + '/esim/region/balkans', { waitUntil: 'domcontentloaded' });
+  await q.locator('label', { hasText: 'מונטנגרו' }).click();
+  await q.locator('label', { hasText: 'קרואטיה' }).click();
+  await Promise.all([q.waitForURL('**/search?**', { timeout: 15000 }), q.getByRole('button', { name: 'להשוואה לפי הטיול שלי' }).click()]);
+  const heading = await q.locator('h1').first().innerText();
+  check('region', 'without JavaScript the ticks reach the search as one trip', heading.includes('קרואטיה') && heading.includes('מונטנגרו'), `${q.url().replace(B, '')} · ${heading}`);
+  await ctx.close();
+
+  const en = await page();
+  await en.goto(B + '/en/esim/region/south-east-asia', { waitUntil: 'domcontentloaded' });
+  check('region', 'the English page reads left to right, with the UN’s list', (await en.locator('html').getAttribute('dir')) === 'ltr' && (await en.locator('main').innerText()).includes('11 countries the UN'));
+  await en.goto(B + '/esim', { waitUntil: 'domcontentloaded' });
+  check('region', 'the destination index links the three region pages', (await en.locator('a[href^="/esim/region/"]').count()) === 3);
+  await en.close();
+} catch (e) { check('region', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ the before-you-fly list ═══════════════════════════════════════════════
 try {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });

@@ -40,6 +40,11 @@ for (const [p, want] of [
   // exactly failed against production for being *more* strict.
   ['/esim/%2e%2e%2f%2e%2e%2fetc%2fpasswd', '4xx'],
   ['/esim/THAILAND', 404],
+  // Region pages (15 October 2026): only the three that exist.
+  ['/esim/region/nowhere', 404],
+  ['/esim/region', 404],
+  ['/esim/region/BALKANS', 404],
+  ['/esim/region/balkans/extra', 404],
   ['/no-such-page', 404],
   ['/fr', 404],
 ]) {
@@ -68,6 +73,8 @@ const malformed = [
   ['/search?to=TH:5&usage=regular&data=,,,', 'empty filter list'],
   ['/search?to=' + 'TH:5,'.repeat(40), '40 destinations'],
   ['/search?to=TH:5&usage=regular&max=999999999', 'enormous max price'],
+  ['/search?to=TH:5&act=bogus', 'unknown calculator tick'],
+  ['/search?to=HR&to=ME&to=ZZ', 'a trip sent as separate values, one of them unknown'],
 ];
 for (const [p, label] of malformed) {
   const r = await get(p);

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Container } from '@/components/ui/Container';
 import { destinationContinents } from '@/data/regions';
 import { getRegionName } from '@/data/regions';
+import { regionPages } from '@/data/regionPages';
 import { isLocale, localePath, type Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
@@ -83,6 +84,24 @@ export default async function DestinationIndexPage({
               >
                 <span aria-hidden="true">{country.flag}</span>
                 {country.names[locale]}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* A trip through several countries has a page per region. */}
+      <section className="mt-10">
+        <h2 className="font-head text-xl font-semibold">{dict.regionPage.indexTitle}</h2>
+        <p className="mt-1 text-ink-2">{dict.regionPage.indexIntro}</p>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {regionPages.map((region) => (
+            <li key={region.id}>
+              <Link
+                href={localePath(locale, `/esim/region/${region.id}`)}
+                className="inline-flex min-h-11 items-center rounded-md border border-line bg-surface px-4 text-base font-semibold hover:border-brand hover:text-brand"
+              >
+                {dict.regionPage.regions[region.id].short}
               </Link>
             </li>
           ))}

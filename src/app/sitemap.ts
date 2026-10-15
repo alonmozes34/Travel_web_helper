@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next';
 import { countries } from '@/data/countries';
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { coverageOf } from '@/lib/comparison/catalogueCoverage';
+import { regionFamilies } from '@/lib/comparison/regionOffers';
+import { regionPages } from '@/data/regionPages';
 import { localeConfig, localePath, locales } from '@/i18n/config';
 import { siteUrl } from '@/lib/site';
 
@@ -18,7 +20,8 @@ const LOW_PRIORITY = ['/about', '/accessibility', '/disclosure', '/privacy', '/t
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { isCovered: isCountryCovered } = coverageOf((await getCatalogue()).plans);
+  const { plans } = await getCatalogue();
+  const { isCovered: isCountryCovered } = coverageOf(plans);
   const paths = [
     '/',
     '/about',
@@ -34,6 +37,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/codes',
     // The hub every destination page hangs off.
     '/esim',
+    // A region's page only while some plan covers two of its countries.
+    ...regionPages
+      .filter((region) => regionFamilies(plans, region.countries).length > 0)
+      .map((region) => `/esim/region/${region.id}`),
     // A destination page with no plans behind it still exists and answers
     // honestly, but it is not worth asking a search engine to index.
     ...countries

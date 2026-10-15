@@ -237,7 +237,10 @@ export function tripProfileFromParams(params: {
   const profile: TripProfile = { destinations: [] };
 
   const seen = new Set<string>();
-  for (const entry of (first(params.to) ?? '').split(',').filter(Boolean)) {
+  // `to=HR&to=ME` is how a form of checkboxes sends a trip without
+  // JavaScript (a region's page): read as one trip, in that order.
+  const to = Array.isArray(params.to) ? params.to.join(',') : params.to;
+  for (const entry of (to ?? '').split(',').filter(Boolean)) {
     const [code, rawDays] = entry.split(':');
     if (!/^[A-Z]{2}$/.test(code)) continue;
     if (!getCountryByCode(code)) continue;
