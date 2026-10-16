@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useId, useState } from 'react';
 import { Ltr } from '@/components/ui/Bdi';
 import { cn } from '@/components/ui/cn';
 import { Badge } from '@/components/ui/Badge';
-import type { Locale } from '@/i18n/config';
+import { providers } from '@/data/providers';
+import { localePath, type Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { ComparisonRow } from '@/lib/comparison/buildComparison';
@@ -207,6 +209,17 @@ export function PlanListItem({
               {dict.plan.planNameLabel}: <Ltr className="font-semibold text-ink">{plan.planName}</Ltr>
             </p>
             <ProviderPrice row={row} locale={locale} dict={dict} />
+            {/* Refunds, support and installation, as the provider publishes them. */}
+            {providers.some((provider) => provider.id === row.provider.id) ? (
+              <p className="text-sm">
+                <Link
+                  href={localePath(locale, `/providers/${row.provider.slug}`)}
+                  className="inline-flex min-h-6 items-center font-semibold text-brand underline underline-offset-4"
+                >
+                  {interpolate(dict.providerPage.profileLinkTemplate, { provider: row.provider.name })}
+                </Link>
+              </p>
+            ) : null}
           </div>
           <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-4 gap-y-3 md:grid-cols-3">
             <DataFact row={row} locale={locale} dict={dict} />

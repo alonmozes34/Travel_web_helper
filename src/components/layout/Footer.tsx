@@ -9,7 +9,11 @@ import { Brand } from './Brand';
 import { mainNavLinks } from './navLinks';
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
-  const links = [...mainNavLinks(locale, dict), { href: localePath(locale, '/guides'), label: dict.guidesPage.navLabel }];
+  const links = [
+    ...mainNavLinks(locale, dict),
+    { href: localePath(locale, '/providers'), label: dict.providerPage.navLabel },
+    { href: localePath(locale, '/guides'), label: dict.guidesPage.navLabel },
+  ];
   /**
    * Only routes that exist. All three of these were dead links site-wide
    * once, because a privacy notice and terms of use have to name who

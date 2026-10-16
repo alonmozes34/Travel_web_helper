@@ -3,6 +3,8 @@ import { pricePerGbMinor } from '@/lib/pricing/perUnit';
 import type { CurrencyCode } from '@/i18n/config';
 import type { PlanCoverage } from '@/lib/types/coverage';
 import type { Plan } from '@/lib/types/plan';
+import { getCountryByCode } from '@/data/countries';
+import type { RegionPage } from '@/data/regionPages';
 
 /**
  * The plans a region's page compares (the owner, 15 October 2026: the
@@ -58,6 +60,30 @@ export function regionFamilies(plans: readonly Plan[], regionCountries: readonly
     });
   }
   return [...families.values()];
+}
+
+/** How many continents a list of countries spans: the page across continents asks for three. */
+export const WORLD_MIN_CONTINENTS = 3;
+
+export function continentCounts(codes: readonly string[]): Array<{ continent: string; count: number }> {
+  const counts = new Map<string, number>();
+  for (const code of codes) {
+    const continent = getCountryByCode(code)?.continent;
+    if (continent) counts.set(continent, (counts.get(continent) ?? 0) + 1);
+  }
+  return [...counts].map(([continent, count]) => ({ continent, count })).sort((a, b) => b.count - a.count);
+}
+
+/**
+ * The families a region's page lists: those covering two of its countries,
+ * or, on the page across continents, those whose own list spans three
+ * continents or more.
+ */
+export function pageFamilies(plans: readonly Plan[], region: RegionPage): RegionFamily[] {
+  const families = regionFamilies(plans, region.countries);
+  return region.world
+    ? families.filter((family) => continentCounts(family.coveredCodes).length >= WORLD_MIN_CONTINENTS)
+    : families;
 }
 
 export type PricedPlan = { plan: Plan; price: DisplayPrice };

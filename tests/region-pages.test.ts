@@ -6,7 +6,7 @@ import { countries, getCountryByCode } from '@/data/countries';
 import { mockFxRates } from '@/data/fxRates';
 import { regionPages, searchRegionPages } from '@/data/regionPages';
 import { buildComparison } from '@/lib/comparison/buildComparison';
-import { MIN_REGION_COUNTRIES, orderFamilies, priceFamilies, regionFamilies } from '@/lib/comparison/regionOffers';
+import { MIN_REGION_COUNTRIES, continentCounts, orderFamilies, pageFamilies, priceFamilies, regionFamilies } from '@/lib/comparison/regionOffers';
 import { MB_PER_GB } from '@/lib/formatters/data';
 import type { Plan } from '@/lib/types/plan';
 
@@ -67,6 +67,29 @@ describe('the region lists', () => {
       if (path.endsWith('regionPages.ts')) continue;
       assert.ok(!readFileSync(path, 'utf8').includes('regionPages'), `${path} imports the region pages`);
     }
+  });
+});
+
+describe('the page across continents', () => {
+  test('lists only plans whose own list spans three continents or more', () => {
+    const world = regionPages.find((region) => region.world)!;
+    const families = pageFamilies(
+      [
+        plan({ id: 'europe-only', coverage: cover(['FR', 'IT', 'ES', 'DE']) }),
+        plan({ id: 'two-continents', coverage: cover(['FR', 'JP', 'TH']) }),
+        plan({ id: 'three', coverage: cover(['FR', 'JP', 'US', 'BR']), providerId: 'p2' }),
+      ],
+      world,
+    );
+    assert.deepEqual(families.map((family) => family.plans[0].id), ['three']);
+    assert.deepEqual(continentCounts(['FR', 'IT', 'JP']).map((entry) => entry.continent), ['europe', 'asia']);
+  });
+
+  test('the Americas: North America, and South and Central America, Mexico on both', () => {
+    const ids = regionPages.map((region) => region.id);
+    assert.ok(ids.includes('north-america') && ids.includes('latin-america'));
+    assert.deepEqual(searchRegionPages('אמריקה').map((region) => region.id), ['north-america', 'latin-america']);
+    assert.deepEqual(searchRegionPages('עולמי').map((region) => region.id), ['world']);
   });
 });
 

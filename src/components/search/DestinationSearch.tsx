@@ -335,7 +335,7 @@ export function DestinationSearch({
                       <span className="font-semibold">{dict.regionPage.regions[region.id].name}</span>
                       <span className="text-sm text-ink-2">
                         <span className="sr-only">, </span>
-                        {dict.search.regionRowTemplate.replace('{count}', String(region.countries.length))}
+                        {region.world ? dict.search.worldRow : dict.search.regionRowTemplate.replace('{count}', String(region.countries.length))}
                       </span>
                     </button>
                   ))}

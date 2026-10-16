@@ -95,6 +95,14 @@ US$28.99 in the API, another plan at US$20.99 on the page). The owner chose
   rerun `npm run check:saily` and release. Do not widen this to reading
   Saily's prices from their pages.
 
+**Provider pages: each provider's own help pages may be read for its profile
+(the owner, 16 October 2026, "yes, go over the information on the sites" —
+Saily included).** Refunds, support, installation, hotspot, top-up, when the
+plan starts: read by hand from the provider's own domain, each fact kept
+with its page address and the day it was read (`src/data/providerProfiles.ts`).
+Never prices, and never a review site or a reseller; a fact the provider does
+not publish stays "not stated". Re-read them rather than trusting the date.
+
 ## The dashboard counts anonymously, and only that
 
 The owner chose (13 October 2026) "anonymous, no cookies; country only", a

@@ -2,8 +2,9 @@ import type { MetadataRoute } from 'next';
 import { countries } from '@/data/countries';
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { coverageOf } from '@/lib/comparison/catalogueCoverage';
-import { regionFamilies } from '@/lib/comparison/regionOffers';
+import { pageFamilies } from '@/lib/comparison/regionOffers';
 import { regionPages } from '@/data/regionPages';
+import { providers } from '@/data/providers';
 import { localeConfig, localePath, locales } from '@/i18n/config';
 import { siteUrl } from '@/lib/site';
 
@@ -36,11 +37,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/devices',
     '/codes',
     '/reviews',
+    '/providers',
     // The hub every destination page hangs off.
     '/esim',
+    ...providers.map((provider) => `/providers/${provider.slug}`),
     // A region's page only while some plan covers two of its countries.
     ...regionPages
-      .filter((region) => regionFamilies(plans, region.countries).length > 0)
+      .filter((region) => pageFamilies(plans, region).length > 0)
       .map((region) => `/esim/region/${region.id}`),
     // A destination page with no plans behind it still exists and answers
     // honestly, but it is not worth asking a search engine to index.

@@ -341,7 +341,10 @@ export function HeroSearch({
         {announcement}
       </p>
 
-      <div className="flex max-w-[640px] flex-wrap items-center gap-x-5 gap-y-2">
+      {/* Out of reach while the destination list is open, like the shortcuts:
+          the popup reaches down over this row, and a button half under it is
+          a target hit only by mistake. */}
+      <div className={`flex max-w-[640px] flex-wrap items-center gap-x-5 gap-y-2${listOpen ? " invisible" : ""}`}>
         {showSearch ? null : (
           <button
             type="button"

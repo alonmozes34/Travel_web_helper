@@ -626,13 +626,31 @@ try {
   await p.close();
 } catch (e) { check('closest', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 
+// ══ provider pages ════════════════════════════════════════════════════════
+// The owner, 15–16 October 2026: what each provider publishes about refunds,
+// support and installation, from their own pages, each with its source.
+try {
+  const p = await page();
+  await p.goto(B + '/providers', { waitUntil: 'domcontentloaded' });
+  check('providers', 'the providers page links the four providers', (await p.locator('main a[href^="/providers/"]').count()) === 4);
+  await p.goto(B + '/providers/saily', { waitUntil: 'domcontentloaded' });
+  const facts = p.locator('dl > div');
+  check('providers', 'a provider page has its nine facts', (await facts.count()) === 9);
+  const hosts = await p.locator('dl a[href^="https://"]').evaluateAll((links) => links.map((a) => new URL(a.href).host));
+  check('providers', 'every source is the provider’s own site, opening in a new tab', hosts.length >= 9 && hosts.every((h) => /(^|\.)saily\.com$/.test(h)) && (await p.locator('dl a[target="_blank"][rel*="noopener"]').count()) === hosts.length, hosts.length + ' sources');
+  check('providers', 'and the day they were read', /נבדק ב־\d{1,2}\.\d{1,2}\.\d{4}/.test(await p.locator('main').innerText()));
+  const missing = await p.goto(B + '/providers/nope', { waitUntil: 'domcontentloaded' });
+  check('providers', 'an unknown provider is not found', missing?.status() === 404, `${missing?.status()}`);
+  await p.close();
+} catch (e) { check('providers', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
+
 // ══ a region in the search ════════════════════════════════════════════════
 // The owner, 15 October 2026: "add an option by region in the search".
 try {
   const p = await page();
   await p.goto(B + '/', { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1000);
-  check('region search', 'the home page offers the three regions as shortcuts', (await p.locator('a[href^="/esim/region/"]').count()) === 3);
+  check('region search', 'the home page offers the regions as shortcuts, the Americas and across continents included', (await p.locator('a[href^="/esim/region/"]').count()) === 6);
   const box = p.getByRole('combobox', { name: 'יעד הטיול' });
   await box.click();
   await box.type('europe', { delay: 30 });
@@ -769,7 +787,17 @@ try {
   await en.goto(B + '/en/esim/region/south-east-asia', { waitUntil: 'domcontentloaded' });
   check('region', 'the English page reads left to right, with the UN’s list', (await en.locator('html').getAttribute('dir')) === 'ltr' && (await en.locator('main').innerText()).includes('11 countries the UN'));
   await en.goto(B + '/esim', { waitUntil: 'domcontentloaded' });
-  check('region', 'the destination index links the three region pages', (await en.locator('a[href^="/esim/region/"]').count()) === 3);
+  check('region', 'the destination index links the six region pages', (await en.locator('a[href^="/esim/region/"]').count()) === 6);
+  // Across continents (16 October 2026): the plans spanning three or more,
+  // each with its countries per continent, and no wall of checkboxes.
+  await en.goto(B + '/esim/region/world', { waitUntil: 'domcontentloaded' });
+  const worldCards = await en.locator('section[aria-labelledby="region-plans"] article').allInnerTexts();
+  check('region', 'the page across continents lists global plans by continent, with nothing to tick', worldCards.length > 0 && worldCards.every((t) => /מכסה \d+ מדינות: /.test(t)) && (await en.getByRole('checkbox').count()) === 0, `${worldCards.length} cards`);
+  await en.goto(B + '/', { waitUntil: 'domcontentloaded' });
+  await en.waitForTimeout(1000);
+  await en.getByRole('combobox', { name: 'יעד הטיול' }).type('אמריקה', { delay: 40 });
+  await en.waitForTimeout(500);
+  check('region', 'typing "America" offers both Americas', (await en.getByRole('option', { name: /צפון אמריקה/ }).count()) === 1 && (await en.getByRole('option', { name: /דרום ומרכז אמריקה/ }).count()) === 1);
   await en.close();
 } catch (e) { check('region', 'section completed', false, e.message.split('\n')[0].slice(0, 70)); }
 

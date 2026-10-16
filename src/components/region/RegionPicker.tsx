@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ProviderLogo } from '@/components/plans/ProviderCell';
@@ -29,6 +30,8 @@ export type RegionCard = {
   cheapest: { price: string; size: string; period: string };
   bestPerGb: { perGb: string; size: string; period: string } | null;
   hasUnlimited: boolean;
+  /** On the page across continents: the countries on each continent, worded. */
+  continents?: string;
 };
 
 const FIRST_CARDS = 8;
@@ -48,6 +51,8 @@ export function RegionPicker({
   initialTicked = [],
   copy,
   searchPath,
+  pickable = true,
+  homePath = '/',
 }: {
   /** "in the Balkans": Hebrew folds the preposition into the name ("בבלקן"). */
   inRegion: string;
@@ -57,6 +62,9 @@ export function RegionPicker({
   initialTicked?: string[];
   copy: Dictionary['regionPage'];
   searchPath: string;
+  /** False on the page across continents, where ticking among every country would be a wall. */
+  pickable?: boolean;
+  homePath?: string;
 }) {
   const router = useRouter();
   const [ticked, setTicked] = useState<string[]>(initialTicked);
@@ -74,6 +82,15 @@ export function RegionPicker({
 
   return (
     <>
+      {pickable ? null : (
+        <p className="max-w-[80ch] rounded-[20px] border border-line bg-surface p-5 text-ink md:p-6">
+          {copy.worldHint}{' '}
+          <Link href={homePath} className="inline-flex min-h-6 items-center font-semibold text-brand underline underline-offset-4">
+            {copy.worldSearchLink}
+          </Link>
+        </p>
+      )}
+      {pickable ? (
       <form
         action={searchPath}
         method="get"
@@ -122,12 +139,13 @@ export function RegionPicker({
         </div>
         <p className="mt-2 text-sm text-ink-2">{copy.toSearchHint}</p>
       </form>
+      ) : null}
 
       <section aria-labelledby="region-plans" className="mt-10 max-w-[80ch]">
         <h2 id="region-plans" className="font-head text-xl font-semibold">
           {interpolate(copy.plansTitleTemplate, { inRegion })}
         </h2>
-        <p className="mt-1 text-ink-2">{copy.orderNote}</p>
+        <p className="mt-1 text-ink-2">{pickable ? copy.orderNote : copy.worldOrderNote}</p>
         {fitting.length === 0 ? (
           <p className="mt-4 rounded-md border border-line bg-surface px-4 py-3 text-ink">
             {cards.length === 0 ? copy.noneAtAll : copy.noneFit}
@@ -167,18 +185,24 @@ function Card({ card, total, copy }: { card: RegionCard; total: number; copy: Di
         </h3>
         {card.label ? <span className="text-base text-ink-2">{interpolate(copy.labelTemplate, { label: card.label })}</span> : null}
       </div>
+      {card.continents ? (
+        <p className="mt-2 font-semibold text-ink [overflow-wrap:anywhere]">
+          {interpolate(copy.worldCoversTemplate, { count: card.covered.length, continents: card.continents })}
+        </p>
+      ) : (
       <p className={`mt-2 font-semibold ${whole ? 'text-teal-ink' : 'text-ink'}`}>
         {interpolate(whole ? copy.coversAllTemplate : copy.coversTemplate, { count: card.covered.length, total })}
       </p>
+      )}
       {/* Whichever list is shorter: "missing 27 countries" by name is a wall. */}
-      {whole ? null : (
+      {whole || card.continents ? null : (
         <p className="mt-1 text-ink-2 [overflow-wrap:anywhere]">
           {card.missing.length <= card.coveredNames.length
             ? interpolate(copy.missingTemplate, { names: card.missing.join(', ') })
             : interpolate(copy.onlyTemplate, { names: card.coveredNames.join(', ') })}
         </p>
       )}
-      {card.outside > 0 ? (
+      {card.outside > 0 && !card.continents ? (
         <p className="mt-1 text-ink-2">
           {card.outside === 1 ? copy.outsideOne : interpolate(copy.outsideTemplate, { count: card.outside })}
         </p>

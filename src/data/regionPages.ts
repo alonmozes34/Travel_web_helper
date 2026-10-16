@@ -1,4 +1,4 @@
-import { normalize } from './countries';
+import { countries as allCountries, normalize } from './countries';
 
 /**
  * The regions that have a page of their own: "eSIM for the Balkans" and the
@@ -14,7 +14,7 @@ import { normalize } from './countries';
  * catalogue's coverage and a provider adapter's region matching, and an
  * editorial list must reach neither (`tests/region-pages.test.ts`).
  */
-export type RegionPageId = 'europe' | 'balkans' | 'south-east-asia';
+export type RegionPageId = 'europe' | 'balkans' | 'south-east-asia' | 'north-america' | 'latin-america' | 'world';
 
 export type RegionPage = {
   id: RegionPageId;
@@ -24,7 +24,7 @@ export type RegionPage = {
    * Where the list comes from, said on the page: a definition anyone can
    * check, or our own choice, which the page says is ours.
    */
-  basis: 'eea-uk-ch' | 'un-m49' | 'editorial';
+  basis: 'eea-uk-ch' | 'un-m49' | 'editorial' | 'world';
   /** When the list was last chosen. */
   chosenOn: string;
   /**
@@ -33,7 +33,18 @@ export type RegionPage = {
    * search"). Matched as the start of a word, after `normalize`.
    */
   aliases: readonly string[];
+  /**
+   * The page for a trip across continents (the owner, 16 October 2026: "plans
+   * for several continents, like a global SIM"): it lists the plans whose own
+   * lists span three continents or more, rather than asking which countries.
+   */
+  world?: true;
 };
+
+/** Every country a trip can go to, for the page across continents. */
+const everywhere = allCountries
+  .filter((country) => country.continent !== 'antarctic' && country.code !== 'IL')
+  .map((country) => country.code);
 
 export const regionPages: readonly RegionPage[] = [
   {
@@ -68,6 +79,38 @@ export const regionPages: readonly RegionPage[] = [
     basis: 'un-m49',
     chosenOn: '2026-10-15',
     aliases: ['דרום מזרח אסיה', 'מזרח אסיה', 'אסיה', 'South-East Asia', 'Southeast Asia', 'South East Asia', 'Asia', 'SEA'],
+  },
+  {
+    id: 'north-america',
+    // Ours: the three countries a North America trip usually crosses.
+    countries: ['US', 'CA', 'MX'],
+    basis: 'editorial',
+    chosenOn: '2026-10-16',
+    aliases: ['צפון אמריקה', 'אמריקה', 'ארצות הברית וקנדה', 'North America', 'America', 'USA and Canada'],
+  },
+  {
+    id: 'latin-america',
+    // The UN's South America and Central America (M49), without the
+    // territories that are not countries (the Falklands, French Guiana).
+    // Mexico is Central America there, and on the North America page too.
+    countries: [
+      'PE', 'BO', 'CL', 'AR', 'BR', 'CO', 'EC', 'MX', 'CR', 'GT', 'PA',
+      'BZ', 'HN', 'NI', 'SV', 'UY', 'PY', 'VE', 'GY', 'SR',
+    ],
+    basis: 'un-m49',
+    chosenOn: '2026-10-16',
+    aliases: [
+      'דרום אמריקה', 'מרכז אמריקה', 'אמריקה הלטינית', 'לטינית', 'הטיול הגדול',
+      'South America', 'Central America', 'Latin America', 'Americas',
+    ],
+  },
+  {
+    id: 'world',
+    countries: everywhere,
+    basis: 'world',
+    chosenOn: '2026-10-16',
+    aliases: ['עולמי', 'גלובלי', 'כל העולם', 'כמה יבשות', 'סים עולמי', 'World', 'Global', 'Worldwide'],
+    world: true,
   },
 ];
 

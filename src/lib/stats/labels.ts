@@ -43,6 +43,7 @@ export const pageLabels: Record<string, string> = {
   '/car-rental': 'השכרת רכב',
   '/codes': 'קודי הנחה',
   '/reviews': 'ביקורות',
+  '/providers': 'ספקים',
   '404': 'עמוד שלא קיים (404)',
   other: 'אחר',
 };

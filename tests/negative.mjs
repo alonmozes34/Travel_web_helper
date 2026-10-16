@@ -45,6 +45,8 @@ for (const [p, want] of [
   ['/esim/region', 404],
   ['/esim/region/BALKANS', 404],
   ['/esim/region/balkans/extra', 404],
+  ['/providers/nope', 404],
+  ['/providers/SAILY', 404],
   ['/no-such-page', 404],
   ['/fr', 404],
 ]) {

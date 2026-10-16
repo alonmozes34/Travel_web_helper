@@ -14,7 +14,7 @@ import { getDictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import { getCatalogue } from '@/lib/catalogue/getCatalogue';
 import { coverageOf } from '@/lib/comparison/catalogueCoverage';
-import { orderFamilies, priceFamilies, regionFamilies, type PricedFamily } from '@/lib/comparison/regionOffers';
+import { continentCounts, orderFamilies, pageFamilies, priceFamilies, type PricedFamily } from '@/lib/comparison/regionOffers';
 import { getDisplayCurrency } from '@/lib/currencyServer';
 import { formatData } from '@/lib/formatters/data';
 import { formatPrice } from '@/lib/formatters/price';
@@ -72,7 +72,7 @@ export default async function RegionPageView({
   const words = copy.regions[region.id];
 
   const [{ plans, rates }, currency] = await Promise.all([getCatalogue(), getDisplayCurrency(locale)]);
-  const families = orderFamilies(priceFamilies(regionFamilies(plans, region.countries), currency, rates));
+  const families = orderFamilies(priceFamilies(pageFamilies(plans, region), currency, rates));
   const { isCovered } = coverageOf(plans);
   const mock = families.flatMap((family) => family.plans).filter((plan) => plan.source === 'mock').length;
   const allMock = mock > 0 && families.every((family) => family.plans.every((plan) => plan.source === 'mock'));
@@ -82,7 +82,7 @@ export default async function RegionPageView({
     return { code, name: country.names[locale], flag: country.flag, href: localePath(locale, `/esim/${country.slug}`), hasPlans: isCovered(code) };
   });
   const nameOf = new Map(countryList.map((country) => [country.code, country.name]));
-  const cards = families.map((family) => card(family, locale, dict, nameOf));
+  const cards = families.map((family) => card(family, locale, dict, nameOf, Boolean(region.world)));
   // Countries chosen in the search before the region was (`?to=HR,ME`), ticked.
   const asked = (await searchParams).to;
   const carried = (Array.isArray(asked) ? asked.join(',') : (asked ?? '')).split(',').map((code) => code.split(':')[0]);
@@ -100,8 +100,11 @@ export default async function RegionPageView({
           initialTicked={initialTicked}
           copy={copy}
           searchPath={localePath(locale, '/search')}
+          pickable={!region.world}
+          homePath={localePath(locale, '/')}
         />
 
+        {region.world ? null : (
         <section aria-labelledby="region-countries" className="mt-12 border-t border-line-soft pt-8">
           <h2 id="region-countries" className="font-head text-xl font-semibold">
             {interpolate(copy.countriesTitleTemplate, { inRegion: words.inRegion })}
@@ -118,12 +121,13 @@ export default async function RegionPageView({
             ))}
           </ul>
         </section>
+        )}
       </Container>
     </>
   );
 }
 
-function card(family: PricedFamily, locale: Locale, dict: ReturnType<typeof getDictionary>, nameOf: Map<string, string>): RegionCard {
+function card(family: PricedFamily, locale: Locale, dict: ReturnType<typeof getDictionary>, nameOf: Map<string, string>, world: boolean): RegionCard {
   const provider = getProvider(family.providerId);
   const { coverage } = family;
   const label =
@@ -155,5 +159,13 @@ function card(family: PricedFamily, locale: Locale, dict: ReturnType<typeof getD
         }
       : null,
     hasUnlimited: family.hasUnlimited,
+    // Across continents: how many countries on each, not which are missing.
+    ...(world
+      ? {
+          continents: continentCounts(family.coveredCodes)
+            .map(({ continent, count }) => `${getRegionName(continent, locale) ?? continent} ${count}`)
+            .join(' · '),
+        }
+      : {}),
   };
 }
