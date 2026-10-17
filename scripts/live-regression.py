@@ -8,7 +8,12 @@ Searches: every country in the list for 7 days of regular use; 25 common
 destinations x 6 usages x 4 trip lengths; 30 multi-country trips x 3 usages.
 
 Checks, per page:
-- the list is in price order, cheapest first (the default), in each section;
+- the plans that last the trip are in price order, cheapest first (the
+  default). When none does, the closest are shown instead, the most days of
+  the trip first and then the price (the owner, 15 October 2026); the days a
+  card lasts are read from it ("about 5 days of the use you chose"), and a
+  card that is shorter than the trip and does not say its data days is left
+  out of that comparison rather than guessed;
 - every card has a link, and no link appears twice on a page;
 - aloSIM links carry a plan id, our affiliate and offer ids, a source id and
   the page's current Hebrew address (/he/destinations/…);
@@ -74,7 +79,9 @@ def parse(s):
         h=re.search(r'(ללא הגבלה|([\d.]+)(GB|MB))\s*·\s*,?\s*(\d+)\s*(ימים|יום)',face)
         pr=re.search(r'בערך\s*₪\s?([\d,]+(?:\.\d+)?)',face) or re.search(r'₪\s?([\d,]+(?:\.\d+)?)',face)
         link=re.search(r'href="(https://(?:yesim\.app|alosim\.com|zensim\.com|go\.saily\.site)[^"]*)"',a)
-        rows.append({'unl':bool(h) and h.group(1)=='ללא הגבלה','mb':(float(h.group(2))*(1024 if h.group(3)=='GB' else 1)) if h and h.group(2) else None,
+        dd=re.search(r'בערך\s*(\d+)\s*ימים לפי',face)
+        dd=int(dd.group(1)) if dd else 1 if 'בערך יום אחד לפי' in face else None
+        rows.append({'unl':bool(h) and h.group(1)=='ללא הגבלה','dd':dd,'mb':(float(h.group(2))*(1024 if h.group(3)=='GB' else 1)) if h and h.group(2) else None,
             'days':int(h.group(4)) if h else None,'ils':float(pr.group(1).replace(',','')) if pr else None,
             'status':'fits' if 'מספיק לכל הטיול' in face else 'short','link':html.unescape(link.group(1)) if link else None,
             'prov':(None if not link else 'yesim' if 'yesim.app' in link.group(1) else 'zensim' if 'zensim.com' in link.group(1) else 'saily' if 'go.saily.site' in link.group(1) else 'alosim'),'ok':bool(h and pr)})
@@ -103,9 +110,15 @@ for p in res:
     if any(not r['ok'] for r in rows): issues['unparsable-card'].append(key)
     fits=[r for r in rows if r['status']=='fits' and r['ok']]
     short=[r for r in rows if r['status']!='fits' and r['ok']]
-    for lst,name in ((fits,'fits'),(short,'short')):
-        for a,b in zip(lst,lst[1:]):
-            if b['ils']<a['ils']-0.01: issues[f'order-not-by-price ({name})'].append(f"{key}: ₪{a['ils']} before ₪{b['ils']}"); break
+    for a,b in zip(fits,fits[1:]):
+        if b['ils']<a['ils']-0.01: issues['order-not-by-price (fits)'].append(f"{key}: ₪{a['ils']} before ₪{b['ils']}"); break
+    # None lasts the trip: the most days of it first, then the price.
+    trip=sum(int(leg.split(':')[1]) for leg in p['q'].split(','))
+    lasts=lambda r: min(r['days'],trip) if r['unl'] else min(r['days'],r['dd'],trip) if r['dd'] is not None else None
+    known=[(lasts(r),r) for r in short if lasts(r) is not None]
+    for (da,a),(db,b) in zip(known,known[1:]):
+        if db>da: issues['order-not-by-days (short)'].append(f"{key}: {da} days before {db}"); break
+        if db==da and b['ils']<a['ils']-0.01: issues['order-not-by-price (short)'].append(f"{key}: ₪{a['ils']} before ₪{b['ils']}, both {da} days"); break
     links=[r['link'] for r in rows if r['link']]
     if len(links)!=len(set(links)): issues['same-link-twice'].append(key)
     for r in rows:
@@ -219,22 +232,38 @@ if withdrawn: print(f'alosim: {len(withdrawn)} plans withdrawn by aloSIM and alr
 if zensim_cards:
     zpaths=sorted({c[0] for c in zensim_cards})
     zsample=zpaths[datetime.date.today().toordinal()%5::max(1,len(zpaths)//25)][:25]
-    zprice={}
-    for path in zsample:
-        page=subprocess.run(['curl','-sS','-m','60','-r','0-307200','-A',UA,'https://zensim.com'+path],capture_output=True,text=True).stdout
+    zprice={}; unread=set(); wanted=C.defaultdict(set)
+    for path,pid,*_ in zensim_cards: wanted[path].add(pid)
+    def offers(page):
+        found={}
         def walk(o):
             if isinstance(o,list): [walk(x) for x in o]
             elif isinstance(o,dict):
                 if o.get('@type')=='Offer' and isinstance(o.get('url'),str):
                     pid=U.parse_qs(U.urlparse(o['url']).query).get('id',[''])[0]
-                    if pid: zprice[pid]=float(o.get('price') or 0)
+                    if pid: found[pid]=float(o.get('price') or 0)
                 [walk(x) for x in o.values()]
         for blk in re.findall(r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>',page,re.S):
             try: walk(json.loads(blk))
             except ValueError: pass
+        return found
+    for path in zsample:
+        # A read can come back short: on 17 October 2026 Algeria's page lacked
+        # two plans it carried on the next three reads. Read again, up to three
+        # times, before calling a plan missing; a page that never yields an
+        # offer is unreadable, which is not the same finding.
+        found={}
+        for attempt in range(3):
+            if attempt: time.sleep(5)
+            page=subprocess.run(['curl','-sS','-m','60','-r','0-307200','-A',UA,'https://zensim.com'+path],capture_output=True,text=True).stdout
+            found=offers(page)
+            if found and wanted[path]<=found.keys(): break
+        if not found: unread.add(path)
+        zprice.update(found)
     zrates=[]
     for path,pid,ils,key,link in zensim_cards:
         if path not in zsample: continue
+        if path in unread: issues['zensim-page-unreadable'].append(f"{key}: {link}"); continue
         if pid not in zprice: issues['zensim-plan-not-on-page'].append(f"{key}: {link}"); continue
         zrates.append((ils/zprice[pid],key,link,zprice[pid],ils))
     if zrates:
