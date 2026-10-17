@@ -789,40 +789,34 @@ try {
   await en.goto(B + '/esim', { waitUntil: 'domcontentloaded' });
   check('region', 'the destination index links the six region pages', (await en.locator('a[href^="/esim/region/"]').count()) === 6);
   // Across continents (16 October 2026): the plans spanning three or more,
-  // each with its countries per continent, and no wall of checkboxes.
+  // each with its countries per continent. And (17 October) a multiple
+  // choice: every country, a continent at a time, closed until opened, and
+  // from the ticks on to the comparison that puts the plan together.
   await en.goto(B + '/esim/region/world', { waitUntil: 'domcontentloaded' });
-  const worldCards = await en.locator('section[aria-labelledby="region-plans"] article').allInnerTexts();
-  check('region', 'the page across continents lists global plans by continent, with nothing to tick', worldCards.length > 0 && worldCards.every((t) => /מכסה \d+ מדינות: /.test(t)) && (await en.getByRole('checkbox').count()) === 0, `${worldCards.length} cards`);
-  // And (17 October 2026) something to do there: the owner found a page of
-  // plans with no way on. The trip is asked above them, as on the home page.
-  const worldSearch = en.getByRole('region', { name: 'לאילו מדינות אתם נוסעים?' });
-  const worldBox = worldSearch.getByRole('combobox', { name: 'יעד הטיול' });
-  check('region', 'the page across continents asks for the trip’s countries', (await worldBox.count()) === 1);
   await en.waitForTimeout(900);
-  for (const name of ['יפן', 'צרפת', 'ארצות הברית']) {
-    await worldBox.click(); await worldBox.type(name, { delay: 30 });
-    await en.getByRole('option', { name: new RegExp(name) }).first().click();
-    await en.waitForTimeout(300);
-  }
-  // The plans below narrow to the ones covering all three, as ticks do on the other region pages.
-  const worldPlans = en.locator('section[aria-labelledby="region-plans"]');
-  const narrowed = await worldPlans.locator('article').count();
-  const fitLine = (await worldPlans.innerText()).match(/(\d+) מתוך (\d+) מכסות את כל המדינות שבחרתם/);
-  check('region', 'the plans below narrow to those covering every chosen country', Boolean(fitLine) && Number(fitLine[1]) <= Number(fitLine[2]) && narrowed <= worldCards.length, fitLine?.[0] ?? `${narrowed} cards, no count line`);
-  const worldDays = worldSearch.getByRole('spinbutton', { name: /^לכמה ימים ב/ });
-  for (let i = 0; i < (await worldDays.count()); i++) await worldDays.nth(i).fill('5');
-  await Promise.all([en.waitForURL('**/search?**', { timeout: 15000 }), worldSearch.getByRole('button', { name: 'הצגת החבילות המתאימות' }).click()]);
-  const worldHeading = await en.locator('h1').first().innerText();
-  check('region', 'and goes on to compare a trip on three continents', ['יפן', 'צרפת', 'ארצות הברית'].every((name) => worldHeading.includes(name)), `${en.url().replace(B, '')} · ${worldHeading}`);
+  const worldCards = await en.locator('section[aria-labelledby="region-plans"] article').allInnerTexts();
+  check('region', 'the page across continents lists global plans by continent', worldCards.length > 0 && worldCards.every((t) => /מכסה \d+ מדינות: /.test(t)), `${worldCards.length} cards`);
+  const world = en.getByRole('group', { name: 'לאילו מדינות אתם נוסעים?' });
+  check('region', 'its countries come a continent at a time, closed, not as a wall of ticks', (await world.locator('details').count()) >= 6 && (await world.getByRole('checkbox').count()) === 0);
+  // One found by name, one ticked in its continent, one more by name.
+  const find = world.getByRole('searchbox', { name: 'חיפוש מדינה' });
+  await find.fill('יפן'); await world.getByRole('checkbox', { name: 'יפן', exact: true }).check(); await find.fill('');
+  await world.locator('summary', { hasText: 'אירופה' }).click(); await world.getByRole('checkbox', { name: 'צרפת', exact: true }).check();
+  await find.fill('ארצות'); await world.getByRole('checkbox', { name: 'ארצות הברית', exact: true }).check(); await find.fill('');
+  await en.waitForTimeout(300);
+  const worldText = await en.locator('main').innerText();
+  check('region', 'what was ticked is listed, and each continent says how many', worldText.includes('בחרתם: יפן, צרפת, ארצות הברית') && (await world.locator('summary', { hasText: 'אירופה' }).innerText()).includes('נבחרו: 1'));
+  const fitLine = worldText.match(/(\d+) מתוך (\d+) מכסות את כל המדינות שבחרתם/);
+  check('region', 'the plans below narrow to those covering every ticked country', Boolean(fitLine) && Number(fitLine[1]) <= Number(fitLine[2]), fitLine?.[0] ?? 'no count line');
+  await Promise.all([en.waitForURL('**/search?**', { timeout: 15000 }), en.getByRole('button', { name: 'להרכבת החבילה לטיול שלי' }).click()]);
+  check('region', 'on to the comparison, in the order they were ticked', decodeURIComponent(en.url()).includes('to=JP,FR,US'), en.url().replace(B, ''));
+  await en.waitForTimeout(1500);
+  check('region', 'where the days of each are asked', (await en.getByRole('spinbutton', { name: /^לכמה ימים ב/ }).count()) === 3);
   // Countries typed on the home page before "several continents" was chosen
-  // come with it, filling the form without claiming results it never showed.
+  // come ticked, their continents open.
   await en.goto(B + '/esim/region/world?to=JP,FR', { waitUntil: 'domcontentloaded' });
   await en.waitForTimeout(900);
-  check('region', 'countries chosen before arrive filled in', (await en.getByRole('button', { name: 'הסרת יפן' }).count()) === 1 && (await en.getByRole('button', { name: 'הסרת צרפת' }).count()) === 1);
-  await en.getByRole('button', { name: 'הסרת יפן' }).click();
-  await en.getByRole('button', { name: 'הסרת צרפת' }).click();
-  await en.waitForTimeout(800);
-  check('region', 'and removing them stays on the page, with no stale-results notice', en.url().includes('/esim/region/world') && (await en.getByRole('button', { name: 'עדכון התוצאות' }).count()) === 0, en.url().replace(B, ''));
+  check('region', 'countries chosen before arrive ticked', (await en.getByRole('checkbox', { name: 'יפן', exact: true }).isChecked()) && (await en.getByRole('checkbox', { name: 'צרפת', exact: true }).isChecked()));
   await en.goto(B + '/', { waitUntil: 'domcontentloaded' });
   await en.waitForTimeout(1000);
   await en.getByRole('combobox', { name: 'יעד הטיול' }).type('אמריקה', { delay: 40 });

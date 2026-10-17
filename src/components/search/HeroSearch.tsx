@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ChipLink } from "@/components/ui/Chip";
 import { countries, popularCountries, type Country } from "@/data/countries";
@@ -39,8 +39,6 @@ export function HeroSearch({
   initialProfile = { destinations: [] },
   showPopular = true,
   variant = "hero",
-  answersTrip = true,
-  onDestinationsChange,
 }: {
   locale: Locale;
   dict: Dictionary;
@@ -53,15 +51,6 @@ export function HeroSearch({
    * telling them to do what they have done. The box stays one tap away.
    */
   variant?: "hero" | "compact";
-  /**
-   * False where `initialProfile` only fills the form in, on a page that shows
-   * no results for it: the page across continents, carrying the countries
-   * typed before it was chosen. Nothing there is waiting to be applied, and
-   * removing the last stop empties the form rather than a page of results.
-   */
-  answersTrip?: boolean;
-  /** Told the trip's countries as they change: the page across continents narrows its plans by them. */
-  onDestinationsChange?: (codes: string[]) => void;
 }) {
   const router = useRouter();
   const [profile, setProfile] = useState<TripProfile>(initialProfile);
@@ -106,13 +95,8 @@ export function HeroSearch({
    * case clears the page itself, in `setDestinations`, and never raises the
    * bar below.
    */
-  const hasResults = answersTrip && initialProfile.destinations.length > 0;
-
-  const codes = profile.destinations.map((d) => d.countryCode).join(",");
-  useEffect(() => {
-    onDestinationsChange?.(codes ? codes.split(",") : []);
-  }, [codes, onDestinationsChange]);
-  const isClearingTrip = profile.destinations.length === 0 && hasResults;
+  const isClearingTrip =
+    profile.destinations.length === 0 && initialProfile.destinations.length > 0;
 
   /**
    * The trip in this form against the one the page was rendered for. Anything
@@ -125,7 +109,7 @@ export function HeroSearch({
    * button on a form that already had two.
    */
   const hasPendingChanges =
-    hasResults &&
+    initialProfile.destinations.length > 0 &&
     !isClearingTrip &&
     !sameTrip(profile, initialProfile);
 
@@ -198,7 +182,7 @@ export function HeroSearch({
     // gone with them, but how the connection will be used, or the GB figure
     // they typed, is still their answer — dropping it would make clearing the
     // map silently reset the questionnaire too.
-    if (destinations.length === 0 && hasResults) {
+    if (destinations.length === 0 && initialProfile.destinations.length > 0) {
       setError(null);
       router.push(`${localePath(locale, "/search")}${tripProfileToQuery(next)}`);
     }
@@ -210,7 +194,7 @@ export function HeroSearch({
     // anything, and refusing with "choose a destination" left them stranded on
     // a page still showing the country they had just deleted — the heading,
     // the flag and every plan. The empty search is where that request lands.
-    if (profile.destinations.length === 0 && hasResults) {
+    if (profile.destinations.length === 0 && initialProfile.destinations.length > 0) {
       router.push(`${localePath(locale, "/search")}${tripProfileToQuery(profile)}`);
       return;
     }

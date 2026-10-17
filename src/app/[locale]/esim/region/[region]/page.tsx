@@ -3,8 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MockDataNotice } from '@/components/content/MockDataNotice';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { RegionPicker, type RegionCard, type RegionCountry } from '@/components/region/RegionPicker';
-import { WorldPicker } from '@/components/region/WorldPicker';
+import { RegionPicker, type RegionCard, type RegionCountry, type RegionGroup } from '@/components/region/RegionPicker';
 import { Container } from '@/components/ui/Container';
 import { getCountryByCode } from '@/data/countries';
 import { getProvider } from '@/data/providers';
@@ -94,30 +93,15 @@ export default async function RegionPageView({
       <PageHeader title={words.title} intro={words.intro} note={words.basisNote} />
       <Container className="py-10">
         {mock > 0 ? <MockDataNotice dict={dict} mixed={!allMock} className="mb-6 max-w-[80ch]" /> : null}
-        {/* Across continents there is no short list to tick, so the trip's
-            countries are typed, in the home page's search, and the plans below
-            narrow to them as ticks narrow them on the other region pages (the
-            owner, 17 October 2026: a page of plans with nothing to do on it). */}
-        {region.world ? (
-          <WorldPicker
-            locale={locale}
-            dict={dict}
-            inRegion={words.inRegion}
-            countries={countryList}
-            cards={cards}
-            initialChosen={initialTicked}
-            searchPath={localePath(locale, '/search')}
-          />
-        ) : (
-          <RegionPicker
-            inRegion={words.inRegion}
-            countries={countryList}
-            cards={cards}
-            initialTicked={initialTicked}
-            copy={copy}
-            searchPath={localePath(locale, '/search')}
-          />
-        )}
+        <RegionPicker
+          inRegion={words.inRegion}
+          countries={countryList}
+          cards={cards}
+          initialTicked={initialTicked}
+          copy={copy}
+          searchPath={localePath(locale, '/search')}
+          groups={region.world ? continentGroups(countryList, locale) : undefined}
+        />
 
         {region.world ? null : (
         <section aria-labelledby="region-countries" className="mt-12 border-t border-line-soft pt-8">
@@ -140,6 +124,21 @@ export default async function RegionPageView({
       </Container>
     </>
   );
+}
+
+/** The order a traveller from Israel looks for a continent in. */
+const CONTINENT_ORDER = ['europe', 'asia', 'middle-east', 'north-america', 'south-america', 'caribbean', 'africa', 'oceania'];
+
+/** The page across continents: every country, a continent at a time, by name. */
+function continentGroups(countries: RegionCountry[], locale: Locale): RegionGroup[] {
+  return CONTINENT_ORDER.map((id) => ({
+    id,
+    name: getRegionName(id, locale) ?? id,
+    codes: countries
+      .filter((country) => getCountryByCode(country.code)?.continent === id)
+      .sort((a, b) => a.name.localeCompare(b.name, locale))
+      .map((country) => country.code),
+  })).filter((group) => group.codes.length > 0);
 }
 
 function card(family: PricedFamily, locale: Locale, dict: ReturnType<typeof getDictionary>, nameOf: Map<string, string>, world: boolean): RegionCard {
