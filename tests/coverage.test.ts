@@ -5,6 +5,8 @@ import { getPlansCoveringAll, getPlansForCountry, mockPlans } from '@/data/mockP
 import { getRegion } from '@/data/regions';
 import { buildComparison } from '@/lib/comparison/buildComparison';
 import { buildCombination } from '@/lib/comparison/buildCombination';
+import { purchasesNote } from '@/lib/comparison/combinationNote';
+import { getDictionary } from '@/i18n/getDictionary';
 import { estimateDataNeed } from '@/lib/comparison/estimateDataNeed';
 import { mockFxRates } from '@/data/fxRates';
 import { coversAll } from '@/lib/types/coverage';
@@ -130,6 +132,26 @@ describe('combinations', () => {
       rates: mockFxRates,
     });
     assert.equal(combination, null);
+  });
+});
+
+describe('the line under a combination', () => {
+  // It said "two purchases from two providers" whatever the card held; a trip
+  // across three continents showed it under three plans from two providers.
+  const legs = (...providers: string[]) => ({ legs: providers.map((providerId) => ({ plan: { providerId } })) }) as Parameters<typeof purchasesNote>[0];
+  const he = getDictionary('he');
+  const en = getDictionary('en');
+
+  test('counts the plans and the providers', () => {
+    assert.equal(purchasesNote(legs('alosim', 'yesim'), he), 'שתי רכישות נפרדות אצל שני ספקים, כל אחת בהתקנה משלה.');
+    assert.equal(purchasesNote(legs('alosim', 'alosim', 'yesim'), he), '3 רכישות נפרדות אצל שני ספקים, כל אחת בהתקנה משלה.');
+    assert.equal(purchasesNote(legs('alosim', 'yesim', 'saily'), he), '3 רכישות נפרדות אצל 3 ספקים, כל אחת בהתקנה משלה.');
+    assert.equal(purchasesNote(legs('alosim', 'alosim'), he), 'שתי רכישות נפרדות אצל אותו ספק, כל אחת בהתקנה משלה.');
+  });
+
+  test('in English too', () => {
+    assert.equal(purchasesNote(legs('alosim', 'alosim', 'yesim'), en), '3 separate purchases from two providers, each with its own installation.');
+    assert.equal(purchasesNote(legs('yesim', 'yesim'), en), 'Two separate purchases from the same provider, each with its own installation.');
   });
 });
 

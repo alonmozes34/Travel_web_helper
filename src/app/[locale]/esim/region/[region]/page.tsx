@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { MockDataNotice } from '@/components/content/MockDataNotice';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { RegionPicker, type RegionCard, type RegionCountry } from '@/components/region/RegionPicker';
+import { WorldPicker } from '@/components/region/WorldPicker';
 import { Container } from '@/components/ui/Container';
 import { getCountryByCode } from '@/data/countries';
 import { getProvider } from '@/data/providers';
@@ -93,16 +94,30 @@ export default async function RegionPageView({
       <PageHeader title={words.title} intro={words.intro} note={words.basisNote} />
       <Container className="py-10">
         {mock > 0 ? <MockDataNotice dict={dict} mixed={!allMock} className="mb-6 max-w-[80ch]" /> : null}
-        <RegionPicker
-          inRegion={words.inRegion}
-          countries={countryList}
-          cards={cards}
-          initialTicked={initialTicked}
-          copy={copy}
-          searchPath={localePath(locale, '/search')}
-          pickable={!region.world}
-          homePath={localePath(locale, '/')}
-        />
+        {/* Across continents there is no short list to tick, so the trip's
+            countries are typed, in the home page's search, and the plans below
+            narrow to them as ticks narrow them on the other region pages (the
+            owner, 17 October 2026: a page of plans with nothing to do on it). */}
+        {region.world ? (
+          <WorldPicker
+            locale={locale}
+            dict={dict}
+            inRegion={words.inRegion}
+            countries={countryList}
+            cards={cards}
+            initialChosen={initialTicked}
+            searchPath={localePath(locale, '/search')}
+          />
+        ) : (
+          <RegionPicker
+            inRegion={words.inRegion}
+            countries={countryList}
+            cards={cards}
+            initialTicked={initialTicked}
+            copy={copy}
+            searchPath={localePath(locale, '/search')}
+          />
+        )}
 
         {region.world ? null : (
         <section aria-labelledby="region-countries" className="mt-12 border-t border-line-soft pt-8">

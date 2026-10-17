@@ -12,6 +12,7 @@ import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { interpolate } from '@/i18n/interpolate';
 import type { Combination } from '@/lib/comparison/buildCombination';
+import { purchasesNote } from '@/lib/comparison/combinationNote';
 import { track } from '@/lib/analytics/events';
 import { count } from '@/lib/stats/client';
 import { useTripExtras } from '@/components/extras/TripExtrasProvider';
@@ -129,7 +130,7 @@ export function CombinationCard({
       </div>
 
       <p className="mt-2 text-sm text-ink-3" aria-live="polite">
-        {noted && combination.legs.some((leg) => !leg.plan.affiliateUrl) ? dict.plan.prototypeLink : dict.combination.note}
+        {noted && combination.legs.some((leg) => !leg.plan.affiliateUrl) ? dict.plan.prototypeLink : purchasesNote(combination, dict)}
       </p>
 
       {/* When no single plan covers the trip this card is the whole page, and

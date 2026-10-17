@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ProviderLogo } from '@/components/plans/ProviderCell';
@@ -52,7 +51,7 @@ export function RegionPicker({
   copy,
   searchPath,
   pickable = true,
-  homePath = '/',
+  chosen,
 }: {
   /** "in the Balkans": Hebrew folds the preposition into the name ("בבלקן"). */
   inRegion: string;
@@ -64,7 +63,11 @@ export function RegionPicker({
   searchPath: string;
   /** False on the page across continents, where ticking among every country would be a wall. */
   pickable?: boolean;
-  homePath?: string;
+  /**
+   * On the page across continents: the countries chosen in the search above
+   * it, which narrow the plans the way ticks do here.
+   */
+  chosen?: string[];
 }) {
   const router = useRouter();
   const [ticked, setTicked] = useState<string[]>(initialTicked);
@@ -72,7 +75,8 @@ export function RegionPicker({
   const [error, setError] = useState('');
 
   const order = countries.map((country) => country.code);
-  const fitting = cards.filter((card) => ticked.every((code) => card.covered.includes(code)));
+  const active = chosen ?? ticked;
+  const fitting = cards.filter((card) => active.every((code) => card.covered.includes(code)));
   const shown = all ? fitting : fitting.slice(0, FIRST_CARDS);
 
   const toggle = (code: string, on: boolean) => {
@@ -82,14 +86,6 @@ export function RegionPicker({
 
   return (
     <>
-      {pickable ? null : (
-        <p className="max-w-[80ch] rounded-[20px] border border-line bg-surface p-5 text-ink md:p-6">
-          {copy.worldHint}{' '}
-          <Link href={homePath} className="inline-flex min-h-6 items-center font-semibold text-brand underline underline-offset-4">
-            {copy.worldSearchLink}
-          </Link>
-        </p>
-      )}
       {pickable ? (
       <form
         action={searchPath}
@@ -146,9 +142,14 @@ export function RegionPicker({
           {interpolate(copy.plansTitleTemplate, { inRegion })}
         </h2>
         <p className="mt-1 text-ink-2">{pickable ? copy.orderNote : copy.worldOrderNote}</p>
+        {pickable ? null : (
+          <p aria-live="polite" className="mt-2 font-semibold text-teal-ink">
+            {active.length > 0 ? interpolate(copy.worldFitCountTemplate, { count: fitting.length, total: cards.length }) : ''}
+          </p>
+        )}
         {fitting.length === 0 ? (
           <p className="mt-4 rounded-md border border-line bg-surface px-4 py-3 text-ink">
-            {cards.length === 0 ? copy.noneAtAll : copy.noneFit}
+            {cards.length === 0 ? copy.noneAtAll : pickable ? copy.noneFit : copy.worldNoneFit}
           </p>
         ) : (
           <ul className="mt-4 grid gap-3">
