@@ -13,6 +13,8 @@
 #      demo does not (it found a 4px overflow on 28 September 2026)
 #   4. the live regression against the production site: 940 searches, every
 #      card's order, link and (for Yesim) price and plan
+#   5. every page of the production site in both languages, every provider
+#      with plans listed, and the Booking.com links (scripts/live-pages.py)
 #
 # aloSIM's catalogue needs credentials that are not in this environment and
 # must never be written to it; production has them, so step 4 covers aloSIM.
@@ -126,6 +128,8 @@ line ""
 line "## Live site"
 step "live regression (940 searches)" env REGRESSION_OUT="$LOGS/live.json" python3 scripts/live-regression.py https://www.yeshklita.com
 grep -E '^## |^yesim ILS/EUR|^alosim: |pages,' "$LOGS/live_regression_(940_searches).log" 2>/dev/null | sed 's/^## /  - /' >> "$REPORT" || true
+step "live pages (every page in both languages, providers, Booking links)" python3 scripts/live-pages.py https://www.yeshklita.com
+grep -E '^(pages|providers|booking): |^PROBLEM ' "$LOGS/live_pages_(every_page_in_both_languages,_providers,_Booking_links).log" 2>/dev/null | sed 's/^/  - /' >> "$REPORT" || true
 
 line ""
 if [ "$FAILED" = 0 ]; then line "**Result: all green.**"; else line "**Result: failures above.** Logs: $LOGS"; fi
